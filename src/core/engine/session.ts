@@ -177,7 +177,8 @@ export class SessionEngine {
     this.itemCounter++;
     return {
       ...g,
-      key: `${this.cfg.sessionId}:${this.itemCounter}`,
+      // Unique within the session (records also carry sid); retries share it.
+      key: String(this.itemCounter),
       skillId: skill.id,
       genId: gen.id,
       genVersion: gen.version,

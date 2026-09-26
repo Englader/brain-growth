@@ -5,7 +5,7 @@
  *   ['s', 1, ts, sid, phase, …]          session record
  *   ['e', 1, ts, sid, name, data]        event record
  *
- * ~45% smaller than keyed JSON (localStorage is ~5 MB per ORIGIN). Rules for
+ * ~55% smaller than keyed JSON (localStorage is ~5 MB per ORIGIN). Rules for
  * forward compatibility:
  *  - Appending a field at the END of a field list does not bump the version;
  *    older readers ignore extras, newer readers default missing tail fields.

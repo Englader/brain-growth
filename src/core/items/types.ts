@@ -77,7 +77,7 @@ export interface GeneratedItem {
 
 /** A generated item bound to its provenance; this is what the log records. */
 export interface Item extends GeneratedItem {
-  /** Unique id of this presentation (retries of the same item share it). */
+  /** Id of this presentation, unique within its session (retries of the same item share it). */
   key: string;
   skillId: SkillId;
   genId: string;

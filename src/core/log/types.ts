@@ -13,7 +13,7 @@ export interface ItemRecord {
   type: 'item';
   ts: number;
   sid: string;
-  /** Unique id of the item presentation; retries share it. */
+  /** Item presentation id, unique within the session; retries share it. */
   key: string;
   skill: SkillId;
   gen: string;

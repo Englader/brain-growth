@@ -2,8 +2,8 @@
  * App-shell strategy: everything the game needs is precached at install, so
  * a bad connection can never break a session or a streak. Updates install in
  * the background and wait until the page says it is safe (see register.ts). */
-const VERSION = '8ead382582bf';
-const ASSETS = ["./","./assets/index-BmYNSpm4.js","./assets/index-BmdQ58p2.css","./assets/inter-cyrillic-wght-normal-DqGufNeO.woff2","./assets/inter-latin-wght-normal-Dx4kXJAl.woff2","./assets/nunito-cyrillic-wght-normal-CY6AOgYE.woff2","./assets/nunito-latin-wght-normal-BzFMHfZw.woff2","./icons/icon-192.png","./icons/icon-512.png","./icons/icon.svg","./manifest.webmanifest"];
+const VERSION = 'b7344075c40f';
+const ASSETS = ["./","./assets/index-BmdQ58p2.css","./assets/index-BtctcHiU.js","./assets/inter-cyrillic-wght-normal-DqGufNeO.woff2","./assets/inter-latin-wght-normal-Dx4kXJAl.woff2","./assets/nunito-cyrillic-wght-normal-CY6AOgYE.woff2","./assets/nunito-latin-wght-normal-BzFMHfZw.woff2","./icons/icon-192.png","./icons/icon-512.png","./icons/icon.svg","./manifest.webmanifest"];
 const CACHE = `hopa-${VERSION}`;
 
 self.addEventListener('install', (event) => {
