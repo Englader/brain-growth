@@ -37,7 +37,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | # | Assumption / decision | Why | If wrong |
 |---|---|---|---|
 | A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **87 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
-| A-6 | **Deploy = commit the built site to `docs/`**, served by Pages "Deploy from a branch → main /docs". CI rebuilds and fails if `docs/` is stale; the build is byte-deterministic (verified). | You asked for no build step to deploy. The repo *is* the deployment. | To stop committing build output, switch Pages to "GitHub Actions" and add a deploy job. That is ~15 lines in `ci.yml`. |
+| A-6 | **Deploy = GitHub Actions.** Pages' source is set to "GitHub Actions" (your change). On every push to `main`, CI typechecks, tests, builds to `dist/`, runs the end-to-end check against that build, and only then publishes **the same `dist/`** with `actions/deploy-pages`. Build output is no longer committed. | Nobody runs a build step to deploy: merging is deploying. A red CI can never reach the site, and diffs no longer carry hashed bundle files. | To go back to "Deploy from a branch": set `outDir: 'docs'` in `vite.config.ts`, commit the build, and drop the `deploy` job. The build is byte-deterministic, so CI can check a committed copy is fresh. |
 | A-8 | **All progress lives in localStorage** (as required), namespaced `bg:`. The session log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item). When the namespace passes a 3.5 MB soft budget, raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not). | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month, so **two daily players keep ≈5 months of per-item history on-device**. Backups always contain everything still stored. | Raw item history is the substrate for every future improvement, so moving the log to **IndexedDB** behind the existing `KV` interface is scheduled in v1 (§4 step 11) before compaction would start. |
 | A-9 | **iOS Safari may evict localStorage after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
 
@@ -410,9 +410,9 @@ Input that can't be read is **never** a wrong answer; it just asks again.
 
 ```
 index.html                 app shell (Vite entry)
-vite.config.ts             build → docs/, service-worker generator plugin
-docs/                      BUILT SITE served by GitHub Pages (committed, CI-verified fresh)
-public/                    manifest, icons, .nojekyll (and audio/<locale>/*.mp3 once recorded)
+vite.config.ts             build → dist/ (not committed), service-worker generator plugin
+.github/workflows/ci.yml   typecheck, tests, build, e2e; deploys dist/ to Pages from main
+public/                    manifest, icons (and audio/<locale>/*.mp3 once recorded)
 src/
   core/                    pure TS, no DOM — the engine and the rules
     rng.ts rational.ts time.ts hash.ts types.ts
@@ -662,7 +662,7 @@ npm ci
 npm run dev          # http://localhost:5173
 npm test             # unit + simulation + i18n/font tests
 npm run sim          # engine simulation report
-npm run build        # typecheck + build into docs/
+npm run build        # typecheck + build into dist/
 npm run e2e          # screenshots in ./screens (needs Chromium; see e2e/run.mjs)
 ```
 
@@ -674,13 +674,13 @@ Useful URL switches:
 
 ### 3.4 Deploy to GitHub Pages (exact steps)
 
-1. Merge `claude/math-game-design-implementation-8chvvt` into `main` (open a PR and merge it).
-2. In the repository: **Settings → Pages → Build and deployment → Source: "Deploy from a branch" → Branch: `main`, Folder: `/docs` → Save.**
-3. After about a minute the game is live at **https://englader.github.io/brain-growth/**. Nothing needs to be built to deploy; `docs/` already contains the site, including `.nojekyll`.
+1. **Settings → Pages → Build and deployment → Source: "GitHub Actions".** (Already done.)
+2. Merge `claude/math-game-design-implementation-8chvvt` into `main` (open a PR and merge it). CI runs; its `deploy` job publishes the tested build.
+3. About a minute after CI finishes, the game is live at **https://englader.github.io/brain-growth/** (the `deploy` job's summary links to it). Nothing is built or committed by hand.
 4. On each child's device, open the URL once online. After that it works offline.
    - **iPhone/iPad:** Share → *Add to Home Screen*. This also protects its storage from Safari's 7-day eviction.
    - **Android:** ⋮ → *Install app*.
-5. To ship a change: edit, run `npm run build`, commit (including `docs/`), and push to `main`. CI fails if you forget to rebuild. Open apps pick up the new version at the next menu screen, never mid-session.
+5. To ship a change: push (or merge) to `main`. If any check fails, nothing is deployed and the live site stays on the last good version. Open apps pick up the new version at the next menu screen, never mid-session.
 
 ### 3.5 Known limitations of the slice
 

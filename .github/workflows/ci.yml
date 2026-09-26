@@ -1,12 +1,21 @@
 name: CI
 
+# Every push and PR: typecheck, tests, build, and the end-to-end run.
+# Pushes to main then deploy that same tested dist/ to GitHub Pages
+# (Settings → Pages → Source: GitHub Actions).
+
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,13 +26,6 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - name: docs/ matches the source (GitHub Pages serves docs/ directly)
-        run: |
-          if ! git diff --quiet -- docs; then
-            echo "::error::docs/ is stale. Run 'npm run build' and commit docs/."
-            git diff --stat -- docs
-            exit 1
-          fi
       - name: Install Chromium for the end-to-end run
         run: npx playwright-core install --with-deps chromium
       - name: End-to-end flow in Macedonian at 360px (errors and horizontal overflow fail the build)
@@ -35,3 +37,26 @@ jobs:
         with:
           name: screens
           path: screens/
+      - name: Package the tested build for GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist/
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # Queue deploys; never cancel one that is already publishing.
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

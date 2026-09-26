@@ -1,6 +1,6 @@
 /**
  * End-to-end smoke run + screenshots, Macedonian first (if it fits in MK it
- * fits in EN), at 360×740 (small Android phone), against the built docs/.
+ * fits in EN), at 360×740 (small Android phone), against the built dist/.
  *
  *   npm run build && npm run e2e
  *
@@ -16,7 +16,7 @@ const LOCAL = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const EXE = process.env.CHROMIUM || (existsSync(LOCAL) ? LOCAL : undefined);
 mkdirSync(OUT, { recursive: true });
 
-const server = await serve('docs');
+const server = await serve('dist');
 const browser = await chromium.launch({ executablePath: EXE });
 const ctx = await browser.newContext({
   viewport: { width: 360, height: 740 },

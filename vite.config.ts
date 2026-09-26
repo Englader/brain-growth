@@ -1,7 +1,7 @@
 /**
- * Build: `npm run build` writes the static site to docs/, which GitHub Pages
- * serves directly (Settings → Pages → Deploy from branch → main /docs).
- * No build step is needed to deploy; the committed docs/ IS the deployment.
+ * Build: `npm run build` writes the static site to dist/ (not committed). CI
+ * builds, tests and e2e-checks it, then deploys that exact dist/ to GitHub
+ * Pages on every push to main (.github/workflows/ci.yml).
  *
  * The sw plugin generates sw.js with the exact list of emitted files and a
  * content hash as its version, so every deploy precaches the full app.
@@ -55,7 +55,7 @@ export default defineConfig({
   base: './',
   plugins: [preact(), serviceWorker()],
   build: {
-    outDir: 'docs',
+    outDir: 'dist',
     emptyOutDir: true,
     assetsDir: 'assets',
     sourcemap: false,

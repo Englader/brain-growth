@@ -6,7 +6,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=mode.sprint etc. for flags)
 npm run check      # typecheck + 188 tests (incl. locale parity and font coverage)
-npm run build      # writes docs/ — commit it; GitHub Pages serves docs/ directly
+npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run e2e        # Macedonian-first flow at 360px; fails on errors or horizontal overflow
 ```
 

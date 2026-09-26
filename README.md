@@ -4,17 +4,14 @@ An adaptive, bilingual (English / Македонски) maths game for ages 5–
 
 It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device, with backup export and import.
 
-- **Play:** https://englader.github.io/brain-growth/ (once Pages is enabled; see below)
+- **Play:** https://englader.github.io/brain-growth/ (live after the first push to `main`; see below)
 - **Design document** (assumptions, design, data model, slice, build order, roadmap): [DESIGN.md](DESIGN.md)
 - **Skill graph** (100 skills, generated): [design/skill-graph.md](design/skill-graph.md)
 - **How to add a mode, skill, achievement or language:** [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## Deploy
 
-1. Merge into `main`.
-2. **Settings → Pages → Deploy from a branch → `main` / `/docs` → Save.**
-
-`docs/` is the built site and is committed. CI fails if it's stale, so after changing code run `npm run build` and commit `docs/`.
+Pages is set to **Settings → Pages → Source: GitHub Actions**. Every push to `main` runs CI (typecheck, tests, build, end-to-end run) and, only if all of it passes, publishes that exact build. There is nothing to build or commit by hand: merge into `main` and the site updates about a minute after CI finishes. To redeploy without a code change, use **Actions → CI → Run workflow** on `main`.
 
 ## Develop
 
@@ -23,7 +20,7 @@ npm ci
 npm run dev      # http://localhost:5173
 npm run check    # typecheck + tests
 npm run sim      # simulated-learner report for the adaptive engine
-npm run build    # → docs/
+npm run build    # → dist/ (not committed; CI builds and deploys)
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 
