@@ -1,7 +1,7 @@
 node_modules/
 .vite/
-coverage/
-test-results/
-screens/
+/coverage/
+/test-results/
+/screens/
 *.log
 .DS_Store
