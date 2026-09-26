@@ -22,9 +22,22 @@ export interface KV {
   keys(prefix?: string): string[];
   /** Approximate bytes used by our namespace (UTF-16: 2 bytes per char). */
   bytesUsed(): number;
+
+  // Optional members, implemented only by a KV that keeps log months in a
+  // second, asynchronous store (HybridKV). Plain KVs leave them out and keep
+  // today's single-store behaviour.
+  /** Where log months live; Repo.init() records it as Meta.logStore. */
+  readonly logStore?: 'idb';
+  /** Bytes held by the log store (same UTF-16 measure as bytesUsed()). */
+  idbBytes?(): number;
+  /** Per-store compaction budget for log months; replaces the localStorage soft budget. */
+  logsOverBudget?(): boolean;
+  /** Resolves once every accepted write has been committed to durable storage. */
+  flush?(): Promise<void>;
 }
 
-function isQuotaError(e: unknown): boolean {
+/** Quota errors from localStorage and IndexedDB (browser-specific codes and names). */
+export function isQuotaError(e: unknown): boolean {
   return (
     e instanceof DOMException &&
     (e.code === 22 || e.code === 1014 || e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED')
