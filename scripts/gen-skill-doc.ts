@@ -23,6 +23,7 @@ let current = -1;
 for (const s of GRAPH.topo().sort((a, b) => a.grade - b.grade || a.id.localeCompare(b.id))) {
   const g = Math.floor(s.grade);
   if (g !== current) {
+    if (current !== -1) lines.push('');
     current = g;
     lines.push(`## ${gradeName(s.grade)}`, '', '| | id | English | Македонски | pos | band | prerequisites | tags |', '|---|---|---|---|---|---|---|---|');
   }
