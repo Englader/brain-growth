@@ -24,6 +24,12 @@ export interface BandConfig {
   quickItems: number;
   /** Target minutes per day: normalises effort in the family league. */
   targetMinutes: number;
+  /**
+   * Skills below this curriculum grade are never offered as review or
+   * maintenance (still reachable as frontier if genuinely not yet learned).
+   * Keeps an older child from being served content that reads as babyish.
+   */
+  reviewFloorGrade: number;
   /** Timed (opt-in) modes may be offered at all. Never in Band A. */
   timersAllowed: boolean;
 

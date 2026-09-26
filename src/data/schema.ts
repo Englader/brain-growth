@@ -22,6 +22,8 @@ export interface Meta {
   deviceFlags: Record<string, boolean>;
   /** Hold-to-open adult gate completed on this device (not a security boundary). */
   adultSeen: boolean;
+  /** Language for screens shown before a player is chosen (additive field, optional). */
+  uiLocale?: string;
 }
 
 export const KEYS = {

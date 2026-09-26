@@ -4,6 +4,7 @@ import { daysUntilDue, isDue, memoryEvent, retrievability, startMemory } from '.
 import type { SkillState } from '../src/core/engine/model';
 import { MEMORY } from '../src/core/engine/params';
 import { replay } from '../src/core/engine/replay';
+import { startPlacement } from '../src/core/engine/placement';
 import { chooseSkill } from '../src/core/engine/scheduler';
 import { SessionEngine, type LearnerSnapshot } from '../src/core/engine/session';
 import type { LogRecord } from '../src/core/log/types';
@@ -138,6 +139,28 @@ describe('scheduler', () => {
     }
     expect(sources.has('review')).toBe(true);
     expect(sources.has('frontier')).toBe(true);
+  });
+});
+
+describe('placement never turns into babyish review', () => {
+  it('skills far below a teen are not due for weeks, and the Band C review floor excludes them', () => {
+    const clock = new SimClock(T0);
+    const e = new SessionEngine({ graph: GRAPH, model: glickoElo, now: clock.now }, { skills: {}, placement: { done: false, state: startPlacement(13) } }, {
+      sessionId: 'teen', seed: 7, band: { id: 'C', targetP: 0.82, allowReading: true, maxReturns: 3, reviewFloor: 3 },
+      mode: { id: 'hop', requires: ['numberLine'] }, plannedItems: 40, stretch: false, timed: false,
+    });
+    const seen: string[] = [];
+    for (let p = e.next(); p; p = e.next()) {
+      seen.push(p.item.skillId);
+      clock.advance(4000);
+      e.answer(p, { response: { kind: 'typed', raw: key(p.item.answer.value) }, latencyMs: 3000, hint: false, locale: 'en', conv: EN_CONV, input: 'typed' });
+    }
+    const count = e.snapshot.skills['num.count.10']!;
+    expect(count.proficientAt).toBeDefined();
+    expect(count.h!).toBeGreaterThan(30);
+    // Nothing from preschool/grade-1 content was served to the 13-year-old after placement.
+    const afterPlacement = seen.slice(8);
+    expect(afterPlacement.filter((id) => GRAPH.get(id).grade < 3)).toEqual([]);
   });
 });
 

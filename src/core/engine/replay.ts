@@ -9,11 +9,10 @@ import { EVENTS } from '../log/types';
 import type { SkillId } from '../types';
 import type { SkillState } from './model';
 import { applyFirstAttempt } from './observe';
-import { placementPriors, startPlacement, type PlacementState } from './placement';
+import { placementMemory, placementPriors, startPlacement, type PlacementState } from './placement';
 import { PLACEMENT } from './params';
 import type { EngineContext } from './session';
 import { isUnlocked } from './scheduler';
-import { startMemory } from './memory';
 
 /** Gaussian posterior on the placement grid from a logged (g, sd) summary. */
 export function placementFromSummary(g: number, sd: number): PlacementState {
@@ -38,9 +37,7 @@ export function replay(ctx: Pick<EngineContext, 'graph' | 'model'>, records: rea
         let st = ctx.model.init(skill, r.ts, { ...prior, origin: 'placement' });
         const status = ctx.model.status(st, skill, true, r.ts);
         st = { ...st, status };
-        if (status === 'proficient' || status === 'mastered') {
-          st = startMemory({ ...st, proficientAt: r.ts }, r.ts - 1.5 * 86_400_000, 2);
-        }
+        if (status === 'proficient' || status === 'mastered') st = placementMemory(st, skill, g, r.ts);
         states[id] = st;
       }
       for (const id of Object.keys(states)) {

@@ -83,6 +83,8 @@ export const SELECTION = {
   GRADE_DECAY: 0.8,
   /** Skills already in progress are preferred over opening new ones. */
   IN_PROGRESS_BOOST: 1.5,
+  /** Solid-but-not-mastered skills keep being practised toward mastery, at lower priority. */
+  CONSOLIDATE_WEIGHT: 0.5,
   /** At most this many never-seen skills introduced per session. */
   MAX_NEW_PER_SESSION: 2,
   /** A wrong item returns after this many other items. */

@@ -68,7 +68,7 @@
     "reviewDue": "{n, plural, one {# skill} other {# skills}} ready to refresh",
     "mastered": "Mastered",
     "proficient": "Solid",
-    "streak": "Streak",
+    "streak": "Day streak",
     "byStrand": "Mastery by topic",
     "petSays1": "Ribbit! Ready to hop?",
     "petSays2": "I love number lines!",
@@ -272,7 +272,8 @@
     "voice": "Voice",
     "petName": "Pet's name",
     "noClock": "No clock in races",
-    "noClockHelp": "Same gifts and rewards, just no timer."
+    "noClockHelp": "Same gifts and rewards, just no timer.",
+    "petDefault": "Pip"
   },
   "sprint": {
     "title": "Race your shadow",
@@ -320,7 +321,8 @@
       "proficientSeries": "Solid",
       "freeChoice": "Play after the daily quest was complete: {pct}% of problems",
       "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, quests may be replacing interest — consider turning them off.",
-      "noData": "No play recorded yet."
+      "noData": "No play recorded yet.",
+      "freeChoiceNone": "No completed daily quests yet."
     },
     "skills": {
       "skill": "Skill",

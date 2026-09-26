@@ -1,7 +1,8 @@
 /**
  * Which skill comes next. Interleaved, not blocked:
  *
- *   frontier  unlocked, not yet mastered      weight ∝ exp(−0.8·Δgrade) (earliest gaps first)
+ *   frontier  unlocked, not yet proficient     weight ∝ exp(−0.8·Δgrade) (earliest gaps first),
+ *             plus Solid-not-mastered skills at weight 0.5 (consolidation, above the review floor)
  *   review    proficient/mastered, R < 0.8    weight ∝ (1 − R)
  *   maintain  mastered, not due               weight 1 (variety, retrieval practice)
  *
@@ -25,6 +26,8 @@ export type ItemSource = 'placement' | 'warmup' | 'frontier' | 'review' | 'maint
 export interface Eligibility {
   requires: readonly Capability[];
   allowReading: boolean;
+  /** Skills below this grade are not offered as review/maintenance (e.g. no counting dots for a 13-year-old). */
+  reviewFloor?: number;
   /** Extra per-mode filter (e.g. timed mode: fluency skills at proficiency). */
   filter?: (skill: SkillDef, state: SkillState | undefined) => boolean;
 }
@@ -61,6 +64,8 @@ export interface ScheduledSkill {
 interface Cand {
   skill: SkillDef;
   weight: number;
+  /** Not yet proficient (true frontier) vs. consolidating a Solid skill. */
+  learning?: boolean;
 }
 
 export function classify(input: ScheduleInput): { frontier: Cand[]; review: Cand[]; maintain: Cand[] } {
@@ -75,18 +80,23 @@ export function classify(input: ScheduleInput): { frontier: Cand[]; review: Cand
     const unlocked = isUnlocked(graph, skill.id, states);
     const status = input.model.status(st, skill, unlocked, now);
     if (status === 'locked') continue;
-    if (st && isDue(st, now)) review.push({ skill, weight: 1 - retrievability(st, now) + 0.05 });
-    else if (status === 'mastered') maintain.push({ skill, weight: 1 });
-    if (status !== 'mastered') {
+    const reviewable = skill.grade >= (eligibility.reviewFloor ?? 0);
+    if (st && reviewable && isDue(st, now)) review.push({ skill, weight: 1 - retrievability(st, now) + 0.05 });
+    else if (status === 'mastered' && reviewable) maintain.push({ skill, weight: 1 });
+    if (status === 'available' || status === 'learning') {
       if (!st || st.n === 0) {
         if (input.newIntroduced >= SELECTION.MAX_NEW_PER_SESSION) continue;
-        frontier.push({ skill, weight: 1 });
-      } else frontier.push({ skill, weight: SELECTION.IN_PROGRESS_BOOST });
+        frontier.push({ skill, weight: 1, learning: true });
+      } else frontier.push({ skill, weight: SELECTION.IN_PROGRESS_BOOST, learning: true });
+    } else if (status === 'proficient' && reviewable) {
+      // Consolidation toward mastery; never below the band's review floor.
+      frontier.push({ skill, weight: SELECTION.CONSOLIDATE_WEIGHT, learning: false });
     }
   }
+  const learning = frontier.filter((c) => c.learning);
   if (frontier.length) {
-    const g0 = Math.min(...frontier.map((c) => c.skill.grade));
-    for (const c of frontier) c.weight *= Math.exp(-SELECTION.GRADE_DECAY * (c.skill.grade - g0));
+    const g0 = Math.min(...(learning.length ? learning : frontier).map((c) => c.skill.grade));
+    for (const c of frontier) c.weight *= Math.exp(-SELECTION.GRADE_DECAY * Math.max(0, c.skill.grade - g0));
   }
   return { frontier, review, maintain };
 }

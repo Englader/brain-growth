@@ -25,7 +25,7 @@ export function isDue(state: SkillState, now: number): boolean {
 }
 
 /** Start the memory clock when a skill first becomes proficient. */
-export function startMemory(state: SkillState, now: number, h = MEMORY.H0_DAYS): SkillState {
+export function startMemory(state: SkillState, now: number, h: number = MEMORY.H0_DAYS): SkillState {
   if (state.h !== undefined) return state;
   return { ...state, h, lastReview: now, lapses: 0 };
 }

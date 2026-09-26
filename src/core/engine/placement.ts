@@ -20,6 +20,8 @@ import type { SkillGraph } from '../skills/graph';
 import type { SkillDef } from '../skills/types';
 import type { SkillId } from '../types';
 import { difficultyToLevel, levelToDifficulty, logit, sigmoid } from './glicko';
+import { startMemory } from './memory';
+import type { SkillState } from './model';
 import { PLACEMENT } from './params';
 
 export interface PlacementState {
@@ -136,4 +138,19 @@ export function placementPriors(state: PlacementState, graph: SkillGraph): Map<S
     });
   }
   return out;
+}
+
+/**
+ * Memory state for a skill that placement judged Solid. Near the child's
+ * frontier (< 1.5 grades below) it is unverified: schedule an early review so
+ * retrieval checks the guess. Far below (e.g. counting for a 13-year-old) it is
+ * certainly known: a long half-life keeps it out of review for weeks, so an
+ * older child is never served preschool material as "review".
+ *   h = clamp(2 · 3^(distance − 1.5), 2, 90) days
+ */
+export function placementMemory(st: SkillState, skill: SkillDef, g: number, now: number): SkillState {
+  const distance = g - skill.grade;
+  const h = Math.min(90, Math.max(2, 2 * 3 ** (distance - 1.5)));
+  const reviewedAt = distance < 1.5 ? now - 1.5 * 86_400_000 : now;
+  return startMemory({ ...st, proficientAt: now }, reviewedAt, h);
 }

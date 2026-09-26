@@ -21,12 +21,12 @@ import type { SkillGraph } from '../skills/graph';
 import type { SkillDef } from '../skills/types';
 import type { BandId, LocaleId, ModeId, SkillId } from '../types';
 import { difficultyToLevel, levelToDifficulty } from './glicko';
-import { startMemory } from './memory';
 import type { LearnerModel, SkillState, SkillStatus } from './model';
 import { applyFirstAttempt } from './observe';
 import { SELECTION } from './params';
 import {
   nextPlacementItem,
+  placementMemory,
   placementPriors,
   posteriorStats,
   updatePlacement,
@@ -48,7 +48,8 @@ export interface LearnerSnapshot {
 export interface SessionConfig {
   sessionId: string;
   seed: number;
-  band: { id: BandId; targetP: number; allowReading: boolean; maxReturns: number };
+  /** reviewFloor: skills below this grade are never offered as review/maintenance (presentation policy). */
+  band: { id: BandId; targetP: number; allowReading: boolean; maxReturns: number; reviewFloor?: number };
   mode: { id: ModeId; requires: readonly Capability[]; filter?: Eligibility['filter'] };
   /** First presentations before the session winds down (retries still flush). */
   plannedItems: number;
@@ -130,6 +131,10 @@ export class SessionEngine {
     };
   }
 
+  get planned(): number {
+    return this.cfg.plannedItems;
+  }
+
   get placementRunning(): boolean {
     return !this.placement.done;
   }
@@ -138,6 +143,7 @@ export class SessionEngine {
     return {
       requires: this.cfg.mode.requires,
       allowReading: this.cfg.band.allowReading,
+      reviewFloor: this.cfg.band.reviewFloor ?? 0,
       ...(this.cfg.mode.filter ? { filter: this.cfg.mode.filter } : {}),
     };
   }
@@ -364,10 +370,7 @@ export class SessionEngine {
       }
       const status = this.ctx.model.status(st, skill, true, now);
       st = { ...st, status };
-      if (status === 'proficient' || status === 'mastered') {
-        // Unverified: schedule an early review so placement guesses get checked by retrieval.
-        st = startMemory({ ...st, proficientAt: now }, now - 1.5 * 86_400_000, 2);
-      }
+      if (status === 'proficient' || status === 'mastered') st = placementMemory(st, skill, mean, now);
       next[id] = st;
     }
     // Status of skills now depends on unlocks; recompute once.

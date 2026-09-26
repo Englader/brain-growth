@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: docs/ matches the source (GitHub Pages serves docs/ directly)
+        run: |
+          if ! git diff --quiet -- docs; then
+            echo "::error::docs/ is stale. Run 'npm run build' and commit docs/."
+            git diff --stat -- docs
+            exit 1
+          fi
+      - name: Install Chromium for the end-to-end run
+        run: npx playwright-core install --with-deps chromium
+      - name: End-to-end flow in Macedonian at 360px (errors and horizontal overflow fail the build)
+        run: npm run e2e
+        env:
+          CHROMIUM: ''
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screens
+          path: screens/
