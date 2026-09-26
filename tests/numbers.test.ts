@@ -3,7 +3,7 @@ import { parseNumberInput, formatNumber, formatRational, type NumberConventions 
 import { rat, key, type Rational } from '../src/core/rational';
 
 const EN: NumberConventions = { bcp47: 'en-US', decimal: '.', group: ',', minimumGroupingDigits: 1, minus: '−' };
-const MK: NumberConventions = { bcp47: 'mk-MK', decimal: ',', group: ' ', minimumGroupingDigits: 2, minus: '−' };
+const MK: NumberConventions = { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−' };
 
 function cands(input: string, conv: NumberConventions): string[] | string {
   const r = parseNumberInput(input, conv);
@@ -27,8 +27,8 @@ describe('parseNumberInput — unambiguous forms read identically in both locale
     ['-0,5', '-1/2'],
     ['12,3456', '61728/5000'.replace('61728/5000', key(rat(123456, 10000)))],
     ['1 234', '1234'],
-    ['1 234', '1234'],
-    ['1 234', '1234'],
+    ['1\u00A0234', '1234'],
+    ['1\u202F234', '1234'],
     ["1'234", '1234'],
     ['1 234 567', '1234567'],
     ['1.234.567', '1234567'],
@@ -125,10 +125,10 @@ describe('formatNumber', () => {
     expect(formatNumber(1234567.5, EN)).toBe('1,234,567.5');
     expect(formatNumber(3.14, EN)).toBe('3.14');
   });
-  it('mk uses comma decimal and narrow-space groups from 5 digits', () => {
+  it('mk uses comma decimal and no-break-space groups from 5 digits', () => {
     expect(formatNumber(1234, MK)).toBe('1234');
-    expect(formatNumber(12345, MK)).toBe('12 345');
-    expect(formatNumber(1234567.25, MK)).toBe('1 234 567,25');
+    expect(formatNumber(12345, MK)).toBe('12\u00A0345');
+    expect(formatNumber(1234567.25, MK)).toBe('1\u00A0234\u00A0567,25');
     expect(formatNumber(3.14, MK)).toBe('3,14');
   });
   it('uses the true minus sign', () => {

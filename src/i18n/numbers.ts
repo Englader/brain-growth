@@ -14,7 +14,7 @@ export interface NumberConventions {
   bcp47: string;
   /** Decimal separator shown to the child (',' in mk, '.' in en). */
   decimal: string;
-  /** Thousands separator for display (' ' narrow no-break space in mk). */
+  /** Thousands separator for display ('\u00A0' no-break space in mk). */
   group: string;
   /** Group only when the integer part has >= 3 + this many digits (mk: 2 → "1234", "12 345"). */
   minimumGroupingDigits: number;
@@ -34,7 +34,7 @@ export type ParsedNumber =
   | { ok: false; reason: 'empty' | 'invalid' | 'incomplete' };
 
 const MINUS_CHARS = /[−‒–—﹣－]/g;
-const SPACE_GROUP_CHARS = /[\s    '’_]/;
+const SPACE_GROUP_CHARS = /[\s\u00A0\u202F\u2009\u2007'’_]/;
 
 function invalid(): ParsedNumber {
   return { ok: false, reason: 'invalid' };
@@ -53,7 +53,7 @@ function validGroups(groups: string[]): boolean {
  * `groupChars` are separators already known to be grouping (spaces etc.).
  */
 function parseUnsignedDecimal(body: string, conv: NumberConventions): Rational[] | null {
-  if (!/^[\d.,\s    '’_]+$/.test(body)) return null;
+  if (!/^[\d.,\s\u00A0\u202F\u2009\u2007'’_]+$/.test(body)) return null;
   if (!/\d/.test(body)) return null;
 
   const dots = (body.match(/\./g) ?? []).length;
@@ -110,7 +110,7 @@ function parseUnsignedDecimal(body: string, conv: NumberConventions): Rational[]
   const idx = body.indexOf(sepChar);
   const intRaw = body.slice(0, idx);
   const fracRaw = body.slice(idx + 1);
-  const intDigitsOnly = intRaw.replace(/[\s    '’_]/g, '');
+  const intDigitsOnly = intRaw.replace(/[\s\u00A0\u202F\u2009\u2007'’_]/g, '');
   const couldBeGroup =
     /^\d{3}$/.test(fracRaw) &&
     /^\d{1,3}$/.test(intRaw.split(SPACE_GROUP_CHARS).pop() ?? '') &&

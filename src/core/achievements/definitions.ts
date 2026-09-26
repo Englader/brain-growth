@@ -20,7 +20,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'mastery.add20', category: 'mastery', bands: ['A', 'B'], icon: 'plus', on: ON_ITEM, when: { metric: 'skill.mastered', params: { skill: 'as.add.20' }, gte: 1 } },
   { id: 'mastery.times', category: 'mastery', bands: ['B', 'C'], icon: 'times', on: ON_ITEM, when: { metric: 'skill.mastered', params: { skill: 'md.mult.facts' }, gte: 1 } },
   { id: 'mastery.negatives', category: 'mastery', bands: ['B', 'C'], icon: 'minus', on: ON_ITEM, when: { metric: 'skill.mastered', params: { skill: 'int.addsub' }, gte: 1 } },
-  { id: 'mastery.bridge', category: 'mastery', bands: 'all', icon: 'bridge', on: ON_ITEM, when: { metric: 'skills.masteredAboveBand', gte: 1 } },
+  { id: 'mastery.bridge', category: 'mastery', bands: ['A', 'B'], icon: 'bridge', on: ON_ITEM, when: { metric: 'skills.masteredAboveBand', gte: 1 } },
 
   // ── Persistence ─────────────────────────────────────────────────────────
   { id: 'persist.day1', category: 'persistence', bands: 'all', icon: 'sprout', on: ON_SESSION, when: { metric: 'days.active', gte: 1 } },

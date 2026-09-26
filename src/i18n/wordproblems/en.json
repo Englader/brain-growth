@@ -1,0 +1,20 @@
+{
+  "names": [
+    { "n": "Maya", "g": "f" },
+    { "n": "Leo", "g": "m" },
+    { "n": "Ella", "g": "f" },
+    { "n": "Sam", "g": "m" },
+    { "n": "Zoe", "g": "f" },
+    { "n": "Noah", "g": "m" },
+    { "n": "Ruby", "g": "f" },
+    { "n": "Omar", "g": "m" }
+  ],
+  "templates": {
+    "wp.save": "{name} saved {a} dollars. Grandma gave {g, select, f {her} other {him}} {b} dollars more. How many dollars does {name} have now?",
+    "wp.market": "{name} had {a} dollars at the farmers' market and spent {b} dollars on apples. How many dollars are left?",
+    "wp.trip": "{name}'s family drove {a} kilometres on Saturday and {b} kilometres on Sunday. How many kilometres did they drive in all?",
+    "wp.bus": "A train left the city with {a} passengers. At the first stop, {b} passengers got off. How many passengers are still on the train?",
+    "wp.rows": "The school hall has {a, plural, one {# row} other {# rows}} of {b} chairs. How many chairs are there in all?",
+    "wp.share": "{name} shares {a} stickers equally among {b} friends. How many stickers does each friend get?"
+  }
+}
