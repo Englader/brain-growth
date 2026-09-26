@@ -1,0 +1,8 @@
+node_modules/
+.vite/
+/dist/
+/coverage/
+/test-results/
+/screens/
+*.log
+.DS_Store

@@ -1,0 +1,939 @@
+{
+  "app": {
+    "name": "Hopa",
+    "tagline": "Hop along the number line",
+    "offlineReady": "Ready to play offline",
+    "updated": "Hopa was updated"
+  },
+  "common": {
+    "back": "Back",
+    "close": "Close",
+    "continue": "Continue",
+    "done": "Done",
+    "cancel": "Cancel",
+    "save": "Save",
+    "on": "On",
+    "off": "Off",
+    "home": "Home",
+    "play": "Play",
+    "speaker": "Hear it again",
+    "loading": "Loading…",
+    "new": "New!",
+    "points": "{n, plural, one {# pt} other {# pts}}"
+  },
+  "lang": {
+    "switchTo": "Switch language to {lang}"
+  },
+  "grade": {
+    "label": "{g, select, 0 {Preschool} other {Grade {g}}}"
+  },
+  "profiles": {
+    "title": "Who's playing?",
+    "add": "New player",
+    "grownups": "Grown-ups",
+    "hold": "Hold for 2 seconds"
+  },
+  "create": {
+    "title": "New player",
+    "name": "Name",
+    "namePlaceholder": "Type a name",
+    "age": "Age",
+    "band": "Style",
+    "bandA": "Little explorer",
+    "bandB": "Adventurer",
+    "bandC": "Pro",
+    "bandHint": "Picked from age. Choose another if it fits better.",
+    "language": "Language",
+    "color": "Pick a colour",
+    "start": "Let's go!",
+    "restore": "Restore from a backup"
+  },
+  "home": {
+    "greeting": "Hi, {name}!",
+    "greeting@C": "Welcome back, {name}.",
+    "firstTime": "Let's find where your trail starts!",
+    "firstTime@C": "Your first session calibrates your starting level.",
+    "quick": "Quick spark · 1 min",
+    "quick@C": "Quick 3 · 1 min",
+    "stretch": "Challenge me",
+    "stretchOn": "Challenge path is on",
+    "trophies": "Trophies",
+    "trophies@C": "Achievements",
+    "wardrobe": "Wardrobe",
+    "wardrobe@C": "Themes",
+    "family": "Family",
+    "family@C": "League",
+    "switch": "Switch player",
+    "settings": "Settings",
+    "reviewDue": "{n, plural, one {# skill} other {# skills}} ready to refresh",
+    "mastered": "Mastered",
+    "proficient": "Solid",
+    "streak": "Day streak",
+    "byStrand": "Mastery by topic",
+    "petSays1": "Ribbit! Ready to hop?",
+    "petSays2": "I love number lines!",
+    "petSays3": "Let's grow our brains!",
+    "sprintLocked": "Unlocks when you know some facts really well",
+    "sprintLocked@C": "Unlocks once a fluency skill reaches Solid"
+  },
+  "mode": {
+    "hop": {
+      "title": "Number Trail",
+      "title@C": "Number Line",
+      "desc": "Hop along the number line",
+      "desc@C": "Adaptive practice on the number line"
+    },
+    "sprint": {
+      "title": "Race your shadow",
+      "title@C": "Sprint",
+      "desc": "Beat your own best time on facts you know",
+      "desc@C": "Timed fluency run against your personal best"
+    }
+  },
+  "streak": {
+    "days": "{n, plural, one {# day} other {# days}}",
+    "establish": "Day {n} of 7",
+    "doneToday": "Today's spark is lit!",
+    "doneToday@C": "Today: done",
+    "notYet": "Solve 3 problems to light today's spark",
+    "notYet@C": "3 problems keep your streak",
+    "frozen": "Rest day — your streak was kept safe",
+    "longest": "Best: {n}",
+    "fresh": "A fresh start today!"
+  },
+  "quests": {
+    "title": "Today's quest",
+    "title@C": "Daily objectives",
+    "allDone": "Quest complete — a gift is waiting!",
+    "allDone@C": "All objectives complete",
+    "claim": "Open gift"
+  },
+  "quest": {
+    "items": "{target, plural, one {Solve # problem} other {Solve # problems}}",
+    "review": "{target, plural, one {Answer # review problem} other {Answer # review problems}}",
+    "bilingual": "Play in both languages",
+    "variety": "Practise {target} different skills",
+    "stretch": "Try the challenge path",
+    "spark": "Do a quick spark"
+  },
+  "play": {
+    "exit": "Stop playing",
+    "hop": "Hop!",
+    "done": "Done",
+    "hopForward": "Hop forward {n}",
+    "hopBack": "Hop back {n}",
+    "tapLine": "Tap the line where it lands",
+    "typeNumber": "Type a number",
+    "invalid": "Hmm, I can't read that number. Try again?",
+    "hint": "Hint",
+    "praise1": "Nice!",
+    "praise2": "Yes!",
+    "praise3": "Great hop!",
+    "praise4": "Spot on!",
+    "praise1@C": "Correct.",
+    "praise2@C": "Correct.",
+    "praise3@C": "Correct.",
+    "praise4@C": "Correct.",
+    "lookTogether": "Let's look together",
+    "lookTogether@C": "Worked solution",
+    "youLanded": "You landed on {given}. The answer is {answer}.",
+    "answerIs": "The answer is {answer}.",
+    "comesBack": "This one will come back in a little while.",
+    "comesBack@C": "Queued for retry.",
+    "gotIt": "Got it",
+    "again": "Again!",
+    "again@C": "Retry",
+    "progress": "Problem {n} of {total}",
+    "estimateOk": "Close enough counts: within {tol}!",
+    "hops": "{n, plural, one {# hop} other {# hops}}",
+    "clear": "Clear",
+    "backspace": "Delete",
+    "negative": "Plus or minus",
+    "placing": "Finding your level…"
+  },
+  "prompt": {
+    "count": "How many dots? Hop there!",
+    "locate": "Hop to {n}",
+    "estimate": "Where is {n}? Tap the line.",
+    "blocks": "Hop to the number the blocks show",
+    "groups": "{groups, plural, one {# hop} other {# hops}} of {size}. Where do you land?",
+    "land": "Where do you land?",
+    "bond": "How many hops to the flag?",
+    "divide": "How many hops of {size} reach {target}?"
+  },
+  "voice": {
+    "welcome": "Hi! Let's play!",
+    "count": "How many dots? Hop there!",
+    "locate": "Hop to {n}!",
+    "add": "{a} plus {b}. Where do you land?",
+    "sub": "{a} minus {b}. Where do you land?",
+    "mul": "{a} times {b}. Where do you land?",
+    "div": "{a} divided by {b}. How many hops?",
+    "bond": "{a} and how many make {total}?",
+    "groups": "{n, plural, one {# hop} other {# hops}} of {size}!",
+    "blocks": "Hop to the number the blocks show!",
+    "praise1": "Nice!",
+    "praise2": "Yes!",
+    "praise3": "Great hop!",
+    "praise4": "Spot on!",
+    "lookTogether": "Let's look together.",
+    "tapGlow": "Now tap the shiny spot!",
+    "gift": "A present for you!",
+    "sessionDone": "Great playing today!",
+    "trophy": "You found a trophy!"
+  },
+  "results": {
+    "title": "Great practice!",
+    "title@C": "Session summary",
+    "practised": "{n, plural, one {You worked on # problem} other {You worked on # problems}}",
+    "fixed": "{n, plural, one {You fixed # mistake — that's how brains grow!} other {You fixed # mistakes — that's how brains grow!}}",
+    "fixed@C": "{n, plural, one {# mistake corrected on retry} other {# mistakes corrected on retry}}",
+    "unlocked": "New on your trail",
+    "unlocked@C": "Unlocked",
+    "mastered": "Mastered",
+    "gift": "You found something on the trail!",
+    "gift@C": "New unlock",
+    "tapGift": "Tap to open",
+    "trophies": "New trophies",
+    "trophies@C": "New achievements",
+    "again": "Play again",
+    "accuracy": "First-try accuracy: {pct}%",
+    "skills": "Skills trained",
+    "placed": "Your trail is ready!",
+    "placed@C": "Starting level set.",
+    "stretch": "You chose the challenge path — brave!",
+    "stretch@C": "Challenge path: harder items this session.",
+    "sparkLit": "Today's spark is lit!",
+    "sparkLit@C": "Streak kept."
+  },
+  "trophies": {
+    "title": "Trophy case",
+    "title@C": "Achievements",
+    "secretsLeft": "{n, plural, one {# secret is still hidden} other {# secrets are still hidden}}",
+    "notYet": "Not yet",
+    "found": "Found {date}"
+  },
+  "category": {
+    "mastery": "Mastery",
+    "persistence": "Showing up",
+    "exploration": "Exploring",
+    "resilience": "Bouncing back",
+    "discovery": "Secrets"
+  },
+  "wardrobe": {
+    "title": "Wardrobe",
+    "title@C": "Themes and titles",
+    "hidden": "Found by playing",
+    "wearing": "Wearing",
+    "wearing@C": "Active",
+    "none": "None",
+    "slot": {
+      "color": "Colours",
+      "hat": "Hats",
+      "pad": "Lily pads",
+      "theme": "Themes",
+      "title": "Titles"
+    }
+  },
+  "family": {
+    "title": "Family board",
+    "title@C": "League",
+    "week": "This week",
+    "explain": "Points come from showing up, effort for your age, growing new skills and fixing mistakes — not from who is older.",
+    "wildcard": "This week's wildcard",
+    "share": "Share my card",
+    "shareText": "{name}'s week on Hopa: {total} points",
+    "copied": "Link copied!",
+    "otherDevice": "From another device",
+    "oldCard": "Card from an earlier week",
+    "remove": "Remove",
+    "addTitle": "Add {name} to your family board?",
+    "add": "Add",
+    "badLink": "This link is broken or incomplete.",
+    "empty": "Add a second player on this device, or share your card with someone on another device.",
+    "part": {
+      "consistency": "Days played",
+      "effort": "Effort",
+      "growth": "Growth",
+      "grit": "Grit",
+      "wildcard": "Wildcard"
+    },
+    "wild": {
+      "bothLanguages": "Play in both languages",
+      "reviewer": "Answer 5 review problems",
+      "variety": "Practise 4 different skills",
+      "weekend": "Play on the weekend",
+      "quickSpark": "Do a quick spark"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "sound": "Sounds",
+    "voice": "Voice",
+    "petName": "Pet's name",
+    "noClock": "No clock in races",
+    "noClockHelp": "Same gifts and rewards, just no timer.",
+    "petDefault": "Pip"
+  },
+  "sprint": {
+    "title": "Race your shadow",
+    "title@C": "Sprint",
+    "intro": "Your shadow runs at your best pace. Careful beats fast: a wrong answer costs {penalty} seconds.",
+    "firstRun": "First run: your shadow will learn your pace.",
+    "noClock": "No clock",
+    "start": "Start",
+    "you": "You",
+    "shadow": "Shadow",
+    "penalty": "+{s} s",
+    "pb": "New personal best: {time} s!",
+    "close": "Only {diff} s behind your best — so close!",
+    "careful": "{n} of {total} right first time — careful work!",
+    "complete": "Run complete. Every run trains your shadow.",
+    "noClockDone": "Clock-free run complete — same rewards.",
+    "history": "Your runs",
+    "seconds": "{s} s"
+  },
+  "adult": {
+    "title": "Grown-ups",
+    "hold": "Hold for 2 seconds",
+    "player": "Player",
+    "tab": {
+      "overview": "Overview",
+      "skills": "Skills",
+      "calibration": "Calibration",
+      "errors": "Errors",
+      "data": "Data",
+      "features": "Features",
+      "voices": "Voices",
+      "profile": "Profile"
+    },
+    "overview": {
+      "items": "Problems (30 days)",
+      "accuracy": "First-try accuracy",
+      "medianSession": "Median session",
+      "minutes": "{n} min",
+      "streak": "Streak",
+      "placement": "Placed at {grade} (± {sd} grades)",
+      "placementPending": "Placement runs during the first session.",
+      "sessions": "Minutes played per day, last 30 days",
+      "mastery": "Skills solid and mastered over time",
+      "masteredSeries": "Mastered",
+      "proficientSeries": "Solid",
+      "freeChoice": "Play after the daily quest was complete: {pct}% of problems",
+      "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, quests may be replacing interest — consider turning them off.",
+      "noData": "No play recorded yet.",
+      "freeChoiceNone": "No completed daily quests yet."
+    },
+    "skills": {
+      "skill": "Skill",
+      "status": "Status",
+      "rating": "Rating",
+      "n": "Tries",
+      "mastery": "Mastery",
+      "recall": "Recall",
+      "recent": "Last 20",
+      "latency": "Median time",
+      "bias": "Bias",
+      "dueIn": "Review in {d} d",
+      "dueNow": "Review due"
+    },
+    "status": {
+      "locked": "Locked",
+      "available": "Ready",
+      "learning": "Learning",
+      "proficient": "Solid",
+      "mastered": "Mastered"
+    },
+    "calibration": {
+      "title": "Predicted vs observed first-try success",
+      "help": "First attempts are grouped by the model's predicted probability. Points below the diagonal mean the model was over-confident (items were harder than it thought); above means under-confident.",
+      "predicted": "Predicted",
+      "observed": "Observed",
+      "flagged": "Skills where the model is mis-calibrated",
+      "none": "Nothing flagged yet (needs at least 15 first attempts on a skill).",
+      "biasRow": "{skill}: predicted {p}%, observed {o}% over {n} tries"
+    },
+    "errors": {
+      "title": "Recurring mistake patterns",
+      "none": "No recurring patterns yet.",
+      "count": "{n, plural, one {# time} other {# times}}",
+      "unusual": "Skills with unusual error rates",
+      "expected": "expected {e}% errors, observed {o}%",
+      "noneUnusual": "No skill stands out."
+    },
+    "data": {
+      "export": "Download backup",
+      "share": "Share backup",
+      "import": "Restore from backup",
+      "lastBackup": "Last backup: {date}",
+      "never": "never",
+      "storage": "Storage used: {kb} KB of about 5000 KB",
+      "importOk": "Restored. {added} added, {merged} merged, {records} new records.",
+      "importFail": "Could not restore this file ({reason}).",
+      "iosNote": "On iPhone and iPad, add Hopa to the Home Screen: Safari may otherwise clear site data after a week without visits.",
+      "readOnly": "Read-only: this data was saved by a newer version of Hopa. Reload the page to update.",
+      "full": "Storage is full. Download a backup; the oldest history will be summarised.",
+      "rivals": "Cards from other devices: {n}"
+    },
+    "features": {
+      "title": "Experimental features",
+      "device": "This device",
+      "profile": "For {name}"
+    },
+    "voices": {
+      "title": "Speech voices on this device",
+      "none": "No {lang} voice on this device.",
+      "found": "{lang}: {voices}",
+      "help": "Band A speaks every instruction. Without a voice or recorded clips the game still works through pictures and animation.",
+      "clips": "Recorded clips for {lang}: {n}",
+      "test": "Test"
+    },
+    "profile": {
+      "age": "Age",
+      "band": "Style",
+      "bandAuto": "From age",
+      "delete": "Delete player",
+      "deleteConfirm": "Type {name} to delete everything for this player.",
+      "replay": "Rebuild skill ratings from history",
+      "replayed": "Rebuilt from {n} records."
+    }
+  },
+  "flag": {
+    "mode.sprint": "Timed “race your shadow” on mastered facts (opt-in, Bands B and C).",
+    "quests.daily": "Daily quest card with 2–3 varied objectives.",
+    "hints": "Hint button (Bands B and C). Hinted answers count as half evidence.",
+    "league.family": "Family board and card sharing.",
+    "audio.tts": "Use the device's speech voice when no recorded clip exists.",
+    "debug.shortSessions": "Four-problem sessions (for testing)."
+  },
+  "strand": {
+    "number": "Number sense",
+    "placevalue": "Place value",
+    "addsub": "Adding and subtracting",
+    "muldiv": "Multiplying and dividing",
+    "fractions": "Fractions",
+    "decimals": "Decimals and percent",
+    "ratio": "Ratio and proportion",
+    "integers": "Integers",
+    "algebra": "Algebra",
+    "geometry": "Geometry",
+    "measurement": "Measurement",
+    "data": "Data and probability",
+    "patterns": "Patterns"
+  },
+  "skill": {
+    "num.subitize.5": "See amounts to 5 at a glance",
+    "num.count.10": "Count to 10",
+    "geo.shapes.basic": "Name basic shapes",
+    "pat.repeat": "Repeating patterns",
+    "num.compare.10": "More and less to 10",
+    "num.line.10": "Number line to 10",
+    "num.subitize.10": "See amounts to 10 at a glance",
+    "meas.compare": "Longer, heavier, fuller",
+    "num.count.20": "Count to 20",
+    "as.bonds.5": "Number bonds to 5",
+    "as.add.10": "Add within 10",
+    "as.bonds.10": "Make 10",
+    "as.sub.10": "Subtract within 10",
+    "num.line.20": "Number line to 20",
+    "num.compare.20": "Compare numbers to 20",
+    "geo.shapes.props": "Sides and corners of shapes",
+    "as.add.20": "Add within 20",
+    "pat.grow": "Growing number patterns",
+    "as.sub.20": "Subtract within 20",
+    "pv.tens.100": "Tens and ones",
+    "num.line.100": "Number line to 100",
+    "as.add.100.noregroup": "Add two-digit numbers",
+    "as.sub.100.noregroup": "Subtract two-digit numbers",
+    "meas.time.hour": "Time to the hour and half hour",
+    "meas.money": "Money in denars",
+    "as.add.100": "Add within 100 across tens",
+    "meas.length": "Measure in centimetres and metres",
+    "md.groups": "Equal groups",
+    "as.sub.100": "Subtract within 100 across tens",
+    "md.mult.2510": "Times 2, 5 and 10",
+    "pv.1000": "Hundreds, tens and ones",
+    "num.line.1000": "Estimate on a line to 1000",
+    "as.add.multi": "Column addition with carrying",
+    "md.mult.facts": "Multiplication table",
+    "dp.pictograph": "Picture graphs",
+    "as.sub.multi": "Column subtraction with borrowing",
+    "meas.time.min": "Time to the minute",
+    "md.div.facts": "Division facts",
+    "f.unit": "Unit fractions",
+    "md.mult.10s": "Multiply by tens and hundreds",
+    "geo.perimeter": "Perimeter",
+    "pv.big": "Numbers to a million",
+    "md.mult.multi": "Multi-digit multiplication",
+    "f.of.set": "Fraction of an amount",
+    "md.div.remainder": "Division with remainders",
+    "dp.bar": "Bar charts and tables",
+    "geo.area.rect": "Area of rectangles",
+    "md.factors": "Factors and multiples",
+    "f.equiv": "Equivalent fractions",
+    "meas.convert": "Converting units",
+    "f.compare": "Comparing fractions",
+    "geo.angles": "Angles",
+    "f.add.like": "Adding fractions with like denominators",
+    "md.div.long": "Long division",
+    "d.tenths": "Tenths and hundredths",
+    "md.primes": "Primes and divisibility",
+    "d.compare": "Comparing decimals",
+    "wp.multistep": "Multi-step word problems",
+    "f.add.unlike": "Adding fractions with unlike denominators",
+    "d.addsub": "Adding and subtracting decimals",
+    "geo.area.composite": "Area of composite shapes",
+    "dp.mean": "Average and line graphs",
+    "oo.basic": "Order of operations",
+    "f.mult": "Multiplying fractions",
+    "d.multdiv": "Multiplying and dividing decimals",
+    "num.gcd.lcm": "Greatest common divisor and least common multiple",
+    "f.div": "Dividing fractions",
+    "meas.convert.decimal": "Unit conversion with decimals",
+    "d.percent": "Percentages",
+    "geo.triangles": "Triangles: area and angles",
+    "geo.volume.cuboid": "Volume of cuboids",
+    "al.expr.intro": "Letters for numbers",
+    "int.intro": "Negative numbers",
+    "int.addsub": "Adding and subtracting integers",
+    "r.ratio": "Ratios and rates",
+    "oo.full": "Order of operations with brackets and negatives",
+    "geo.coord": "Coordinate plane",
+    "int.multdiv": "Multiplying and dividing integers",
+    "al.eq.onestep": "One- and two-step equations",
+    "rat.ops": "Operations with rational numbers",
+    "dp.prob.basic": "Basic probability",
+    "r.proportion": "Direct and inverse proportion",
+    "d.percent.change": "Percentage change",
+    "geo.circle": "Circles",
+    "pw.powers": "Powers",
+    "al.expr.simplify": "Simplifying expressions",
+    "pw.roots": "Square roots",
+    "al.eq.linear": "Linear equations",
+    "dp.stats": "Mean, median and mode",
+    "geo.pythag": "Pythagorean theorem",
+    "al.ineq": "Linear inequalities",
+    "geo.surface": "Surface area",
+    "num.sci": "Scientific notation",
+    "fn.intro": "Introduction to functions",
+    "al.polynomials": "Polynomials",
+    "geo.volume.solids": "Volume of solids",
+    "fn.linear": "Linear functions",
+    "geo.similar": "Similar triangles",
+    "al.systems": "Systems of linear equations",
+    "dp.prob.compound": "Compound probability"
+  },
+  "sol": {
+    "count": "{n, plural, one {There is # dot.} other {There are # dots.}}",
+    "locateTens": "{t} is {tens, plural, one {# ten} other {# tens}} and {ones, plural, one {# one} other {# ones}}.",
+    "locateHundreds": "Jump to {h}, then {rest} more.",
+    "locateNeg": "{t} is {n, plural, one {# step} other {# steps}} to the {dir, select, left {left} other {right}} of 0.",
+    "blocks2": "{t, plural, one {# ten} other {# tens}} and {o, plural, one {# one} other {# ones}} make {value}.",
+    "blocks3": "{h, plural, one {# hundred} other {# hundreds}}, {t, plural, one {# ten} other {# tens}} and {o, plural, one {# one} other {# ones}} make {value}.",
+    "bond": "{a} and {b} make {total}.",
+    "makeTen": "Make ten first: {a} + {toTen} = 10, then 10 + {rest} = {r}.",
+    "backThroughTen": "Back to ten first: {a} − {toTen} = 10, then 10 − {rest} = {r}.",
+    "countOn": "Start at {a} and count on {b}: {r}.",
+    "countBack": "Start at {a} and count back {b}: {r}.",
+    "split2": "Split {b} into {t} and {o}.",
+    "split3": "Split {b} into {h}, {t} and {o}.",
+    "step": "{a} {op} {b} = {r}",
+    "times9": "Nines trick: ten groups of {b}, then take away one {b}.",
+    "doubleDouble": "Times 4 is double, then double again: {b}, {d1}, {d2}.",
+    "fivePlus": "Split {a} into 5 and {rest}.",
+    "repeatedAdd": "{n, plural, one {# hop} other {# hops}} of {size} land on {p}.",
+    "divAsHops": "{n, plural, one {# hop} other {# hops}} of {size} reach {target}.",
+    "timesTen": "Multiplying by {b} adds {z, plural, one {# zero} other {# zeros}}: {r}.",
+    "zeros": "Work out {a0} and {b0} first ({base}), then add {z, plural, one {# zero} other {# zeros}}: {r}.",
+    "addPartials": "Add the parts: {r}.",
+    "subNeg": "Taking away a negative is adding: {a} − (−{b}) = {a} + {b}.",
+    "addNeg": "Adding a negative is taking away: {a} + (−{b}) = {a} − {b}.",
+    "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}."
+  },
+  "mis": {
+    "count.off_by_one": {
+      "name": "Counting slip (one too many or few)",
+      "tip": "Count each hop out loud, one at a time."
+    },
+    "add.dropped_ten": {
+      "name": "Dropped the ten when bridging 10",
+      "tip": "When you pass 10, keep the ten!"
+    },
+    "add.no_carry": {
+      "name": "Forgot to carry",
+      "tip": "When a column makes 10 or more, carry the ten to the next column."
+    },
+    "add.carry_concat": {
+      "name": "Wrote the whole column sum instead of carrying",
+      "tip": "Write only the ones; carry the ten."
+    },
+    "add.tens_slip": {
+      "name": "Off by ten",
+      "tip": "Check the tens hops again."
+    },
+    "sub.added": {
+      "name": "Added instead of subtracting",
+      "tip": "Minus means hop back."
+    },
+    "sub.count_includes_start": {
+      "name": "Counted the starting number when counting back",
+      "tip": "Don't count the number you start on — count the hops."
+    },
+    "sub.smaller_from_larger": {
+      "name": "Subtracted the smaller digit from the larger in each column",
+      "tip": "If the top digit is smaller, borrow a ten first."
+    },
+    "sub.borrow_no_decrement": {
+      "name": "Borrowed without reducing the next column",
+      "tip": "When you borrow a ten, the next column goes down by one."
+    },
+    "pv.reversal": {
+      "name": "Swapped tens and ones",
+      "tip": "Tens come first: big hops of 10, then small hops."
+    },
+    "pv.concat": {
+      "name": "Wrote digits side by side without regrouping",
+      "tip": "Ten ones make a new ten."
+    },
+    "pv.missing_zero": {
+      "name": "Left out a zero place holder",
+      "tip": "An empty place still needs a 0."
+    },
+    "bonds.gave_total": {
+      "name": "Gave the total instead of the missing part",
+      "tip": "Count only the hops to the flag."
+    },
+    "bonds.echo": {
+      "name": "Repeated the given number",
+      "tip": "Count the hops between you and the flag."
+    },
+    "mul.added": {
+      "name": "Added instead of multiplying",
+      "tip": "Times means equal hops, again and again."
+    },
+    "mul.adjacent_fact": {
+      "name": "Neighbouring fact (one group too many or few)",
+      "tip": "Count the groups — one more or one less changes the answer."
+    },
+    "mul.zeros": {
+      "name": "Wrong number of zeros",
+      "tip": "Count the zeros in both numbers."
+    },
+    "mul.no_carry": {
+      "name": "Forgot to carry in multiplication",
+      "tip": "Split the number into tens and ones, then add the parts."
+    },
+    "mul.partial_products_missing": {
+      "name": "Multiplied tens by tens and ones by ones only",
+      "tip": "Every part multiplies every part."
+    },
+    "div.subtracted": {
+      "name": "Subtracted instead of dividing",
+      "tip": "Count how many equal hops reach the flag."
+    },
+    "div.off_by_one": {
+      "name": "One hop too many or few",
+      "tip": "Count your hops carefully."
+    },
+    "int.sign_error": {
+      "name": "Right size, wrong sign",
+      "tip": "Check which side of 0 you end up on."
+    },
+    "int.sub_neg_as_sub": {
+      "name": "Treated minus a negative as minus",
+      "tip": "Minus a negative means hop right."
+    },
+    "int.added_magnitudes": {
+      "name": "Added the sizes and kept the minus",
+      "tip": "From a negative number, adding moves you right, toward 0."
+    }
+  },
+  "cos": {
+    "color.green": "Green",
+    "color.blue": "Blue",
+    "color.orange": "Orange",
+    "color.pink": "Pink",
+    "color.purple": "Purple",
+    "color.teal": "Teal",
+    "color.gold": "Gold",
+    "hat.cap": "Cap",
+    "hat.flower": "Flower",
+    "hat.party": "Party hat",
+    "hat.wizard": "Wizard hat",
+    "hat.crown": "Crown",
+    "pad.lily": "Lily pad",
+    "pad.sunset": "Sunset pad",
+    "pad.sky": "Sky pad",
+    "pad.star": "Star pad",
+    "theme.indigo": "Indigo",
+    "theme.emerald": "Emerald",
+    "theme.amber": "Amber",
+    "theme.crimson": "Crimson",
+    "theme.cyan": "Cyan",
+    "title.estimator": "Estimator",
+    "title.navigator": "Navigator",
+    "title.strategist": "Strategist",
+    "title.analyst": "Analyst",
+    "title.architect": "Architect"
+  },
+  "ach": {
+    "mastery.first": {
+      "name": "First Star",
+      "desc": "You mastered your first skill.",
+      "hint": "Master any skill.",
+      "name@C": "First Skill Mastered",
+      "desc@C": "Your first skill reached mastery."
+    },
+    "mastery.five": {
+      "name": "Five Bright Stars",
+      "desc": "Five skills mastered.",
+      "hint": "Master five skills.",
+      "name@C": "Five Skills Mastered"
+    },
+    "mastery.fifteen": {
+      "name": "Constellation",
+      "desc": "Fifteen skills mastered!",
+      "hint": "Master fifteen skills.",
+      "name@C": "Fifteen Skills Mastered",
+      "desc@C": "Fifteen skills at mastery."
+    },
+    "mastery.add20": {
+      "name": "Twenty Tamer",
+      "desc": "You can add any two numbers within 20.",
+      "hint": "Master adding within 20."
+    },
+    "mastery.times": {
+      "name": "Table Master",
+      "desc": "The whole times table is yours.",
+      "hint": "Master the multiplication table.",
+      "name@C": "Times Tables: Complete",
+      "desc@C": "Every multiplication fact at mastery."
+    },
+    "mastery.negatives": {
+      "name": "Below Zero",
+      "desc": "Adding and subtracting negatives: mastered.",
+      "hint": "Master adding and subtracting integers."
+    },
+    "mastery.bridge": {
+      "name": "Bridge Crosser",
+      "desc": "You mastered a skill from the next level up.",
+      "hint": "Master a skill above your level."
+    },
+    "persist.day1": {
+      "name": "First Hop",
+      "desc": "You played your first day.",
+      "hint": "Play for one day.",
+      "name@C": "Day One",
+      "desc@C": "First day logged."
+    },
+    "persist.streak3": {
+      "name": "Three in a Row",
+      "desc": "Three days in a row!",
+      "hint": "Play three days in a row.",
+      "name@C": "3-Day Streak",
+      "desc@C": "Three consecutive days."
+    },
+    "persist.streak7": {
+      "name": "Habit Hatched",
+      "desc": "A whole week — this is a habit now.",
+      "hint": "Play seven days in a row.",
+      "name@C": "7-Day Streak",
+      "desc@C": "Seven consecutive days."
+    },
+    "persist.streak30": {
+      "name": "Month of Hops",
+      "desc": "Thirty days in a row!",
+      "hint": "Keep a 30-day streak.",
+      "name@C": "30-Day Streak",
+      "desc@C": "Thirty consecutive days."
+    },
+    "persist.streak100": {
+      "name": "Hundred Days",
+      "desc": "One hundred days. Incredible.",
+      "hint": "Keep a 100-day streak.",
+      "name@C": "100-Day Streak"
+    },
+    "persist.comeback": {
+      "name": "Welcome Back",
+      "desc": "You came back after a break. Good to see you!",
+      "hint": "Come back after a few days away.",
+      "name@C": "Back in Training",
+      "desc@C": "Returned after a break."
+    },
+    "persist.dayAfterHard": {
+      "name": "Sunrise",
+      "desc": "Yesterday was tough, and you came back today.",
+      "hint": "Play the day after a tough session.",
+      "name@C": "Next-Day Return",
+      "desc@C": "Trained the day after a hard session."
+    },
+    "persist.sessions25": {
+      "name": "Regular",
+      "desc": "Twenty-five sessions played.",
+      "hint": "Play 25 sessions.",
+      "name@C": "25 Sessions"
+    },
+    "explore.bilingual": {
+      "name": "Two Tongues",
+      "desc": "You played in both languages.",
+      "hint": "Play in the other language.",
+      "name@C": "Bilingual",
+      "desc@C": "Trained in both languages."
+    },
+    "explore.switchMid": {
+      "name": "Switcheroo",
+      "desc": "You switched language in the middle of a game.",
+      "hint": "Change the language while playing."
+    },
+    "explore.stretch": {
+      "name": "Mountain Goat",
+      "desc": "You took the challenge path.",
+      "hint": "Turn on “Challenge me” and play.",
+      "name@C": "Stretch Goal",
+      "desc@C": "Completed items on the challenge path."
+    },
+    "explore.strands": {
+      "name": "Explorer",
+      "desc": "You practised three different kinds of maths.",
+      "hint": "Practise three different topics.",
+      "name@C": "Range",
+      "desc@C": "Trained across three topics."
+    },
+    "explore.allModes": {
+      "name": "Tried Everything",
+      "desc": "You tried every game.",
+      "hint": "Try every game.",
+      "name@C": "Full Toolkit",
+      "desc@C": "Used every training mode."
+    },
+    "resil.fixOne": {
+      "name": "Second Go",
+      "desc": "Wrong the first time, right the next. That's learning.",
+      "hint": "Get a problem right when it comes back.",
+      "name@C": "Corrected",
+      "desc@C": "Fixed an error on the retry."
+    },
+    "resil.thirdTry": {
+      "name": "Third Time's the Charm",
+      "desc": "Right on the third try. You didn't give up.",
+      "hint": "Get a problem right after missing it twice.",
+      "name@C": "Persistence",
+      "desc@C": "Solved on the third attempt."
+    },
+    "resil.fourthTry": {
+      "name": "Unstoppable",
+      "desc": "Wrong three times — then right. Amazing persistence.",
+      "hint": "Get a problem right after missing it three times.",
+      "name@C": "Relentless",
+      "desc@C": "Solved after three failed attempts."
+    },
+    "resil.finishedHard": {
+      "name": "Tough Cookie",
+      "desc": "That session was hard, and you finished it.",
+      "hint": "Finish a session even when it's hard.",
+      "name@C": "Finished Strong",
+      "desc@C": "Completed a difficult session."
+    },
+    "resil.returned": {
+      "name": "Boomerang",
+      "desc": "You came back to a skill that was tricky before.",
+      "hint": "Come back to a skill you found hard.",
+      "name@C": "Revisited",
+      "desc@C": "Returned to a skill after a rough day."
+    },
+    "resil.fixed25": {
+      "name": "Mistake Mechanic",
+      "desc": "Twenty-five mistakes fixed. Mistakes are how brains grow.",
+      "hint": "Fix 25 mistakes.",
+      "name@C": "25 Corrections",
+      "desc@C": "Twenty-five errors corrected."
+    },
+    "secret.petTaps": {
+      "name": "Tickled",
+      "desc": "Pip loves the attention!"
+    },
+    "secret.palindrome": {
+      "name": "Mirror Number",
+      "desc": "Your answer reads the same backwards!"
+    },
+    "secret.bullseye": {
+      "name": "Bullseye",
+      "desc": "An estimate that was exactly right."
+    },
+    "secret.thousand": {
+      "name": "One Thousand",
+      "desc": "You landed on one thousand!"
+    },
+    "secret.zeroHero": {
+      "name": "Zero Hero",
+      "desc": "Three zeros. Zero problems!"
+    },
+    "secret.sameAnswer": {
+      "name": "Déjà Vu",
+      "desc": "The same answer three times in a row!"
+    },
+    "secret.earlyBird": {
+      "name": "Early Bird",
+      "desc": "Maths before 7 in the morning!"
+    },
+    "secret.weekend": {
+      "name": "Weekend Warrior",
+      "desc": "You played on Saturday and on Sunday."
+    },
+    "secret.polyglot": {
+      "name": "Polyglot",
+      "desc": "You switched languages five times."
+    },
+    "secret.marathonFrog": {
+      "name": "Marathon Frog",
+      "desc": "A thousand hops! Pip needs a nap."
+    }
+  },
+  "clip": {
+    "cmd": {
+      "hopTo": "Hop to",
+      "whereLand": "Where do you land?",
+      "howManyHops": "How many hops?",
+      "andHowMany": "and how many make"
+    },
+    "word": {
+      "plus": "plus",
+      "minus": "minus",
+      "times": "times",
+      "dividedBy": "divided by",
+      "hopsOf": "hops of",
+      "and": "and"
+    },
+    "num": {
+      "0": "zero",
+      "1": "one",
+      "2": "two",
+      "3": "three",
+      "4": "four",
+      "5": "five",
+      "6": "six",
+      "7": "seven",
+      "8": "eight",
+      "9": "nine",
+      "10": "ten",
+      "11": "eleven",
+      "12": "twelve",
+      "13": "thirteen",
+      "14": "fourteen",
+      "15": "fifteen",
+      "16": "sixteen",
+      "17": "seventeen",
+      "18": "eighteen",
+      "19": "nineteen",
+      "20": "twenty",
+      "30": "thirty",
+      "40": "forty",
+      "50": "fifty",
+      "60": "sixty",
+      "70": "seventy",
+      "80": "eighty",
+      "90": "ninety",
+      "100": "one hundred"
+    }
+  }
+}
