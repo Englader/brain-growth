@@ -7,7 +7,7 @@ npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
 npm run check      # typecheck + 583 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
-npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 120 kB gzipped (a CI step)
+npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)
 E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e at once (default 4173)
@@ -214,7 +214,7 @@ New screens get a 360 px Macedonian screenshot, and you look at it.
 - `tests/generated-docs.test.ts`: `design/skill-graph.md` and `design/audio-recording-script.md` match `npm run gen:skill-doc` and `npm run gen:audio-script`.
 - `tests/slots.test.ts`: anchors complete and in order; locale keys identical and in the same order.
 - `tests/lazy.test.tsx`: every mode but Hop registers lazy screens; on-demand generators match their declarations.
-- `npm run size` (`scripts/size-check.mjs`, after the build): the start-up JS (the entry chunk and what it imports statically) at most 100 kB gzipped, and with the larger language bundle at most 120 kB.
+- `npm run size` (`scripts/size-check.mjs`, after the build): the start-up JS (the entry chunk and what it imports statically) at most 100 kB gzipped, and with the larger language bundle at most 130 kB.
 
 ### 8. Docs
 

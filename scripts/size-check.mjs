@@ -3,17 +3,26 @@
 //   npm run size
 // Budgets, in kB of 1000 bytes gzipped (as Vite's build report prints them):
 //  - entry: the start-up chunk index.html loads, plus the chunks it imports
-//    statically. Mode screens, the grown-ups' view and locale bundles are
-//    separate chunks loaded on demand (src/modes/lazy.tsx, i18n/locales.ts).
+//    statically: the JavaScript a phone must parse and run before the first
+//    screen. Mode screens, feature modes' generators, the grown-ups' view and
+//    locale bundles are separate chunks loaded on demand (src/modes/lazy.tsx,
+//    generators/registry.ts, i18n/locales.ts).
 //  - first load: the entry plus the largest locale bundle (a first screen
-//    speaks exactly one language; the others are prefetched at idle).
+//    speaks exactly one language; the others are prefetched at idle). The
+//    bundles are JSON strings, cheap to parse, so this budget is looser.
+// Why these numbers: with every v1 mode merged (a trial merge of Puzzle,
+// Balance + Coord, Dice Race and Workshop onto main with Target) the entry
+// measured ~90 kB once their screens and own generators load on demand, and
+// the Macedonian strings ~28 kB (first load ~122 kB). 100 and 130 hold that
+// with about 10% to spare, and still fail a change that puts a mode's screens
+// or a solver back into the start-up bundle. DESIGN T-4.
 // Exits 1 when a budget is exceeded, printing what is in each chunk's place.
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
 const BUDGET_ENTRY_KB = 100;
-const BUDGET_FIRST_LOAD_KB = 120;
+const BUDGET_FIRST_LOAD_KB = 130;
 
 const DIST = process.argv[2] ?? 'dist';
 const kb = (bytes) => bytes / 1000;
