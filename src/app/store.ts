@@ -9,7 +9,7 @@ import type { SessionOptions } from '../core/log/types';
 import type { MessageParams } from '../i18n/format';
 import type { Profile, SprintRun } from '../core/profile';
 import type { Rng } from '../core/rng';
-import type { ModeId, SkillId } from '../core/types';
+import type { LocaleId, ModeId, SkillId } from '../core/types';
 import type { Meta } from '../data/schema';
 
 export interface ActiveSession {
@@ -69,6 +69,10 @@ export interface AppState {
   storageFull: boolean;
   /** Another tab holds the single-writer lock: this one is read-only and says so. */
   otherTab: boolean;
+  /** Locales whose message bundles are loaded (i18n/locales.ts); a new array each time one arrives. */
+  locales: readonly LocaleId[];
+  /** A language switch waiting for its bundle (the toggle shows it as busy); null when none. */
+  localePending: LocaleId | null;
 }
 
 type Listener = (s: AppState) => void;
@@ -87,6 +91,8 @@ let state: AppState = {
   readOnly: false,
   storageFull: false,
   otherTab: false,
+  locales: [],
+  localePending: null,
 };
 
 const listeners = new Set<Listener>();

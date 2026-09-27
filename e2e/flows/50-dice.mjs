@@ -133,6 +133,9 @@ export default async function diceFlow(t) {
     const items = log.filter((r) => r.type === 'item' && r.mode === 'dice');
     assert(items.length >= 3, `${pid}: dice items logged (${items.length})`);
     assert(log.filter((r) => r.type === 'event' && r.name === 'dice_match').length === 1, `${pid}: one dice_match event`);
+    // Pilot I-1: the time on the feedback after Ана's wrong landing is in her own log, in her own session.
+    const fb = log.filter((r) => r.type === 'event' && r.name === 'pilot_feedback');
+    if (pid === ana) assert(fb.length >= 1 && fb.every((r) => r.data.ms >= 0 && items.some((i) => i.sid === r.sid)), `${pid}: feedback time logged`);
   }
   assert((await page.evaluate(() => window.__hopa.getState().profile.id)) === marko, 'the active child is unchanged');
 

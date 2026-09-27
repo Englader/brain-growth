@@ -300,7 +300,9 @@ function legacyLog(): LogRecord[] {
       type: 'item', ts, sid: `s${Math.floor(i / 12)}`, key: String(i), skill, gen: 'addsub', genV: 1, seed: i,
       level, diff: Math.round((-2.5 + 5 * level) * 1000) / 1000, p: 0.8, mu: 0, s2: 1, correct, attempt,
       latency: rng.int(1500, 20000), hint, answer: '1', expected: correct ? '1' : '2', mis: null,
-      mode: i % 9 === 0 ? 'target' : 'hop', band: 'B', locale: i % 2 ? 'mk' : 'en', source: 'frontier',
+      // A synthetic second mode at full evidence weight (GOLDEN was captured before any mode had a weight;
+      // the real 'target' mode now weighs 0.5).
+      mode: i % 9 === 0 ? 'legacy.other' : 'hop', band: 'B', locale: i % 2 ? 'mk' : 'en', source: 'frontier',
       timed, input: 'typed', hops: null, alt: false,
     });
   }

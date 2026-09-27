@@ -11,17 +11,17 @@ import { navigate } from '../../app/router';
 import { speaker } from '../../app/services';
 import { useStore } from '../../app/store';
 import { getBand } from '../../bands/registry';
-import { makeT } from '../../i18n/i18n';
 import { Icon } from '../../ui/components/Icon';
 import { useT } from '../../ui/hooks';
 import { Avatar } from '../../ui/screens/Profiles';
-import { themeOf } from './parts';
+import { playerT, themeOf } from './parts';
 import { getDice, setDice, type PlayerResult } from './state';
 
 export function DiceResults({ results }: { results: PlayerResult[] }): JSX.Element {
   const t = useT();
   const active = useStore((s) => s.profile);
   const profiles = useStore((s) => s.profiles);
+  useStore((s) => s.locales); // each card follows its language bundle as it arrives
   const bandA = active?.band === 'A';
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export function DiceResults({ results }: { results: PlayerResult[] }): JSX.Eleme
       {results.map((r) => {
         const p = profiles.find((x) => x.id === r.pid);
         if (!p) return null;
-        const tp = makeT(p.locale, p.band);
+        const tp = playerT(p);
         return (
           <section class="card dice-result dice-themed" {...themeOf(p)}>
             <div class="dice-result-head">

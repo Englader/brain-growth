@@ -12,6 +12,8 @@ export type Op = '+' | '-' | '*' | '/';
 
 export type Expr =
   | { k: 'num'; v: number }
+  /** A fraction n/d, drawn stacked. `n: null` is a blank numerator ("2/3 = ?/12"). Never reduced for display. */
+  | { k: 'frac'; n: number | null; d: number }
   | { k: 'op'; op: Op; a: Expr; b: Expr }
   | { k: 'blank' };
 
@@ -20,8 +22,14 @@ export type Prompt =
   | { kind: 'expr'; expr: Expr; rhs?: Expr }
   /** Dots to count (dice pattern, ten-frame, or scattered). */
   | { kind: 'count'; count: number; layout: 'dice' | 'frame' | 'scatter' }
-  /** "Hop to 34." */
-  | { kind: 'locate'; target: number }
+  /** "Hop to 34." `display` writes the target another way (a stacked fraction 3/4, a decimal). */
+  | { kind: 'locate'; target: number; display?: Expr }
+  /** "Land on the bigger (or smaller) one": the answer is the position of that number. */
+  | { kind: 'compare'; a: Expr; b: Expr; pick: 'max' | 'min' }
+  /** A flag stands on the line (`line.flag`): type the number it marks. */
+  | { kind: 'read'; value: number }
+  /** "25 % of 80": typed answer; the line is a double number line (quantities and percents). */
+  | { kind: 'percentOf'; pct: number; of: number }
   /** Base-ten blocks: land on the number they show. */
   | { kind: 'blocks'; hundreds: number; tens: number; ones: number }
   /** "3 hops of 4": equal groups on the number line. */
@@ -60,6 +68,16 @@ export interface LineSpec {
    */
   answerMode: 'land' | 'count';
   hopSize?: number;
+  /**
+   * Rational line: ticks, pads, hops and picks sit at k/den for integer k, and a
+   * landing grades as exactly rat(round(v·den), den). Every other length of the
+   * line (min, max, major, minor, labelEvery, steps, hopSize) is a multiple of 1/den.
+   */
+  den?: number;
+  /** How positions are written on this line: stacked fractions k/den, decimals, or percents of max (a double line). */
+  labelStyle?: 'fraction' | 'decimal' | 'percent';
+  /** The answer is a point tapped on the line (snapped to 1/den), not typed. */
+  pick?: 'tap';
 }
 
 export interface Answer {
@@ -114,10 +132,13 @@ export type Capability =
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  | 'deal'
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  /** A construction graded by a checker (Balance scale, coordinate plane, Workshop): modes that build, not hop. */
+  | 'build'
   // ── slot: coord ──
   // ── slot: season ──
   ;

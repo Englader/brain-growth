@@ -38,20 +38,48 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.trophy': ['voice.trophy'],
   // Feature voice lines (keys `voice.<feature>.*`), each under its own anchor:
   // ── slot: frac ──
+  // "Hop to 3 out of 4 parts": grammatical with plain number words in both languages
+  // (mk "дел" is masculine, so "еден од два дела" needs no feminine numerals).
+  'voice.frac.hopTo': ['cmd.hopTo', '{n}', 'voice.frac.outOf', '{d}', 'voice.frac.parts'],
+  'voice.frac.bigger': ['voice.frac.bigger'],
+  'voice.frac.smaller': ['voice.frac.smaller'],
+  'voice.frac.flag': ['voice.frac.flag'],
   // ── slot: hint ──
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  'voice.weekly.intro': ['voice.weekly.intro'],
+  'voice.weekly.done': ['voice.weekly.done'],
   // ── slot: target ──
+  'voice.target.makeTen': ['voice.target.makeTen'],
+  'voice.target.make': ['voice.target.makeWord', '{n}'],
+  'voice.target.tapShiny': ['voice.target.tapShiny'],
   // ── slot: dice ──
   'voice.dice.roll': ['voice.dice.roll'],
   'voice.dice.yourTurn': ['voice.dice.yourTurn'],
   'voice.dice.pass': ['voice.dice.pass'],
   // ── slot: puzzle ──
+  'voice.puzzle.shelf': ['voice.puzzle.shelf'],
+  'voice.puzzle.pattern': ['voice.puzzle.pattern'],
+  'voice.puzzle.balance': ['voice.puzzle.balance'],
+  'voice.puzzle.notYet': ['voice.puzzle.notYet'],
+  'voice.puzzle.solved': ['voice.puzzle.solved'],
+  'voice.puzzle.together': ['voice.puzzle.together'],
+  'voice.puzzle.hint.unit': ['voice.puzzle.hint.unit'],
+  'voice.puzzle.hint.same': ['voice.puzzle.hint.same'],
+  'voice.puzzle.hint.groups': ['voice.puzzle.hint.groups'],
+  'voice.puzzle.hint.grows': ['voice.puzzle.hint.grows'],
+  'voice.puzzle.hint.start': ['voice.puzzle.hint.start'],
+  'voice.puzzle.hint.remove': ['voice.puzzle.hint.remove'],
+  'voice.puzzle.hint.share': ['voice.puzzle.hint.share'],
+  'voice.puzzle.hint.count': ['voice.puzzle.hint.count'],
+  'voice.puzzle.hint.known': ['voice.puzzle.weighs', '{weight}'],
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  'voice.season.newYear': ['voice.season.newYear'],
+  'voice.season.easter': ['voice.season.easter'],
 };
 
 /** Per-locale overrides where word order differs (none needed for en/mk yet). */

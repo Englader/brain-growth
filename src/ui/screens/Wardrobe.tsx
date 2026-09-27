@@ -1,8 +1,11 @@
 import type { JSX } from 'preact';
 import { equip, openGift } from '../../app/actions';
 import { navigate } from '../../app/router';
+import { seasonOn } from '../../app/seasonActions';
+import { now } from '../../app/services';
 import { useStore } from '../../app/store';
 import { COSMETICS, type CosmeticSlot } from '../../core/rewards/cosmetics';
+import { shownInWardrobe } from '../../core/seasons';
 import { TopBar } from '../components/common';
 import { Frog } from '../components/Frog';
 import { Icon } from '../components/Icon';
@@ -13,6 +16,7 @@ export function Wardrobe(): JSX.Element | null {
   const p = useStore((s) => s.profile);
   if (!p) return null;
   const look = lookFor(p);
+  const seasonDate = seasonOn(p) ? now() : null;
   const slots: CosmeticSlot[] = p.band === 'C' ? ['theme', 'title'] : ['color', 'hat', 'pad'];
   return (
     <div class="screen wardrobe">
@@ -32,7 +36,8 @@ export function Wardrobe(): JSX.Element | null {
         </div>
       )}
       {slots.map((slot) => {
-        const items = COSMETICS.filter((c) => c.slot === slot && c.bands.includes(p.band));
+        // Owned items always show; an unowned seasonal one only in its season (no teaser for next year).
+        const items = COSMETICS.filter((c) => c.slot === slot && c.bands.includes(p.band) && shownInWardrobe(c, p.cosmetics.owned.includes(c.id), seasonDate));
         const current = p.cosmetics.equipped[slot];
         return (
           <section class="card">

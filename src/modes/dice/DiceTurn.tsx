@@ -13,8 +13,9 @@
  * No timers: the next player comes only when this one taps "next".
  */
 import type { JSX } from 'preact';
-import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import { answerTurn, chooseOption, endTurn, quitMatch, rollTurn } from '../../app/diceActions';
+import { logFeedback } from '../../app/pilotActions';
 import { speaker } from '../../app/services';
 import { useStore } from '../../app/store';
 import { play as sfx, unlockAudio } from '../../audio/sfx';
@@ -23,17 +24,17 @@ import type { PendingTurn } from '../../core/dice';
 import type { Response } from '../../core/items/grade';
 import type { Expr, LineSpec } from '../../core/items/types';
 import { toNumber } from '../../core/rational';
-import { makeT } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
 import { exprTokens, numberText, tokensText } from '../../i18n/render';
 import { animateHops, unitHops, type HopFrame } from '../../ui/anim';
 import { Icon } from '../../ui/components/Icon';
 import { PadsLine } from '../../ui/components/NumberLine';
 import { Numpad } from '../../ui/components/Numpad';
+import { Frac } from '../../ui/components/Prompts';
 import { lookFor } from '../../ui/hooks';
 import { Avatar } from '../../ui/screens/Profiles';
 import { DiceBoard, type TokenAnim } from './DiceBoard';
-import { DiceFaces, DicePage, PlayerLang } from './parts';
+import { DiceFaces, DicePage, PlayerLang, usePlayerT } from './parts';
 import type { DiceState } from './state';
 
 type APhase = 'input' | 'wrong' | 'errorless' | 'done';
@@ -44,7 +45,9 @@ const opExpr = (a: number, op: '+' | '-' | '*', b: number): Expr => ({ k: 'op', 
 function ExprAnswer({ expr, locale, shown }: { expr: Expr; locale: string; shown: string | null }): JSX.Element {
   return (
     <div class="expr dice-expr" dir="ltr" aria-live="polite">
-      {exprTokens(expr, locale).map((tk) => (tk.t === 'blank' ? <span class="expr-blank">?</span> : <span class={`expr-${tk.t}`}>{tk.s}</span>))}
+      {exprTokens(expr, locale).map((tk) =>
+        tk.t === 'blank' ? <span class="expr-blank">?</span> : tk.t === 'frac' ? <Frac n={tk.n} d={tk.d} /> : <span class={`expr-${tk.t}`}>{tk.s}</span>,
+      )}
       <span class="expr-op">=</span>
       <span class={`expr-blank dice-answer${shown ? ' filled' : ''}`}>{shown ?? '?'}</span>
     </div>
@@ -68,7 +71,7 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
   const p = profiles.find((x) => x.id === player.id);
   const locale = p?.locale ?? 'mk';
   const bandId = p?.band ?? player.band;
-  const t = useMemo(() => makeT(locale, bandId), [locale, bandId]);
+  const t = usePlayerT(p ?? { locale, band: bandId });
   const band = getBand(bandId);
   const lane = match.lanes[turn.player]!;
   const board = lane.board;
@@ -95,6 +98,13 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
   const frameRef = useRef<HopFrame>({ pos: from, lift: 0 });
   const cancel = useRef<() => void>(() => undefined);
   const shownAt = useRef(0);
+  // Pilot I-1: time on the feedback after a wrong answer, until the child passes the device on (or quits).
+  const feedbackOpen = useRef<{ pid: string; sid: string; key: string; at: number } | null>(null);
+  const flushFeedback = (): void => {
+    const f = feedbackOpen.current;
+    feedbackOpen.current = null;
+    if (f) logFeedback(f.pid, f.sid, f.key, 1, performance.now() - f.at);
+  };
 
   const setFrame = (f: HopFrame): void => {
     frameRef.current = f;
@@ -109,6 +119,7 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
     return () => {
       cancel.current();
       speaker.stop();
+      flushFeedback();
     };
   }, []);
 
@@ -161,8 +172,11 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
     const latencyMs = performance.now() - shownAt.current;
     // Hold the board token where it was until the move is shown.
     setAnim({ player: turn.player, pos: from, lift: 0 });
+    const sid = d.sessions[player.id]?.id;
+    const key = presented?.item.key;
     const res = answerTurn(response, { latencyMs, hint: false, input, hops: hopCount });
     if (!res || res.grade.invalid) setAnim(null);
+    else if (!res.grade.correct && sid && key) feedbackOpen.current = { pid: player.id, sid, key, at: performance.now() };
     return res;
   };
 
@@ -313,7 +327,10 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
           </section>
           <section class="controls">
             {moved ? (
-              <button type="button" class="btn primary big dice-next" aria-label={nextLabel} onClick={endTurn}>
+              <button type="button" class="btn primary big dice-next" aria-label={nextLabel} onClick={() => {
+                flushFeedback();
+                endTurn();
+              }}>
                 <Icon name="arrowR" size={40} />
               </button>
             ) : (
@@ -377,7 +394,10 @@ export function DiceTurn({ d }: { d: DiceState }): JSX.Element | null {
           </section>
           <section class="controls">
             {moved ? (
-              <button type="button" class="btn primary big dice-next" onClick={endTurn}>
+              <button type="button" class="btn primary big dice-next" onClick={() => {
+                flushFeedback();
+                endTurn();
+              }}>
                 <Icon name="arrowR" /> {nextLabel}
               </button>
             ) : (

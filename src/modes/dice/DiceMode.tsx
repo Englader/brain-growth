@@ -5,30 +5,27 @@
  * A reload mid-race resumes it from the match store.
  */
 import type { JSX } from 'preact';
-import { useEffect, useMemo } from 'preact/hooks';
+import { useEffect } from 'preact/hooks';
 import { beginTurn, quitMatch, resumeMatch } from '../../app/diceActions';
 import { navigate } from '../../app/router';
 import { speaker } from '../../app/services';
 import { useStore } from '../../app/store';
 import { unlockAudio } from '../../audio/sfx';
 import { getBand } from '../../bands/registry';
-import { makeT } from '../../i18n/i18n';
 import { Icon } from '../../ui/components/Icon';
 import { Avatar } from '../../ui/screens/Profiles';
 import { DiceBoard } from './DiceBoard';
 import { DiceResults } from './DiceResults';
 import { DiceTurn } from './DiceTurn';
-import { DicePage, PlayerLang } from './parts';
+import { DicePage, PlayerLang, usePlayerT } from './parts';
 import { exposeForTests, getDice, useDice, type DiceState } from './state';
 
 function PassScreen({ d }: { d: DiceState }): JSX.Element | null {
   const profiles = useStore((s) => s.profiles);
   const match = d.match!;
   const next = profiles.find((x) => x.id === match.players[match.turn]!.id);
-  const locale = next?.locale ?? 'mk';
-  const bandId = next?.band ?? 'B';
-  const t = useMemo(() => makeT(locale, bandId), [locale, bandId]);
-  const band = getBand(bandId);
+  const t = usePlayerT(next);
+  const band = getBand(next?.band ?? 'B');
   useEffect(() => {
     if (next && band.audio === 'always' && next.settings.voice) speaker.say('voice.dice.yourTurn', {}, next.locale);
     return () => speaker.stop();

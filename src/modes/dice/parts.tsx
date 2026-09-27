@@ -4,11 +4,13 @@
  * the active child's is), that player's language toggle, and the dice faces.
  */
 import type { ComponentChildren, JSX } from 'preact';
+import { useMemo } from 'preact/hooks';
 import { switchLocale } from '../../app/actions';
+import { useStore } from '../../app/store';
 import { getBand } from '../../bands/registry';
 import type { DiceRoll, IntForm } from '../../core/dice';
 import type { Profile } from '../../core/profile';
-import type { Translator } from '../../i18n/i18n';
+import { makeT, speakingLocale, type Translator } from '../../i18n/i18n';
 import { allLocales, getLocale } from '../../i18n/locales';
 import { numberText } from '../../i18n/render';
 import { Dots } from '../../ui/components/Prompts';
@@ -22,6 +24,28 @@ export function themeOf(p: Profile): { 'data-theme': string; 'data-band': string
   return { 'data-theme': band.theme, 'data-band': band.id, style: { '--accent': accent } as JSX.CSSProperties };
 }
 
+/**
+ * A translator in this player's language and band tone (not the active
+ * child's). Language bundles load on demand: until this one is in, it speaks
+ * a loaded language, and the component re-renders once it arrives.
+ */
+export function usePlayerT(p: Pick<Profile, 'locale' | 'band'> | null | undefined): Translator {
+  const loaded = useStore((s) => s.locales);
+  const wanted = p?.locale ?? 'mk';
+  const band = p?.band ?? 'B';
+  const ready = loaded.includes(wanted);
+  const shown = ready ? wanted : speakingLocale(wanted) ?? wanted;
+  return useMemo(() => {
+    if (shown !== wanted) makeT(wanted, band); // starts loading the wanted bundle
+    return makeT(shown, band);
+  }, [shown, wanted, band, ready]);
+}
+
+/** Same, outside a hook (lane and result lists; their parent subscribes to the store's `locales`). */
+export function playerT(p: Pick<Profile, 'locale' | 'band'>): Translator {
+  return makeT(speakingLocale(p.locale) ?? p.locale, p.band);
+}
+
 /** A whole screen in one player's theme. */
 export function DicePage({ p, children, class: cls = '' }: { p: Profile; children: ComponentChildren; class?: string }): JSX.Element {
   return (
@@ -33,20 +57,26 @@ export function DicePage({ p, children, class: cls = '' }: { p: Profile; childre
 
 /** The language switch for a player who may not be the active child (switchLocale with their id). */
 export function PlayerLang({ p, t }: { p: Profile; t: Translator }): JSX.Element {
+  const pending = useStore((s) => s.localePending);
   return (
     <div class="lang" role="group">
-      {allLocales().map((l) => (
-        <button
-          type="button"
-          class={l.id === p.locale ? 'on' : ''}
-          aria-pressed={l.id === p.locale}
-          aria-label={t('lang.switchTo', { lang: l.nativeName })}
-          lang={l.bcp47}
-          onClick={() => switchLocale(l.id, p.id)}
-        >
-          {l.short}
-        </button>
-      ))}
+      {allLocales().map((l) => {
+        // A language whose bundle is still on its way: busy, not yet pressed (as LangToggle).
+        const busy = pending === l.id && l.id !== p.locale;
+        return (
+          <button
+            type="button"
+            class={l.id === p.locale ? 'on' : busy ? 'busy' : ''}
+            aria-pressed={l.id === p.locale}
+            aria-busy={busy || undefined}
+            aria-label={t(busy ? 'lang.loading' : 'lang.switchTo', { lang: l.nativeName })}
+            lang={l.bcp47}
+            onClick={() => switchLocale(l.id, p.id)}
+          >
+            {l.short}
+          </button>
+        );
+      })}
     </div>
   );
 }

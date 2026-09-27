@@ -13,22 +13,27 @@ import { randomLearner } from '../sim/learner';
 const mean = (xs: number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 describe('cold-start placement (≤ 8 items, inside the first ordinary session)', () => {
-  it('places children within one grade of their true position', () => {
+  it('places children within one grade of their true position (grades 0.3–6.5)', () => {
     const rng = createRng(2024);
     const errs: number[] = [];
+    const upper: number[] = [];
     const wrong: number[] = [];
     const used: number[] = [];
-    for (let i = 0; i < 150; i++) {
-      const learner = randomLearner(rng, GRAPH, [0.3, 4.2]);
+    for (let i = 0; i < 200; i++) {
+      const learner = randomLearner(rng, GRAPH, [0.3, 6.5]);
       const age = Math.round(learner.params.g + 5 + rng.normal() * 0.8);
       const r = runSession(learner, newSnapshot(age), new SimClock(), rng, { items: 10, targetP: 0.85, seed: i + 7 });
       expect(r.placementDone).not.toBeNull();
       errs.push(Math.abs(r.placementDone!.g - learner.params.g));
+      if (learner.params.g >= 4) upper.push(errs[errs.length - 1]!);
       wrong.push(r.placementWrong);
       used.push(r.records.filter((x) => x.source === 'placement').length);
     }
     expect(Math.max(...used)).toBeLessThanOrEqual(8);
     expect(mean(errs)).toBeLessThan(0.6);
+    // Fraction and decimal skills let placement resolve grade 4–6.5 positions (DESIGN §4 step 3).
+    expect(upper.length).toBeGreaterThan(50);
+    expect(mean(upper)).toBeLessThan(0.7);
     expect(errs.filter((e) => e <= 1).length / errs.length).toBeGreaterThan(0.85);
     // It must not feel like a test: most placement items are answered correctly.
     expect(mean(wrong) / mean(used)).toBeLessThan(0.36);
@@ -36,6 +41,36 @@ describe('cold-start placement (≤ 8 items, inside the first ordinary session)'
 });
 
 describe('item selection hits the target success rate', () => {
+  const fourWeeks = (seed: number, n: number, range: [number, number]): number[] => {
+    const rng = createRng(seed);
+    const rates: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const learner = randomLearner(rng, GRAPH, range);
+      const clock = new SimClock();
+      let snap = newSnapshot(Math.round(learner.params.g + 5));
+      let fa = 0;
+      let fc = 0;
+      for (let day = 0; day < 28; day++) {
+        const r = runSession(learner, snap, clock, rng, { items: 12, targetP: 0.85, seed: seed * 1000 + 100 * i + day });
+        snap = r.snapshot;
+        if (day > 0) {
+          fa += r.firstAttempts;
+          fc += r.firstCorrect;
+        }
+        clock.advance(DAY_MS - 120_000);
+      }
+      rates.push(fc / fa);
+    }
+    return rates;
+  };
+
+  it('grades 4–6.5 too: consolidation far below the child no longer inflates success (DESIGN §1.5)', () => {
+    const rates = fourWeeks(78, 30, [4, 6.5]);
+    expect(mean(rates)).toBeGreaterThan(0.8);
+    expect(mean(rates)).toBeLessThan(0.9);
+    expect(Math.min(...rates)).toBeGreaterThan(0.7);
+  });
+
   it('realised first-attempt success stays near 85% over four weeks', () => {
     const rng = createRng(77);
     const rates: number[] = [];

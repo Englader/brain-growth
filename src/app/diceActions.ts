@@ -21,7 +21,6 @@ import {
   type MatchState,
 } from '../core/dice';
 import type { AnswerResult } from '../core/engine/session';
-import { isEnabled } from '../core/flags';
 import type { Response } from '../core/items/grade';
 import { EVENTS } from '../core/log/types';
 import type { Profile } from '../core/profile';
@@ -38,11 +37,6 @@ import { getState, type ActiveSession } from './store';
 /** The freshest copy of a child (the store is updated by every save, e.g. a language switch). */
 export function playerProfile(pid: string): Profile | null {
   return getState().profiles.find((p) => p.id === pid) ?? repo.loadProfile(pid);
-}
-
-/** Children who can race: placement done and the mode not switched off for them. */
-export function canRace(p: Profile, deviceFlags: Record<string, boolean> = getState().meta?.deviceFlags ?? {}): boolean {
-  return p.placement.done && isEnabled('mode.dice', p.flags, deviceFlags);
 }
 
 function startSessions(pids: readonly string[]): Record<string, ActiveSession> | null {

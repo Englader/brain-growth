@@ -5,7 +5,7 @@
  */
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
-import { canRace, startMatch } from '../../app/diceActions';
+import { startMatch } from '../../app/diceActions';
 import { navigate } from '../../app/router';
 import { useStore } from '../../app/store';
 import { unlockAudio } from '../../audio/sfx';
@@ -14,6 +14,7 @@ import { TopBar } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
 import { useT } from '../../ui/hooks';
 import { Avatar } from '../../ui/screens/Profiles';
+import { canRace } from './index';
 import { getDice } from './state';
 import './dice.css';
 

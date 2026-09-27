@@ -34,14 +34,20 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  { id: 'weekly', scope: 'profile', default: true, labelKey: 'weekly.flag', description: 'Weekly themed challenge: a 5-session set with a cosmetic set piece; themed sessions boost theme skills.' },
   // ── slot: target ──
+  { id: 'mode.target', scope: 'profile', default: true, description: 'Make it: combine dealt cards with the operations to hit a target number (all bands; evidence weight 0.5).', labelKey: 'target.flag' },
   // ── slot: dice ──
   { id: 'mode.dice', scope: 'profile', default: true, labelKey: 'dice.flag', description: 'Dice Race: two children on this device race on their own lanes, each move one of their own adaptive items (pass-and-play).' },
   // ── slot: puzzle ──
+  { id: 'mode.puzzle', scope: 'profile', default: true, labelKey: 'puzzle.flag', description: 'Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms; untimed, own rating per type, never needed for progress.' },
   // ── slot: workshop ──
   // ── slot: balance ──
+  { id: 'mode.balance', scope: 'profile', default: true, labelKey: 'balance.flag', description: 'Balance: solve equations on a pan scale, doing the same to both pans (Bands B/C, once an equation skill unlocks).' },
   // ── slot: coord ──
+  { id: 'mode.coord', scope: 'profile', default: true, labelKey: 'coord.flag', description: 'Coordinate plane: plot and read lattice points in −6…6 (Band C, and Band B once geo.coord unlocks).' },
   // ── slot: season ──
+  { id: 'season', scope: 'profile', default: true, labelKey: 'season.flag', description: 'Seasonal touches (New Year, Orthodox Easter): decoration, seasonal cosmetics in the drop pool, the seasonal weekly theme, a seasonal greeting.' },
 ];
 
 const byId = new Map(FLAGS.map((f) => [f.id, f]));

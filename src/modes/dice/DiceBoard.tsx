@@ -8,12 +8,12 @@ import type { JSX } from 'preact';
 import { getBand } from '../../bands/registry';
 import type { LaneState, MatchState } from '../../core/dice';
 import type { Profile } from '../../core/profile';
-import { makeT } from '../../i18n/i18n';
 import { numberText } from '../../i18n/render';
 import { Frog, Marker } from '../../ui/components/Frog';
 import { lookFor } from '../../ui/hooks';
 import { Avatar } from '../../ui/screens/Profiles';
-import { themeOf } from './parts';
+import { useStore } from '../../app/store';
+import { playerT, themeOf } from './parts';
 
 /** A token mid-hop: which lane, where it is, and how high it is in the air (px). */
 export interface TokenAnim {
@@ -29,7 +29,7 @@ const X1 = 280;
 const AXIS = 40;
 
 function Lane({ p, lane, on, pos, lift }: { p: Profile; lane: LaneState; on: boolean; pos: number; lift: number }): JSX.Element {
-  const t = makeT(p.locale, p.band);
+  const t = playerT(p);
   const band = getBand(p.band);
   const look = lookFor(p);
   const { start, finish, ladders } = lane.board;
@@ -96,6 +96,7 @@ function Lane({ p, lane, on, pos, lift }: { p: Profile; lane: LaneState; on: boo
 }
 
 export function DiceBoard({ match, profiles, active, anim }: { match: MatchState; profiles: readonly Profile[]; active: number; anim?: TokenAnim | null }): JSX.Element {
+  useStore((s) => s.locales); // lane labels follow a language bundle as it arrives
   return (
     <div class="dice-board">
       {match.players.map((pl, i) => {
