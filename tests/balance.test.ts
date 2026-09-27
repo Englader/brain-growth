@@ -14,6 +14,7 @@ import {
   BALANCE_MISCONCEPTIONS,
   BALANCE_MOVE_KEYS,
   BALANCE_SOL_KEYS,
+  BALANCE_UI_KEYS,
   checkBalance,
   coefs,
   describeMove,
@@ -490,6 +491,19 @@ const T0 = new Date(2026, 9, 5, 16, 0).getTime();
 const asItem = (g: GeneratedItem, skillId: string, genId: string, seed: number): Item => ({ ...g, key: '1', skillId, genId, genVersion: 1, seed });
 
 describe('balance: integration', () => {
+  it('every key the core lists has a string in en and mk', () => {
+    const listed = [
+      ...BALANCE_UI_KEYS,
+      ...Object.values(BALANCE_MOVE_KEYS),
+      ...Object.values(BALANCE_HINT_KEYS),
+      ...Object.values(BALANCE_HINT_THEN_KEYS),
+      ...Object.values(BALANCE_BLOCKED_KEYS),
+      ...Object.values(BALANCE_SOL_KEYS),
+      ...BALANCE_MISCONCEPTIONS.flatMap((c) => [`mis.${c}.name`, `mis.${c}.tip`]),
+    ];
+    for (const loc of ['en', 'mk']) expect(listed.filter((k) => !(k in getLocale(loc).messages)), loc).toEqual([]);
+  });
+
   it('registers its checker and prompts once, and grades generated items through gradeResponse', () => {
     expect(hasChecker('balance.eq')).toBe(true);
     expect(getCustomPrompt('balance.eq')).toBeDefined();

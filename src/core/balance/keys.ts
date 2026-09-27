@@ -67,15 +67,26 @@ export type BalanceMisconception = (typeof BALANCE_MISCONCEPTIONS)[number];
 /** Other `balance.*` UI strings the mode will need (listed here so the integrator has one list). */
 export const BALANCE_UI_KEYS = [
   'balance.title',
+  'balance.desc',
   'balance.flag',
-  'balance.prompt', // "Get x alone on one pan, then type x."
-  'balance.typeX', // label of the x = ? field
-  'balance.moveInput', // label of the move field
+  'balance.locked', // mode card until an equation skill unlocks
+  'balance.prompt', // "Do the same to both pans until x is alone."
+  'balance.bondPrompt', // {eq}: the Hop missing-number item
+  'balance.isolated', // x stands alone: "How much is x?"
+  'balance.var', // the unknown's letter, "x"
+  'balance.xEquals', // "x =" before the typed value
+  'balance.scaleLabel', // {left, right}: aria label of the scale
+  'balance.takeOne', // aria label of a tappable piece (a one-pan move)
+  'balance.op.add',
+  'balance.op.sub',
+  'balance.op.div',
+  'balance.apply', // {move}: "− 4 on both pans"
   'balance.undo',
-  'balance.x', // aria label of one x-box
-  'balance.xBalloon', // aria label of one x-balloon
-  'balance.unit', // aria label of a unit weight
-  'balance.balloon', // aria label of a unit balloon
+  'balance.showMe',
+  'balance.moves', // aria label of the move history
+  'balance.check',
+  'balance.youTyped', // {given, answer}
+  'balance.shown', // after "show me"
 ] as const;
 
 function signedN(m: Extract<BalanceMove, { op: 'add' | 'sub' }>): number {

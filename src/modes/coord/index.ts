@@ -5,8 +5,8 @@
  */
 import { isUnlocked } from '../../core/engine/scheduler';
 import { GRAPH } from '../../core/skills';
+import { lazyScreen } from '../lazy';
 import { registerMode } from '../registry';
-import { CoordMode } from './CoordMode';
 
 registerMode({
   id: 'coord',
@@ -22,5 +22,6 @@ registerMode({
   ready: (p) => p.placement.done && GRAPH.has('geo.coord') && isUnlocked(GRAPH, 'geo.coord', p.skills),
   notReadyKey: 'coord.locked',
   plannedItems: (band, opts) => (opts.quick ? band.quickItems : 10),
-  Component: CoordMode,
+  // Its own chunk: the plane screen loads when the mode opens.
+  Component: lazyScreen(() => import('./CoordMode').then((m) => m.CoordMode)),
 });

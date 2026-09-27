@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 276 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 345 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow or clipped text
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)

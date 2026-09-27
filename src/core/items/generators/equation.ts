@@ -135,7 +135,7 @@ function sampleBond(r: Rng): Bond {
         eq = eqn(1, k, 0, x + k);
         break;
       case 'x*a':
-        k = r.chance(0.3) ? -r.int(2, 5) : r.int(2, 9);
+        k = r.chance(0.4) ? -r.int(2, 6) : r.int(2, 9);
         eq = eqn(k, 0, 0, k * x);
         break;
     }
@@ -167,7 +167,7 @@ export const eqBondGen: GeneratorDef<Record<string, never>> = {
       level,
       sampleBond,
       (c) => scoreEquation('al.eq.onestep', equationFeatures(c.eq, solutionPath(c.eq, true) ?? [])),
-      32,
+      64,
     );
     const path = solutionPath(b.eq, true) ?? [];
     const additive = b.form !== 'x*a';

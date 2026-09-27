@@ -230,6 +230,11 @@ const asItem = (g: GeneratedItem, seed: number): Item => ({ ...g, key: '1', skil
 const dataOf = (it: Item): { x: number; y: number; read: number } => (it.prompt.kind === 'custom' ? (it.prompt.data as { x: number; y: number; read: number }) : { x: 0, y: 0, read: 0 });
 
 describe('coord: integration', () => {
+  it('every key the core lists has a string in en and mk', () => {
+    const listed = [...Object.values(COORD_MIS_KEYS).flatMap((k) => [`${k}.name`, `${k}.tip`]), ...Object.values(COORD_SOL_KEYS), 'coord.plot', 'coord.read'];
+    for (const loc of ['en', 'mk']) expect(listed.filter((k) => !(k in getLocale(loc).messages)), loc).toEqual([]);
+  });
+
   it('registers its checker and prompt, and grades generated items through gradeResponse', () => {
     expect(hasChecker('coord.point')).toBe(true);
     expect(getCustomPrompt('coord.point')).toBeDefined();

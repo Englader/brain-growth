@@ -118,7 +118,7 @@ Rules the graph obeys (tested in `tests/skills.test.ts`):
   - B→C: `num.line.1000 → int.intro → int.addsub`.
 - A child's band never restricts unlocking. A strong 11-year-old walks into Band C content as soon as its prerequisites are Solid; the scheduler just prefers earlier gaps first.
 
-Playable in the slice: **30 skills** through 12 generators.
+Playable: **33 skills** through 15 generators (40 bindings). `al.eq.onestep` is served by Balance and, as a missing number on a signed line, by Hop, because `al.eq.linear` waits for it; `al.eq.linear` and `geo.coord` are mode-only leaves (tests/walls.test.ts).
 
 ### 1.4 Game modes: "is the maths the verb?"
 
@@ -132,6 +132,8 @@ The test I applied: if you removed the maths, would there be no game left? Is th
 | **Workshop (spatial)** | Cut, shade, stack and resize shapes | Fractions and geometry by direct manipulation: split a bar into equal parts, fill with ½+⅓+⅙ strips, resize a rectangle to area 24 and perimeter 20, stack cubes for volume, build squares on triangle sides (Pythagoras). The constructed object is checked, not a typed number. | Shapes, patterns, halves | Fractions, area/perimeter | Volume, Pythagoras, coordinate plotting | Designed |
 | **Dice Race (pass-and-play)** | Roll dice, compute your move, race on a linear board | Luck (dice) plus your own adaptive items. A: count the dots and hop. B: choose how to combine the dice to reach a ladder square. C: powers and negatives. The computed move *is* the maths; the dice let the younger child win sometimes. Same device, zero shared state. | Count on | Combine + − × | Powers, negatives | Designed |
 | **Sprint (Race your shadow)** | Hop mode against your own ghost | Speed on already-solid facts, where accuracy strictly dominates speed (§1.8). | — | ✓ | ✓ | **Built** (on; per-child flag, A-26) |
+| **Balance (equations)** | Keep a pan scale level while getting x alone | An equation *is* a balanced scale: the child picks +, − or ÷ and applies it to both pans; a move on one pan only tips the scale and is refused (logged, 0.25 credit each). When x stands alone the equation reads "x = ?" and the child reads x off the scale. Negative amounts are balloons in C. The transcript of moves is the answer: a checker replays it. | — | x + b = d, a·x = d, a·x + b = d (positive, when unlocked) | Balloons, x on both sides, negative solutions | **Built** (on; per-child flag, A-26) |
+| **Coordinate plane** | Plot a point, read a point | Plot: tap the −6…6 lattice (snaps to the nearest point), nudge, confirm. Read: type x, then y. A swapped pair, a flipped sign and an off-by-one count each get their own tip. Points are written in the locale's notation ("(3, −2)"). | — | Once `geo.coord` is unlocked | Quadrants I–IV, points on the axes | **Built** (on; per-child flag, A-26) |
 | **Puzzle track** | Logic grids, pattern extension, cryptarithms (e.g. TO + GO = OUT), pouring and weighing, spatial nets, estimation with no single exact answer | Reasoning, with its own per-type rating and no timer or streak coupling. Scales from A (picture patterns, balance with pictures) to C (cryptarithms, logic grids). | ✓ | ✓ | ✓ | Designed |
 
 Modes are **parameterised across bands** by capability. A mode declares `requires: ['numberLine']`, and generators declare the capabilities they provide. The engine only offers compatible skills, so "twelve modes" never becomes "twelve codebases".
@@ -192,9 +194,9 @@ This is Elo, θ ← θ + K(y − p), with **K = s²' derived rather than tuned**
 
 | Measure | Result |
 |---|---|
-| Realised first-try success over 4 weeks | **0.852** (p10 0.818, p90 0.886) vs target 0.85 |
-| Placement error | **0.41 grades** (94% within one grade) in **7.8 items** |
-| Tracking error on skills practised ≥10× | 0.68 logits |
+| Realised first-try success over 4 weeks | **0.855** (p10 0.821, p90 0.886) vs target 0.85 |
+| Placement error | **0.43 grades** (94% within one grade) in **7.9 items** |
+| Tracking error on skills practised ≥10× | 0.71 logits |
 
 Tests pin these (`tests/engine.sim.test.ts`).
 
@@ -258,14 +260,14 @@ This is how the implementation honours each constraint:
 - **Correctness feedback is never variable**: immediate, specific, worked.
 - **No grind gates, no lives, no shop, no currency.** XP exists only as an internal effort counter.
 
-**Achievements.** 36 built (★ = secret, never listed, only counted). Bands are all unless stated.
+**Achievements.** 38 built (★ = secret, never listed, only counted). Bands are all unless stated.
 
 | Category | Built |
 |---|---|
 | **Mastery** (graph-based) | First Star · Five Bright Stars · Constellation (15) · Twenty Tamer (add within 20, A/B) · Table Master (all × facts, B/C) · Below Zero (integers, B/C) · Bridge Crosser (mastered a skill from the next band up, A/B) |
 | **Persistence** (effort, never correctness) | First Hop · 3/7/30/100-day streaks (7 = "Habit Hatched", the establishment milestone) · Welcome Back (returned after ≥3 days away) · Sunrise (played the day after a hard session) · Regular (25 sessions) |
-| **Exploration** | Two Tongues (both languages) · Switcheroo (switched language mid-game) · Mountain Goat (challenge path, B/C) · Explorer (3 topics) · Tried Everything (every mode, B/C) |
-| **Resilience** (the important one) | Second Go (right when it came back) · Third Time's the Charm · Unstoppable (right after missing it **three** times) · Tough Cookie (finished a session you struggled in) · Boomerang (came back to a skill after a rough day) · Mistake Mechanic (25 fixes) |
+| **Exploration** | Two Tongues (both languages) · Switcheroo (switched language mid-game) · Mountain Goat (challenge path, B/C) · Explorer (3 topics) · Tried Everything (every mode, B/C) · Four Quadrants (points placed or read in all four quadrants, right or wrong, B/C) |
+| **Resilience** (the important one) | Second Go (right when it came back) · Third Time's the Charm · Unstoppable (right after missing it **three** times) · Tough Cookie (finished a session you struggled in) · Boomerang (came back to a skill after a rough day) · Mistake Mechanic (25 fixes) · Steady Hands (solved a Balance equation after the scale refused a move, B/C) |
 | **Discovery** ★ | Tickled (tap Pip 10×) · Mirror Number (palindrome answer) · Bullseye (exact estimate) · One Thousand · Zero Hero · Déjà Vu (same answer 3× in a row) · Early Bird · Weekend Warrior · Polyglot (5 switches) · Marathon Frog (1000 hops) |
 
 Planned for v1 alongside the new modes (same DSL):
@@ -345,7 +347,7 @@ On a wrong answer, the child's landing stays as a dashed "ghost". The line then 
 The item **comes back 3 items later**. Feedback by band:
 
 - **A: purely visual, no text.** The frog replays the counted hops, the correct pad glows, and the child taps it to continue (errorless completion). Voice says "Let's look together."
-- **B:** "You landed on 120. The answer is 110." plus up to 4 worked lines, plus a *misconception-specific tip* when the wrong answer matches a known bug (24 codes, e.g. `sub.smaller_from_larger`: "If the top digit is smaller, borrow a ten first.").
+- **B:** "You landed on 120. The answer is 110." plus up to 4 worked lines, plus a *misconception-specific tip* when the wrong answer matches a known bug (34 codes, e.g. `sub.smaller_from_larger`: "If the top digit is smaller, borrow a ten first.").
 - **C:** the full worked steps in neutral tone ("Queued for retry").
 
 Input that can't be read is **never** a wrong answer; it just asks again.
@@ -438,7 +440,7 @@ src/
   app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
   styles/                  fonts.css app.css
-tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (276 tests)
+tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (345 tests)
 sim/                       simulated learners + harness + report (npm run sim)
 e2e/                       run.mjs harness, lib.mjs helpers, flows/NN-<name>.mjs (MK, 360px, screenshots; npm run e2e)
 scripts/                   gen-skill-doc, gen-audio-script, gen-icons, level-report
@@ -650,9 +652,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **One skill branch across a band boundary.** In fact two: A→B arithmetic, and B→C via `num.line.1000 → int.intro → int.addsub`.
 - **Persistence:** versioned schema, migrations with rollback, compact append-only log in IndexedDB (localStorage fallback, single-writer lock), per-store compaction, backup export/import with merge.
 - **Streaks** with silent freezes and the 7-stone establishment path.
-- **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
+- **Achievement evaluator** with 38 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
 - **Sprint timed mode** (on by default, per-child flag; A-26).
+- **Balance** (step 9b; `al.eq.onestep`, `al.eq.linear`; Bands B/C, unlock-gated) and **Coordinate plane** (step 9c; `geo.coord`; Band C, and B once unlocked). Both on by default with per-child flags (A-26), evidence weight 0.75, their screens loaded on first use. Balance: a pan scale with x-boxes, 10s and units (balloons for negatives in C), moves applied to both pans, refused moves logged, undo, three hint tiers, "show me"; the `balance.eq` checker replays the move transcript. Coordinates: plot on a snapping −6…6 lattice or read (type x, then y); the `coord.point` checker names swapped, sign and off-by-one errors; points follow `LocaleConfig.point` ("(3, −2)" in mk, as in the МОН одделение 6 textbook; "(1,5; −2)" once a decimal comma appears).
 - **Feature flags.**
 - **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, storage use and a "keep data safe" button, flags, voice report.
 - **Both locales**, fully wired.
@@ -662,10 +665,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Check | Result |
 |---|---|
-| `npm test` | **276 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, the IndexedDB log store (routing, hydration, write-behind, crash-safe relocation, stragglers, per-store budgets, fallbacks, single writer), streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
-| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `35-storage`: after play and a reload no log key is left in localStorage and the history comes back from IndexedDB; a record written the instant before a reload survives; a month left in localStorage by an older build is merged; a second tab is read-only with a notice; the Data tab and "keep data safe" (3 screenshots). **38 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
+| `npm test` | **345 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 40 generator bindings, Balance (integer solutions, shortest balanced paths against brute force, blocked moves, forged transcripts, misconceptions) and coordinates (swap/sign/off-by-one on the whole lattice, mk point notation), engine unit tests, simulated-learner acceptance, storage/migrations/merge, the IndexedDB log store (routing, hydration, write-behind, crash-safe relocation, stragglers, per-store budgets, fallbacks, single writer), streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
+| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `35-storage`: after play and a reload no log key is left in localStorage and the history comes back from IndexedDB; a record written the instant before a reload survives; a month left in localStorage by an older build is merged; a second tab is read-only with a notice; the Data tab and "keep data safe" (3 screenshots). `72-balance`: a placed Band C child taps a weight on one pan (refused, logged), solves two equations by their own solution paths, reads x off the scale, asks "show me", sees results with Steady Hands; the item re-renders in English mid-item; Hop serves the same skill as a missing number; a Band B child's balloon-free scale (9 screenshots). `74-coord`: plot (tap snaps to the target) and read (type x, then y), a deliberately swapped answer with its tip, results, and a Band B child in English (5 screenshots). **52 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
 | Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache; log writes lost when a page is reloaded or closed right after them (Chromium never auto-commits an IndexedDB transaction on an unloading page; fixed with an explicit `commit()`) |
-| Size | 94 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| Size | 106 KB JS + 6 KB CSS gzipped at start-up, plus 8 KB JS + 2 KB CSS for the Balance and Coordinate screens, loaded on first use (precached for offline); 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -698,7 +701,9 @@ Useful URL switches:
 ### 3.5 Known limitations of the slice
 
 - Macedonian voice clips are not recorded yet (A-14/A-15). Band A MK is silent until they are, unless the device has an mk voice.
-- Only the number-line mode exists, so Band C content is limited to integers.
+- Band C content beyond the number line is equations (Balance) and coordinates; functions, geometry and the Workshop are not built yet.
+- Balance credits 1 − 0.25 per refused unbalancing move and per hint tier (`balanceY`), but the engine only knows full or hinted (0.5) credit until the tiered-credit seam (steps 4/5) is on `main`; until then any refused move or hint counts as a hinted answer. The move composer offers the numbers and x-terms on the scale (plus 1, x, 2 and −1), not an arbitrary amount.
+- Coordinates never generates the origin or points with |x| = |y|: there a swapped answer would be invisible or look like a double sign flip.
 - The weekly themed challenge, hint ladder and puzzle track are designed, not built.
 - Placement accuracy is bounded by the playable graph: it cannot resolve grade 5–6 positions until fraction and decimal generators exist.
 - Browsers without the Web Locks API (Safari before 15.4) cannot tell a second tab apart, so two tabs playing at once can overwrite each other's newest log month. The whole log is held in memory (≈0.35 MB per child per month); above ~10 MB it should load older months on demand.
@@ -725,7 +730,7 @@ Useful URL switches:
 | 6 | **Weekly themed challenge** (5-session set, cosmetic set piece) | 2 days | Gives the week a shape |
 | 7 | **Dice Race pass-and-play** on one device, each child on their own adaptive items | 4 days | Real-time head-to-head with luck, zero shared state |
 | 8 | **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** | 8–10 days | The separate reasoning product |
-| 9 | **Workshop (fractions and area)**, then the "Balance" equation mode and a coordinate-plane mode for C | 10+ days | Needs direct-manipulation UI; this is where Band C content depth arrives |
+| 9 | **9b Balance and 9c coordinate plane: done.** 9a Workshop (fraction bar, rectangle builder; its pure core is on the branch) follows the fraction step | 10+ days | Needs direct-manipulation UI; this is where Band C content depth arrives |
 | 10 | Seasonal cosmetics (Нова Година, Велигден), audio for new modes, polish | ongoing | — |
 | 11 | **Done.** **IndexedDB log store** behind the `KV` interface; localStorage keeps profiles and meta (A-8, §2.7) | 2–3 days | Must land by ~month 4 of daily play, before raw per-item history would be compacted (A-8) |
 

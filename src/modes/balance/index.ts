@@ -6,8 +6,8 @@
  */
 import { isUnlocked } from '../../core/engine/scheduler';
 import { GRAPH } from '../../core/skills';
+import { lazyScreen } from '../lazy';
 import { registerMode } from '../registry';
-import { BalanceMode } from './BalanceMode';
 
 /** Skills this mode serves (bound to the `equation` generator in the catalog). */
 export const BALANCE_SKILLS = ['al.eq.onestep', 'al.eq.linear'] as const;
@@ -27,5 +27,6 @@ registerMode({
   notReadyKey: 'balance.locked',
   // An equation takes several moves: shorter sessions than Hop.
   plannedItems: (band, opts) => (opts.quick ? band.quickItems : 8),
-  Component: BalanceMode,
+  // Its own chunk: the scale screen loads when the mode opens.
+  Component: lazyScreen(() => import('./BalanceMode').then((m) => m.BalanceMode)),
 });
