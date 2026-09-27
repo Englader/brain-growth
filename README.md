@@ -27,7 +27,7 @@ npm run size     # start-up JS budget (CI): languages, mode screens and the grow
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 
-The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, hint use, time on feedback, Band A counting vs recall), backups, storage use with a "keep data safe" button, per-child feature flags and which speech voices each device has.
+The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, help used, time on feedback, Band A counting vs recall), a Help tab listing which questions a child answered with a hint or "show me" (and where help is needed most, to practise together), backups, storage use with a "keep data safe" button, per-child feature flags and which speech voices each device has.
 
 **Adding voice recordings:** save each clip named in [the recording script](design/audio-recording-script.md) as `public/audio/<locale>/<clip-id>.mp3`, run `npm run gen:clips` (the build also does it) and commit the files with the regenerated manifest; Grown-ups → Voices lists what is still missing.
 

@@ -129,7 +129,7 @@ export function TargetA({ presented, data, locale, band, look, onNext }: TargetA
   const showMe = (): void => {
     if (phase !== 'play' || !way.length) return;
     unlockAudio();
-    submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, { latencyMs: performance.now() - shownAt.current, hint: false, hintTier: 0, input: 'tap', hops: taps.current });
+    submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, { latencyMs: performance.now() - shownAt.current, hint: false, hintTier: 0, revealed: true, input: 'tap', hops: taps.current });
     setPhase('show');
     setPicked([]);
     cancel.current();

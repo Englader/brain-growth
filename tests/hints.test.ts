@@ -361,15 +361,16 @@ describe('log codec with tier', () => {
     type: 'item', ts: T0, sid: 's1', key: '3', skill: 'as.add.multi', gen: 'addsub', genV: 1, seed: 9,
     level: 0.5, diff: 0, p: 0.8, mu: 0.4, s2: 0.6, correct: true, attempt: 1, latency: 14_000, hint: true,
     answer: '812', expected: '812', mis: null, mode: 'hop', band: 'B', locale: 'mk', source: 'frontier',
-    timed: false, input: 'typed', hops: null, alt: false, tier: 3, ...over,
+    timed: false, input: 'typed', hops: null, alt: false, tier: 3, revealed: false, ladder: null, req: 0.5, ...over,
   });
   const trip = (r: ItemRecord): unknown => decodeRecord(JSON.parse(JSON.stringify(encodeRecord(r))));
 
-  it('round-trips tier 0–3 and null, appended as the last field', () => {
+  it('round-trips tier 0–3 and null, appended right after the legacy fields', () => {
     for (const tier of [0, 1, 2, 3, null]) expect(trip(rec({ tier, hint: !!tier }))).toEqual(rec({ tier, hint: !!tier }));
     const enc = encodeRecord(rec());
-    expect(enc.length).toBe(2 + LEGACY_ITEM_FIELDS + 1);
-    expect(enc[enc.length - 1]).toBe(3);
+    // tier, then the Help tab's revealed, ladder and req (tests/help.test.ts).
+    expect(enc.length).toBe(2 + LEGACY_ITEM_FIELDS + 4);
+    expect(enc[2 + LEGACY_ITEM_FIELDS]).toBe(3);
     expect(enc[1]).toBe(1); // no version bump
   });
 
@@ -377,7 +378,7 @@ describe('log codec with tier', () => {
     const old = encodeRecord(rec()).slice(0, 2 + LEGACY_ITEM_FIELDS);
     const d = decodeRecord(old) as ItemRecord;
     expect(d.tier).toBeNull();
-    expect(d).toEqual(rec({ tier: null }));
+    expect(d).toEqual(rec({ tier: null, revealed: null, req: null }));
   });
 });
 

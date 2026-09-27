@@ -14,7 +14,7 @@ const item = (over: Partial<ItemRecord> = {}): ItemRecord => ({
   type: 'item', ts: T, sid: 's1', key: 's1:1', skill: 'as.add.20', gen: 'addsub', genV: 1, seed: 42,
   level: 0.5, diff: 0, p: 0.84, mu: 1.2, s2: 0.4, correct: true, attempt: 1, latency: 3200, hint: false,
   answer: '13', expected: '13', mis: null, mode: 'hop', band: 'A', locale: 'mk', source: 'frontier',
-  timed: false, input: 'hops', hops: 5, alt: false, tier: 0, ...over,
+  timed: false, input: 'hops', hops: 5, alt: false, tier: 0, revealed: false, ladder: null, req: 0.4870193618411321, ...over,
 });
 
 describe('log codec', () => {
