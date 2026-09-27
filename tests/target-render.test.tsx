@@ -1,11 +1,20 @@
 // @vitest-environment jsdom
 /** Target board rendering: stacked fractions, locale glyphs, "other ways" order. */
-import { render } from 'preact';
+import { render as preactRender, type ComponentChild } from 'preact';
+import { act } from 'preact/test-utils';
 import { describe, expect, it } from 'vitest';
 import { rat } from '../src/core/rational';
 import { canonicalKey, leaf, node, parseRepr } from '../src/core/target/expr';
 import { Expr, Num } from '../src/modes/target/Num';
 import { OtherWays } from '../src/modes/target/OtherWays';
+
+// Render inside act() (as tests/routes.test.tsx does): effects flush synchronously, so no
+// post-paint timer is left to fire after jsdom is torn down ("cancelAnimationFrame is not defined").
+const render = (vnode: ComponentChild, root: HTMLElement): void => {
+  void act(() => {
+    preactRender(vnode, root);
+  });
+};
 
 describe('Target rendering', () => {
   it('draws a non-integer with the shared stacked fraction and the locale minus, never a decimal', () => {

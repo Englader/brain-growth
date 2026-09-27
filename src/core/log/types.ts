@@ -135,6 +135,7 @@ export const EVENTS = {
   TARGET_WAY: 'target_way',
   // ── slot: dice ──
   // ── slot: puzzle ──
+  PUZZLE: 'puzzle',
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

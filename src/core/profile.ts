@@ -57,6 +57,8 @@ export interface Profile {
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
+  /** Per-puzzle-type rating (src/puzzles/rating.ts); never stored in `skills` (analytics look skill ids up in the graph). */
+  puzzles: import('../puzzles/rating').PuzzleRatings;
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──
@@ -111,6 +113,7 @@ export function createProfile(input: NewProfileInput, now: number): Profile {
     // ── slot: target ──
     // ── slot: dice ──
     // ── slot: puzzle ──
+    puzzles: {},
     // ── slot: workshop ──
     // ── slot: balance ──
     // ── slot: coord ──
