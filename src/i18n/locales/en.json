@@ -159,7 +159,8 @@
     "groups": "{groups, plural, one {# hop} other {# hops}} of {size}. Where do you land?",
     "land": "Where do you land?",
     "bond": "How many hops to the flag?",
-    "divide": "How many hops of {size} reach {target}?"
+    "divide": "How many hops of {size} reach {target}?",
+    "custom": "Find the answer."
   },
   "voice": {
     "welcome": "Hi! Let's play!",
@@ -180,7 +181,21 @@
     "tapGlow": "Now tap the shiny spot!",
     "gift": "A present for you!",
     "sessionDone": "Great playing today!",
-    "trophy": "You found a trophy!"
+    "trophy": "You found a trophy!",
+    "frac": {
+    },
+    "weekly": {
+    },
+    "target": {
+    },
+    "dice": {
+    },
+    "puzzle": {
+    },
+    "workshop": {
+    },
+    "season": {
+    }
   },
   "results": {
     "title": "Great practice!",
@@ -349,6 +364,7 @@
       "help": "First attempts are grouped by the model's predicted probability. Points below the diagonal mean the model was over-confident (items were harder than it thought); above means under-confident.",
       "predicted": "Predicted",
       "observed": "Observed",
+      "n": "n",
       "flagged": "Skills where the model is mis-calibrated",
       "none": "Nothing flagged yet (needs at least 15 first attempts on a skill).",
       "biasRow": "{skill}: predicted {p}%, observed {o}% over {n} tries"
@@ -376,7 +392,7 @@
       "rivals": "Cards from other devices: {n}"
     },
     "features": {
-      "title": "Experimental features",
+      "title": "Features (on or off)",
       "device": "This device",
       "profile": "For {name}"
     },
@@ -399,7 +415,7 @@
     }
   },
   "flag": {
-    "mode.sprint": "Timed “race your shadow” on mastered facts (opt-in, Bands B and C).",
+    "mode.sprint": "Timed “race your shadow” on Solid facts (a card the child chooses; Bands B and C).",
     "quests.daily": "Daily quest card with 2–3 varied objectives.",
     "hints": "Hint button (Bands B and C). Hinted answers count as half evidence.",
     "league.family": "Family board and card sharing.",
@@ -548,7 +564,19 @@
     "addPartials": "Add the parts: {r}.",
     "subNeg": "Taking away a negative is adding: {a} − (−{b}) = {a} + {b}.",
     "addNeg": "Adding a negative is taking away: {a} + (−{b}) = {a} − {b}.",
-    "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}."
+    "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}.",
+    "frac": {
+    },
+    "target": {
+    },
+    "dice": {
+    },
+    "workshop": {
+    },
+    "balance": {
+    },
+    "coord": {
+    }
   },
   "mis": {
     "count.off_by_one": {
@@ -646,6 +674,16 @@
     "int.added_magnitudes": {
       "name": "Added the sizes and kept the minus",
       "tip": "From a negative number, adding moves you right, toward 0."
+    },
+    "frac": {
+    },
+    "target": {
+    },
+    "workshop": {
+    },
+    "balance": {
+    },
+    "coord": {
     }
   },
   "cos": {
@@ -674,7 +712,11 @@
     "title.navigator": "Navigator",
     "title.strategist": "Strategist",
     "title.analyst": "Analyst",
-    "title.architect": "Architect"
+    "title.architect": "Architect",
+    "weekly": {
+    },
+    "season": {
+    }
   },
   "ach": {
     "mastery.first": {
@@ -887,6 +929,24 @@
     "secret.marathonFrog": {
       "name": "Marathon Frog",
       "desc": "A thousand hops! Pip needs a nap."
+    },
+    "frac": {
+    },
+    "weekly": {
+    },
+    "target": {
+    },
+    "dice": {
+    },
+    "puzzle": {
+    },
+    "workshop": {
+    },
+    "balance": {
+    },
+    "coord": {
+    },
+    "season": {
     }
   },
   "clip": {
@@ -935,5 +995,29 @@
       "90": "ninety",
       "100": "one hundred"
     }
+  },
+  "frac": {
+  },
+  "hint": {
+  },
+  "pilot": {
+  },
+  "storage": {
+  },
+  "weekly": {
+  },
+  "target": {
+  },
+  "dice": {
+  },
+  "puzzle": {
+  },
+  "workshop": {
+  },
+  "balance": {
+  },
+  "coord": {
+  },
+  "season": {
   }
 }

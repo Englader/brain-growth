@@ -6,6 +6,7 @@
 import type { NumberConventions } from '../../i18n/numbers';
 import { parseNumberInput } from '../../i18n/numbers';
 import { eq, key, rat, toNumber, type Rational } from '../rational';
+import { getChecker } from './checkers';
 import type { Item } from './types';
 
 export type Response =
@@ -14,7 +15,14 @@ export type Response =
   /** Landed on a position (pad tap, hop buttons, ruler tap). */
   | { kind: 'landed'; value: number; hops?: number }
   /** Number of hops taken (count-mode items answered with hop buttons). */
-  | { kind: 'hops'; count: number };
+  | { kind: 'hops'; count: number }
+  /**
+   * Something the child constructed (an expression from dealt cards, a shaded
+   * bar, a rectangle). `repr` is a canonical, locale-free description a checker
+   * can re-parse; `value` is what it evaluates to, if it has one. Without
+   * `answer.check` it is graded by `value` alone.
+   */
+  | { kind: 'built'; value: Rational | null; repr: string; data?: Record<string, number> };
 
 export interface GradeResult {
   correct: boolean;
@@ -33,6 +41,17 @@ export interface GradeResult {
 export function gradeResponse(item: Item, response: Response, conv: NumberConventions): GradeResult {
   const expected = item.answer.value;
   const tol = item.answer.tolerance ?? 0;
+  if (item.answer.check) {
+    const c = getChecker(item.answer.check.id)(item, response, item.answer.check.params ?? {}, conv);
+    return {
+      correct: !c.invalid && c.correct,
+      invalid: !!c.invalid,
+      given: c.given,
+      misconception: c.correct || c.invalid ? null : c.misconception ?? null,
+      altReading: false,
+      delta: c.delta ?? null,
+    };
+  }
   const misFor = (v: Rational): string | null =>
     v.d === 1 ? item.misconceptions.find((m) => m.value === v.n)?.code ?? null : null;
 
@@ -63,6 +82,13 @@ export function gradeResponse(item: Item, response: Response, conv: NumberConven
       altReading: false,
       delta: toNumber(primary) - toNumber(expected),
     };
+  }
+
+  if (response.kind === 'built') {
+    const v = response.value;
+    if (!v) return { correct: false, invalid: true, given: response.repr, misconception: null, altReading: false, delta: null };
+    const ok = tol > 0 ? Math.abs(toNumber(v) - toNumber(expected)) <= tol : eq(v, expected);
+    return { correct: ok, invalid: false, given: key(v), misconception: ok ? null : misFor(v), altReading: false, delta: toNumber(v) - toNumber(expected) };
   }
 
   const value = response.kind === 'hops' ? rat(response.count) : rat(Math.round(response.value * 1000), 1000);

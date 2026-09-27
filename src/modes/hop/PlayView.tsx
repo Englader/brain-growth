@@ -24,7 +24,7 @@ import type { Item, SolutionStep } from '../../core/items/types';
 import type { InputMethod } from '../../core/log/types';
 import { parseKey, toNumber } from '../../core/rational';
 import { getLocale } from '../../i18n/locales';
-import { answerText, numberText, promptText, solutionText, spokenPrompt } from '../../i18n/render';
+import { answerText, customVoice, numberText, promptText, solutionText, spokenPrompt } from '../../i18n/render';
 import { animateHops, unitHops, type HopFrame } from '../../ui/anim';
 import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
@@ -95,6 +95,10 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     const it = p.item;
     const pr = it.prompt;
     if (pr.kind === 'word') speaker.sayText(spokenPrompt(it, locale), locale);
+    else if (pr.kind === 'custom') {
+      const v = customVoice(it);
+      if (v) speaker.say(v.key, v.params ?? {}, locale);
+    }
     else if (pr.kind === 'expr' && pr.expr.k === 'op') {
       const a = pr.expr.a.k === 'num' ? pr.expr.a.v : 0;
       const b = pr.expr.b.k === 'num' ? pr.expr.b.v : 0;
@@ -435,6 +439,8 @@ function PromptVisual({ item, locale, label, bandA }: { item: Item; locale: stri
     case 'locate':
       return bandA ? <div class="big-num">{numberText(p.target, locale)}</div> : null;
     case 'word':
+      return null;
+    case 'custom':
       return null;
   }
 }

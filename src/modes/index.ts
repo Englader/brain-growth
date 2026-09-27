@@ -1,27 +1,45 @@
 /**
- * Mode registrations. Adding a mode = write its component and register it
- * here with the capabilities it needs. Home screens, the engine's skill
- * filter, achievements ("tried every mode") and flags all read the registry.
+ * Mode registrations. Hop and Sprint register here; every other mode
+ * registers itself in its own `src/modes/<id>/index.ts` and is pulled in by
+ * one side-effect import under its slot below (CONTRIBUTING: "Parallel work
+ * conventions"). Home screens, routes, the engine's skill filter, "tried
+ * every mode" and flags all read the registry.
  */
 import { GRAPH } from '../core/skills';
 import { HopMode } from './hop/HopMode';
 import { registerMode } from './registry';
-import { SprintMode } from './sprint/SprintMode';
+import { SprintIntro, SprintMode } from './sprint/SprintMode';
 import { SPRINT_ITEMS } from './sprint/timing';
+
+// Feature modes: one side-effect import (`import './<id>';`) directly under its own anchor. Never reorder.
+// ── slot: frac ──
+// ── slot: hint ──
+// ── slot: pilot ──
+// ── slot: storage ──
+// ── slot: weekly ──
+// ── slot: target ──
+// ── slot: dice ──
+// ── slot: puzzle ──
+// ── slot: workshop ──
+// ── slot: balance ──
+// ── slot: coord ──
+// ── slot: season ──
 
 registerMode({
   id: 'hop',
+  order: 0,
   titleKey: 'mode.hop.title',
   descKey: 'mode.hop.desc',
   icon: 'hops',
   requires: ['numberLine'],
   bands: ['A', 'B', 'C'],
-  plannedItems: (band, opts) => (opts.quick ? band.quickItems : band.sessionItems),
+  placement: true,
   Component: HopMode,
 });
 
 registerMode({
   id: 'sprint',
+  order: 10,
   titleKey: 'mode.sprint.title',
   descKey: 'mode.sprint.desc',
   icon: 'bolt',
@@ -35,5 +53,6 @@ registerMode({
   notReadyKey: 'home.sprintLocked',
   plannedItems: () => SPRINT_ITEMS,
   maxReturns: () => 0,
+  intro: SprintIntro,
   Component: SprintMode,
 });

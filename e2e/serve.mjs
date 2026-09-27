@@ -6,7 +6,7 @@ import { extname, join, normalize } from 'node:path';
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
   '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.woff2': 'font/woff2', '.mp3': 'audio/mpeg' };
 
-export function serve(root, base = '/brain-growth/', port = 4173) {
+export function serve(root, base = '/brain-growth/', port = Number(process.env.E2E_PORT || 4173)) {
   const server = createServer(async (req, res) => {
     const url = new URL(req.url, 'http://x');
     if (!url.pathname.startsWith(base)) { res.writeHead(302, { location: base }); return res.end(); }
@@ -18,5 +18,8 @@ export function serve(root, base = '/brain-growth/', port = 4173) {
       res.end(body);
     } catch { res.writeHead(404); res.end('not found'); }
   });
-  return new Promise((r) => server.listen(port, () => r(server)));
+  return new Promise((r, j) => {
+    server.once('error', j); // e.g. EADDRINUSE: pick another E2E_PORT
+    server.listen(port, () => r(server));
+  });
 }
