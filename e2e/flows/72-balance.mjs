@@ -2,7 +2,8 @@
  * Balance (step 9b): a placed Band C child opens the Balance card, taps a
  * weight on one pan (the scale refuses: a blocked move, logged), then solves
  * items by following each item's own solution path through the move
- * composer, types x once it stands alone, asks "show me" on one item, and
+ * composer (empty at every move: no operation or amount preselected, Apply
+ * disabled until both are chosen), types x once it stands alone, asks "show me" on one item, and
  * leaves for the results. The log must hold the transcripts the checker
  * accepted.
  */
@@ -38,13 +39,23 @@ async function waitInput(t, prevKey) {
   throw new Error(`balance: stuck after ${prevKey}`);
 }
 
+/** The composer starts every move empty: no operation, no amount, Apply disabled. */
+async function assertEmptyComposer(t) {
+  const { page } = t;
+  assert((await page.locator('.balance-op.on, .balance-op[aria-checked="true"]').count()) === 0, 'no operation preselected');
+  assert((await page.locator('.balance-amounts .chip.on, .balance-amounts [aria-pressed="true"]').count()) === 0, 'no amount preselected');
+  assert(await page.locator('[data-apply]').isDisabled(), 'Apply disabled until an operation and an amount are chosen');
+}
+
 /** Apply every move of the item's worked solution through the composer, then type x. */
 async function solve(t, cur, { shotSolved = false } = {}) {
   const { page } = t;
   for (const step of cur.solution) {
     if (step.k !== 'say' || !MOVE[step.key]) continue;
     const [op, term] = MOVE[step.key];
+    await assertEmptyComposer(t);
     await page.locator(`.balance-ops [data-op="${op}"]`).click();
+    assert(await page.locator('[data-apply]').isDisabled(), 'Apply stays disabled with an operation but no amount');
     const chip = page.locator(`.balance-amounts [data-n="${step.params.n}"][data-term="${term}"]`);
     assert(await chip.count(), `no amount chip ${op} ${step.params.n}${term} for ${JSON.stringify(cur.data)}`);
     await chip.click();
@@ -70,6 +81,7 @@ export default async function balance(t) {
   await page.locator('.mode-balance .btn').click();
   let s = await waitInput(t, 'none');
   assert(s.cur && s.cur.data && typeof s.cur.data.a === 'number', 'a Balance item is showing');
+  await assertEmptyComposer(t);
   await t.shot('scale');
   // Same item re-rendered in English mid-item, then back.
   await page.locator('.lang button', { hasText: 'EN' }).click();

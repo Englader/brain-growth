@@ -265,8 +265,17 @@
 .ws-tools .ws-show {
   margin-left: auto;
 }
+/* "Make another" / "Check" and "All shapes": stacked full-width, one line each (side by side,
+   "Направи друг" wrapped to two lines at 360 px). Stacked, the row never reflows when the first
+   button switches between "Make another" and "Check". */
+.ws-more {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
 .ws-more .btn {
-  flex: 1 1 140px;
+  width: 100%;
+  white-space: nowrap;
 }
 .ws-others-btn.on {
   background: var(--primary);

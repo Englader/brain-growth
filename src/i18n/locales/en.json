@@ -1825,6 +1825,7 @@
     },
     "apply": "{move} on both pans",
     "apply@C": "{move} on both sides",
+    "choose": "Pick an operation and a number",
     "undo": "Undo",
     "showMe": "Show me",
     "showMe@C": "Show solution",
