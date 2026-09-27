@@ -18,6 +18,7 @@
 import { glickoElo, levelToDifficulty } from '../core/engine/glicko';
 import type { SkillState } from '../core/engine/model';
 import { MODEL } from '../core/engine/params';
+import type { BandId } from '../core/types';
 
 export interface PuzzleRating {
   /** Ability mean on the logit scale of the type's difficulty (d = −2.5 + 5ℓ). */
@@ -50,6 +51,8 @@ export interface PuzzleOutcome {
   wrongChecks: number;
   /** Time spent. Accepted and ignored: latency never affects the rating. */
   ms?: number;
+  /** Violated-constraint ids of each failed check, joined by '+' (logged precisely, e.g. "below"). */
+  fails?: string[];
 }
 
 const count = (x: number): number => (Number.isFinite(x) ? Math.max(0, Math.floor(x)) : 0);
@@ -64,8 +67,28 @@ export function puzzleY(o: PuzzleOutcome): number {
   return Math.max(0, Math.round(y * 1e9) / 1e9);
 }
 
-/** A fresh rating: the engine's practice prior (N(−0.5, 1.5)). */
-export function initPuzzleRating(now: number, prior?: { mu: number; s2: number }): PuzzleRating {
+export interface PuzzlePrior {
+  mu: number;
+  s2: number;
+}
+
+/**
+ * Starting belief for a type the child has never played, by band. Band A uses
+ * the engine's practice prior N(−0.5, 1.5); B starts at μ = 0 and C at μ = 0.5
+ * so older children do not open on trivial puzzles (first level ≈ 0.12 / 0.22 /
+ * 0.32 at p = 0.75). The prior is chosen by the band of the FIRST puzzle of a
+ * type (logged on its event), so replay reproduces it.
+ */
+export const PUZZLE_PRIORS: Readonly<Record<BandId, PuzzlePrior>> = {
+  A: { mu: MODEL.PRIOR_MU, s2: MODEL.PRIOR_S2 },
+  B: { mu: 0, s2: MODEL.PRIOR_S2 },
+  C: { mu: 0.5, s2: MODEL.PRIOR_S2 },
+};
+
+export const puzzlePrior = (band: BandId): PuzzlePrior => PUZZLE_PRIORS[band] ?? PUZZLE_PRIORS.A;
+
+/** A fresh rating (default: the engine's practice prior N(−0.5, 1.5)). */
+export function initPuzzleRating(now: number, prior?: PuzzlePrior): PuzzleRating {
   return { mu: prior?.mu ?? MODEL.PRIOR_MU, s2: prior?.s2 ?? MODEL.PRIOR_S2, n: 0, lastSeen: now, solved: 0 };
 }
 
@@ -109,7 +132,7 @@ export function updatePuzzleRating(r: PuzzleRating, obs: PuzzleObservation): Puz
  * The single state transition, shared by live play and by replay so the two
  * can never drift apart. Only `type`'s rating changes.
  */
-export function applyPuzzleResult(ratings: PuzzleRatings, type: string, obs: PuzzleObservation): PuzzleRatings {
-  const current = ratings[type] ?? initPuzzleRating(obs.ts);
+export function applyPuzzleResult(ratings: PuzzleRatings, type: string, obs: PuzzleObservation, prior?: PuzzlePrior): PuzzleRatings {
+  const current = ratings[type] ?? initPuzzleRating(obs.ts, prior);
   return { ...ratings, [type]: updatePuzzleRating(current, obs) };
 }

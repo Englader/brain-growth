@@ -3,13 +3,13 @@
  * that rebuilds every per-type rating from those events. Live play and replay
  * both go through `applyPuzzleResult`, so they cannot drift apart.
  */
-import type { LogRecord } from '../core/log/types';
+import { EVENTS, type LogRecord } from '../core/log/types';
 import type { BandId, LocaleId } from '../core/types';
-import { applyPuzzleResult, puzzleY, type PuzzleOutcome, type PuzzleRatings } from './rating';
+import { applyPuzzleResult, puzzlePrior, puzzleY, type PuzzleOutcome, type PuzzleRatings } from './rating';
 import type { StartedPuzzle } from './select';
 
-/** Event name for `EVENTS` (added with the UI). */
-export const PUZZLE_EVENT = 'puzzle';
+/** Event name of a finished puzzle (EVENTS.PUZZLE). */
+export const PUZZLE_EVENT: string = EVENTS.PUZZLE;
 
 /** Payload of the `puzzle` event. Plain JSON. */
 export interface PuzzleEvent {
@@ -40,6 +40,12 @@ export interface PuzzleEvent {
   target?: number;
   /** Time spent (ms). Logged for analysis only; never read by the rating. */
   ms?: number;
+  /**
+   * Violated-constraint ids of each failed check, joined by '+', in order
+   * (e.g. ["below", "wide+above"]). Precise here even where the child only
+   * saw a neutral message (estimates never show a direction).
+   */
+  fails?: string[];
 }
 
 /**
@@ -70,8 +76,10 @@ export function finishPuzzle(
     req: started.req,
     target: started.target,
     ...(outcome.ms !== undefined ? { ms: outcome.ms } : {}),
+    ...(outcome.fails?.length ? { fails: [...outcome.fails] } : {}),
   };
-  return { ratings: applyPuzzleResult(ratings, started.type, { y, diff: started.diff, ts: started.ts, solved: outcome.solved }), event };
+  const obs = { y, diff: started.diff, ts: started.ts, solved: outcome.solved };
+  return { ratings: applyPuzzleResult(ratings, started.type, obs, puzzlePrior(started.band)), event };
 }
 
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
@@ -101,6 +109,7 @@ export function parsePuzzleEvent(data: unknown, fallbackTs?: number): PuzzleEven
     ...(finite(d.req) ? { req: d.req } : {}),
     ...(finite(d.target) ? { target: d.target } : {}),
     ...(finite(d.ms) ? { ms: d.ms } : {}),
+    ...(Array.isArray(d.fails) ? { fails: d.fails.map(String) } : {}),
   };
 }
 
@@ -129,7 +138,7 @@ export function replayPuzzleRatings(events: readonly unknown[]): PuzzleRatings {
   let ratings: PuzzleRatings = {};
   for (const { e } of parsed) {
     const y = puzzleY({ solved: e.solved, hints: e.hints, wrongChecks: e.checks });
-    ratings = applyPuzzleResult(ratings, e.type, { y, diff: e.diff, ts: e.ts, solved: e.solved });
+    ratings = applyPuzzleResult(ratings, e.type, { y, diff: e.diff, ts: e.ts, solved: e.solved }, puzzlePrior(e.band));
   }
   return ratings;
 }

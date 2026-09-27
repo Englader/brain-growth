@@ -37,6 +37,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
+  { id: 'mode.puzzle', scope: 'profile', default: true, labelKey: 'puzzle.flag', description: 'Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms; untimed, own rating per type, never needed for progress.' },
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

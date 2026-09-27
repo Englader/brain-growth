@@ -17,7 +17,9 @@ export const PUZZLE_TYPE_KEYS = {
  * Gentle "not yet" feedback per violated-constraint kind. A violation id is
  * `kind` or `kind:detail`; its message key is `puzzle.violated.<kind>`, with
  * the detail (scale index, column index, shape or symbol id) used for the
- * highlight rather than the text.
+ * highlight rather than the text. Estimates never show a direction: `below`
+ * and `above` both read "not inside your range yet", otherwise children home
+ * in by trial instead of estimating (the event log keeps the precise id).
  */
 export const PUZZLE_VIOLATION_KEYS = {
   answer: 'puzzle.violated.answer',
@@ -25,8 +27,8 @@ export const PUZZLE_VIOLATION_KEYS = {
   scale: 'puzzle.violated.scale',
   shape: 'puzzle.violated.shape',
   wide: 'puzzle.violated.wide',
-  below: 'puzzle.violated.below',
-  above: 'puzzle.violated.above',
+  below: 'puzzle.violated.outside',
+  above: 'puzzle.violated.outside',
   missing: 'puzzle.violated.missing',
   distinct: 'puzzle.violated.distinct',
   lead: 'puzzle.violated.lead',

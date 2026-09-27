@@ -16,7 +16,7 @@ import { difficultyToLevel, glickoElo, levelToDifficulty } from '../core/engine/
 import { SELECTION } from '../core/engine/params';
 import { createRng } from '../core/rng';
 import type { BandId } from '../core/types';
-import { asSkillState, initPuzzleRating, predictPuzzle, type PuzzleRating } from './rating';
+import { asSkillState, initPuzzleRating, predictPuzzle, puzzlePrior, type PuzzleRating } from './rating';
 import type { PuzzleTypeDef } from './types';
 import { clamp01 } from './util';
 
@@ -29,9 +29,9 @@ export const PUZZLE_TARGET = {
 /** Salt for the jitter stream, so it is independent of the generator's stream. */
 const JITTER_SALT = 0x2545f491;
 
-/** Requested level for success probability `p` (before jitter). An unseen type uses the prior. */
-export function puzzleLevelFor(rating: PuzzleRating | undefined, p: number, now: number): number {
-  const r = rating ?? initPuzzleRating(now);
+/** Requested level for success probability `p` (before jitter). An unseen type uses its band's prior. */
+export function puzzleLevelFor(rating: PuzzleRating | undefined, p: number, now: number, band: BandId = 'A'): number {
+  const r = rating ?? initPuzzleRating(now, puzzlePrior(band));
   return clamp01(difficultyToLevel(glickoElo.difficultyFor(asSkillState(r), p, now)));
 }
 
@@ -69,7 +69,7 @@ export function startPuzzle<P, A>(
   now: number,
   seed: number,
 ): StartedPuzzle<P> {
-  const req = clamp01(puzzleLevelFor(rating, target, now) + levelJitter(seed));
+  const req = clamp01(puzzleLevelFor(rating, target, now, band) + levelJitter(seed));
   const g = def.generate(createRng(seed), band, req);
   return {
     type: def.id,
@@ -80,7 +80,7 @@ export function startPuzzle<P, A>(
     req,
     level: g.achievedLevel,
     diff: levelToDifficulty(g.achievedLevel),
-    p: predictPuzzle(rating ?? initPuzzleRating(now), g.achievedLevel, now),
+    p: predictPuzzle(rating ?? initPuzzleRating(now, puzzlePrior(band)), g.achievedLevel, now),
     ts: now,
     puzzle: g.puzzle,
     features: g.features,

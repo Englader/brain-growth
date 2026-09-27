@@ -191,6 +191,24 @@
     "dice": {
     },
     "puzzle": {
+      "shelf": "Pick a puzzle!",
+      "pattern": "What comes next? Tap it!",
+      "balance": "The scales are balanced. How heavy is the shape?",
+      "notYet": "Not yet! Look again.",
+      "solved": "You solved it!",
+      "together": "We solved it together!",
+      "weighs": "This shape weighs",
+      "hint": {
+        "unit": "Look at the part that repeats.",
+        "same": "The next one is the same as the shiny one.",
+        "groups": "Each group gets bigger.",
+        "grows": "Look how the last group grows.",
+        "start": "Start with the shiny scale.",
+        "remove": "Take the same cubes off both sides.",
+        "share": "Share the cubes fairly.",
+        "count": "Count the cubes.",
+        "known": "This shape weighs {weight}."
+      }
     },
     "workshop": {
     },
@@ -939,6 +957,29 @@
     "dice": {
     },
     "puzzle": {
+      "solver": {
+        "name": "Puzzle Solver",
+        "desc": "Ten puzzles solved. Careful thinking pays off!",
+        "hint": "Solve 10 puzzles.",
+        "name@C": "Puzzle Solver",
+        "desc@C": "Solved 10 puzzles."
+      },
+      "aboveLevel": {
+        "name": "Above My Level",
+        "desc": "You asked for a harder puzzle and solved it!",
+        "hint": "Tap “Harder one” and solve a puzzle.",
+        "name@C": "Above My Level",
+        "desc@C": "Solved a puzzle chosen above your level.",
+        "hint@C": "Turn on “Harder one” and solve a puzzle."
+      },
+      "estimator": {
+        "name": "Estimator",
+        "desc": "Ten good estimates: the answer was inside your range every time.",
+        "hint": "Solve 10 “Good guess” puzzles.",
+        "name@C": "Estimator",
+        "desc@C": "Solved 10 estimation ranges.",
+        "hint@C": "Solve 10 estimation-range puzzles."
+      }
     },
     "workshop": {
     },
@@ -1011,6 +1052,122 @@
   "dice": {
   },
   "puzzle": {
+    "title": "Puzzles",
+    "title@C": "Puzzles",
+    "desc": "Think it through: no clock, check as often as you like",
+    "desc@C": "Reasoning puzzles, untimed, with their own level per type",
+    "flag": "Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms (untimed; its own level per puzzle type; never needed for progress).",
+    "notReady": "Opens after your first round on the number trail",
+    "notReady@C": "Available after your first calibration session",
+    "harder": "Harder one",
+    "harderOn": "Harder ones: on",
+    "harder@C": "Harder one",
+    "harderOn@C": "Harder ones: on",
+    "play": "Play",
+    "type": {
+      "pattern": "What comes next?",
+      "pattern@C": "Sequences",
+      "balance": "Balance",
+      "balance@C": "Balance scales",
+      "estimate": "Good guess",
+      "estimate@C": "Estimation ranges",
+      "logic": "Who has what?",
+      "logic@C": "Logic grids",
+      "crypt": "Secret shapes",
+      "crypt@C": "Cryptarithms"
+    },
+    "about": {
+      "pattern": "Find the rule, then the next one",
+      "balance": "Work out how heavy each shape is",
+      "estimate": "Catch the answer in a range, no exact sums",
+      "logic": "Use the clues to see what goes together",
+      "crypt": "Each shape is a digit: crack the sum"
+    },
+    "ask": {
+      "patternTiles": "A row of pictures; the last one is missing",
+      "pattern": "What number comes next?",
+      "balance": "Every scale is balanced. How heavy is each shape?",
+      "estimate": "Where is the answer? Catch it inside your range.",
+      "logic": "Tick what goes together. Tap a box again for a cross.",
+      "crypt": "Same shape, same digit; different shapes, different digits. No number starts with 0."
+    },
+    "check": "Check",
+    "help": "Hint",
+    "reveal": "Show me",
+    "next": "Next puzzle",
+    "more": "Other puzzles",
+    "toShelf": "Back to the puzzles",
+    "solved": "Solved!",
+    "solved@C": "Solved.",
+    "revealed": "Here is one way to solve it. Try the next one!",
+    "revealed@C": "Here is one solution.",
+    "violated": {
+      "answer": "Not yet. Look again!",
+      "next": "That does not fit the rule yet.",
+      "scale": "{n, plural, one {A scale tips. Look at the glowing one.} other {# scales tip. Look at the glowing ones.}}",
+      "shape": "Give every shape a weight.",
+      "wide": "Your range is too wide. Make it narrower.",
+      "outside": "The answer is not inside your range yet.",
+      "missing": "Give every shape a digit.",
+      "distinct": "Two different shapes cannot be the same digit.",
+      "lead": "A number cannot start with 0.",
+      "col": "{n, plural, one {A column does not add up yet.} other {# columns do not add up yet.}}",
+      "twice": "Someone has two things of the same kind.",
+      "clue": "{n, plural, one {A clue is not true yet. Look at the glowing one.} other {# clues are not true yet. Look at the glowing ones.}}"
+    },
+    "hint": {
+      "pattern": {
+        "unit": "Look at the part that repeats.",
+        "same": "The next one matches the glowing one.",
+        "groups": "Each group grows by one.",
+        "grows": "Look at how the last group grows.",
+        "gaps": "Look at how much it changes at each step.",
+        "ratios": "Look at how many times bigger each number gets.",
+        "neighbours": "Look at three numbers in a row.",
+        "step": "Each step changes it by {step}.",
+        "ratio": "{form, select, times {Each number is {num} times the one before.} other {Each number is {num}/{den} of the one before.}}",
+        "alternate": "The steps take turns: {first}, then {second}.",
+        "gapGrows": "The steps change by {by} each time.",
+        "sumTwo": "Add the two numbers before it.",
+        "nextGap": "The next step is {gap}."
+      },
+      "balance": {
+        "start": "Start with the glowing scale.",
+        "compare": "Compare the two glowing scales: what is different?",
+        "remove": "Take {units, plural, one {# cube} other {# cubes}} off both sides: it stays balanced.",
+        "share": "Share {units, plural, one {# cube} other {# cubes}} fairly among {count} shapes.",
+        "count": "Count the cubes on the other side.",
+        "known": "This shape weighs {weight}."
+      },
+      "estimate": {
+        "roundEach": "{to, plural, =10 {Round each number to the nearest ten.} =100 {Round each number to the nearest hundred.} other {Round each number to the nearest {to}.}}",
+        "roundBoth": "Think of {a} {op} {b}.",
+        "friendlyDivide": "Think of {a} {op} {b}.",
+        "tenPercent": "10% of the number is about {tenth}.",
+        "about": "It is about {value}.",
+        "between": "It is between {lo} and {hi}."
+      },
+      "logic": {
+        "start": "Start with the glowing clue.",
+        "pair": "These two go together."
+      },
+      "crypt": {
+        "carry": "The extra shape at the left of the sum is always 1.",
+        "units": "Start with the ones column, on the right.",
+        "reveal": "This shape is {digit}."
+      }
+    },
+    "tile": "Picture {n}",
+    "pickShape": "Choose a shape, then type its weight",
+    "weightOf": "Weight of shape {n}",
+    "pickSymbol": "Choose a shape, then type its digit",
+    "symbol": "Shape {n}",
+    "cell": "Row {r}, column {c}",
+    "from": "From",
+    "to": "To",
+    "width": "Width {w} (at most {max})",
+    "range": "From {lo} to {hi}",
+    "percentOf": "{pct}% of {of}"
   },
   "workshop": {
   },

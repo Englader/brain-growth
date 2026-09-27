@@ -65,6 +65,14 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
     // ── slot: target ──
     // ── slot: dice ──
     // ── slot: puzzle ──
+    // Per puzzle type, the copy with more rated puzzles wins (then the later one): monotone and idempotent.
+    puzzles: Object.fromEntries(
+      [...new Set([...Object.keys(a.puzzles ?? {}), ...Object.keys(b.puzzles ?? {})])].map((type) => {
+        const x = a.puzzles?.[type];
+        const y = b.puzzles?.[type];
+        return [type, !x ? y! : !y ? x : y.n > x.n || (y.n === x.n && y.lastSeen > x.lastSeen) ? y : x];
+      }),
+    ),
     // ── slot: workshop ──
     // ── slot: balance ──
     // ── slot: coord ──

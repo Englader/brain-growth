@@ -1,0 +1,473 @@
+/*
+ * Puzzle track. Uses the band theme tokens (--target, --radius, --primary,
+ * --surface…) so Band A is big and bright and Band C stays dark and compact.
+ * The highlight for a violated constraint or a hint's focus is the same soft
+ * amber glow everywhere (`.mark`): it points, it never scolds.
+ */
+.puzzle-play {
+  --pz-glow: #f59e0b;
+  --pz-glow-soft: rgba(245, 158, 11, 0.22);
+}
+.puzzle-play .topbar-title {
+  flex: 1;
+  font-size: 1.1em;
+}
+.pz-ask {
+  margin: 0;
+  text-align: center;
+}
+.puzzle-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.puzzle-play .feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.pz-notyet p {
+  margin: 0;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pz-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.pz-hint-pair {
+  display: inline-flex;
+  gap: 2px;
+}
+.pz-star {
+  color: var(--accent);
+}
+.pz-help {
+  justify-content: flex-end;
+}
+.pz-check {
+  width: 100%;
+}
+.glyph {
+  display: block;
+  flex: none;
+}
+.mark,
+.pz-scale.mark,
+.pz-clue.mark {
+  box-shadow: 0 0 0 3px var(--pz-glow);
+  background-color: var(--pz-glow-soft);
+}
+
+.pz-num.slot.mark,
+.pz-cell.slot.mark {
+  border-color: var(--pz-glow);
+  box-shadow: 0 0 0 3px var(--pz-glow);
+  background-color: var(--pz-glow-soft);
+}
+/* Band A: the puzzle sits in the middle of the screen, big and alone. */
+.app[data-band='A'] .puzzle-board {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ── Shelf ─────────────────────────────────────────────────────────────── */
+.puzzle-shelf .pz-harder {
+  align-self: flex-start;
+}
+.pz-shelf-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+  margin-top: 12px;
+}
+.pz-shelf-tile {
+  width: min(100%, 300px);
+  min-height: 132px;
+  border-radius: 32px;
+  color: var(--primary);
+}
+.pz-shelf-art {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.slot-q {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 3px dashed var(--line);
+  border-radius: 10px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+/* ── Pattern ───────────────────────────────────────────────────────────── */
+.pz-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+}
+.pz-row {
+  flex-wrap: nowrap;
+}
+.pz-cell {
+  display: grid;
+  place-items: center;
+  width: var(--cell, 36px);
+  height: var(--cell, 36px);
+  border-radius: 10px;
+}
+.pz-cell.group {
+  border-bottom: 4px solid var(--pz-glow);
+}
+.pz-cell.slot {
+  border: 3px dashed var(--line);
+}
+.pz-cell.slot.filled {
+  border-style: solid;
+  border-color: var(--primary);
+}
+.pz-palette {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+.pz-choice {
+  display: grid;
+  place-items: center;
+  width: calc(var(--target) + 12px);
+  height: calc(var(--target) + 12px);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.pz-choice.glow,
+.pz-pad.glow {
+  box-shadow: 0 0 0 5px var(--pz-glow);
+  animation: pz-pulse 1.2s ease-in-out infinite;
+}
+@keyframes pz-pulse {
+  50% {
+    transform: scale(1.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pz-choice.glow,
+  .pz-pad.glow {
+    animation: none;
+  }
+}
+.pz-seq {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+.pz-num {
+  min-width: 44px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 1.3em;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.pz-num.slot {
+  border: 3px dashed var(--line);
+  box-shadow: none;
+  color: var(--primary);
+}
+.pz-gap {
+  font-size: 0.85em;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* ── Balance ───────────────────────────────────────────────────────────── */
+.pz-scales {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pz-scale {
+  width: 100%;
+  height: auto;
+  max-height: 150px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.pz-scale .post {
+  fill: var(--surface-2);
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.pz-scale .beam {
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.pz-scale .pin {
+  fill: var(--ink);
+}
+.pz-scale .tray {
+  fill: var(--surface-2);
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.pz-scale .string {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.2;
+}
+.pz-pan.mark .tray {
+  fill: var(--pz-glow);
+}
+.pz-scale .cube {
+  fill: #86c5e8;
+  stroke: #0b7a99;
+  stroke-width: 1;
+}
+.pz-scale .block {
+  fill: #475569;
+}
+.pz-scale .block-n {
+  fill: #ffffff;
+  font-weight: 800;
+  font-size: 14px;
+}
+.pz-pads-a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.pz-ask.mark {
+  border-radius: 12px;
+}
+.pz-pads {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  width: 100%;
+}
+.pz-pad {
+  min-height: calc(var(--target) - 12px);
+  border: 0;
+  border-radius: 999px;
+  background: var(--pad, #86efac);
+  font-size: 1.3em;
+  font-weight: 900;
+  color: #10303d;
+  cursor: pointer;
+}
+.pz-pad.on {
+  outline: 3px solid var(--primary);
+}
+.pz-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.pz-chip {
+  gap: 4px;
+}
+.pz-chip .pz-val {
+  min-width: 1.6em;
+  font-size: 1.15em;
+  font-variant-numeric: tabular-nums;
+}
+.pz-chip.given {
+  opacity: 0.75;
+  border-style: dashed;
+}
+.pz-eq {
+  font-weight: 800;
+}
+
+/* ── Estimate ──────────────────────────────────────────────────────────── */
+.pz-quantity {
+  margin: 0;
+  text-align: center;
+  font-size: 1.8em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pz-ruler {
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.pz-ruler .axis,
+.pz-ruler .tick {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.pz-ruler .tick-label {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.pz-ruler .band {
+  fill: rgba(11, 122, 153, 0.22);
+  stroke: var(--primary);
+  stroke-width: 2;
+}
+.pz-ruler .band.mark {
+  fill: var(--pz-glow-soft);
+  stroke: var(--pz-glow);
+}
+.pz-ruler .handle line {
+  stroke: var(--primary);
+  stroke-width: 3;
+}
+.pz-ruler .handle circle {
+  fill: var(--surface);
+  stroke: var(--primary);
+  stroke-width: 3;
+}
+.pz-ruler .handle.on circle {
+  fill: var(--primary);
+}
+.pz-width {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  color: var(--muted);
+}
+.pz-width.mark {
+  color: var(--ink);
+  border-radius: 10px;
+}
+.pz-end {
+  font-weight: 700;
+}
+
+/* ── Logic ─────────────────────────────────────────────────────────────── */
+.pz-clues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.pz-clue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.relation.same {
+  color: var(--good);
+}
+.relation.diff {
+  color: #b42318;
+}
+[data-theme='slate'] .relation.diff {
+  color: #f87171;
+}
+.pz-grid {
+  border-collapse: separate;
+  border-spacing: 3px;
+  margin: 0 auto;
+}
+.pz-grid th {
+  padding: 0;
+}
+.pz-grid th.mark,
+.pz-grid tr.mark th {
+  border-radius: 8px;
+}
+.pz-grid .sep {
+  padding-left: 8px;
+}
+.pz-box {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+.pz-box.y {
+  color: var(--good);
+  border-color: var(--good);
+}
+.pz-box.n {
+  color: var(--muted);
+}
+[data-theme='slate'] .pz-box.y {
+  color: #34d399;
+  border-color: #34d399;
+}
+
+/* ── Cryptarithm ───────────────────────────────────────────────────────── */
+.pz-sum {
+  display: grid;
+  justify-content: center;
+  row-gap: 4px;
+  margin: 0 auto;
+}
+.pz-op {
+  display: grid;
+  place-items: center;
+  font-size: 1.6em;
+  font-weight: 900;
+}
+.pz-digit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 0;
+  border-radius: 8px;
+}
+.pz-digit small {
+  min-height: 1.2em;
+  font-weight: 800;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.pz-digit small.given {
+  color: var(--muted);
+}
+.pz-rule {
+  grid-column: 1 / -1;
+  height: 3px;
+  margin: 2px 0 4px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.pz-digit.col-mark {
+  background: var(--pz-glow-soft);
+}

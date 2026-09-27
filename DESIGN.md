@@ -71,7 +71,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | A-22 | **Daily quests are on by default, but are flagged as a risk** and instrumented. The adult view shows the share of play *after* the quest completes (the free-choice measure from the overjustification literature). | You asked for quests. An announced task→reward pairing is the textbook overjustification set-up. The mitigations are in §1.9. | If free-choice play collapses toward 0, turn off `quests.daily` per child. |
 | A-23 | **Head-to-head shared state = URL-fragment "rival cards"** (option **a**), plus automatic same-device boards. | Reasoning in §1.10. | If you later accept a backend, §5 T-5 describes an end-to-end-encrypted sync that reuses the existing merge rules. |
 | A-24 | **The luck component in the slice is the league's weekly wildcard.** Every device picks the same category for the week by hashing the week id, with no server. The **Dice Race** mode (designed, §1.4) adds in-game luck. | The wildcard gives a weaker player a real chance in the only head-to-head that exists today. | Build Dice Race (§4 step 7). |
-| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the weekly themed challenge, the adaptive hint ladder. | Scope boundary of deliverable 3. | See §4 for order and effort. |
+| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the weekly themed challenge, the adaptive hint ladder. (The puzzle track is built: §1.4.) | Scope boundary of deliverable 3. | See §4 for order and effort. |
 | A-26 | **Features ship ON by default.** The owner wants the complete product live, so new modes and features are enabled once their e2e flow passes. Flags remain as per-child switches in the adult view. Readiness gating still applies: a mode's card shows but stays locked until it can be played well (Sprint needs a Solid fluency skill; new modes need placement done), and the Band A home simply omits it until then. Sprint is the first mode switched on under this rule. | With n = 2 known children and an adult who can see and toggle every flag, "dark until proven" mostly hides finished work. The per-child switch keeps the escape hatch the flags were for. | If a feature turns out to hurt a child (e.g. timed play stresses them), switch its flag off for that child in Grown-ups → Features; to ship a future feature dark instead, set its `default: false`. |
 
 ---
@@ -132,7 +132,15 @@ The test I applied: if you removed the maths, would there be no game left? Is th
 | **Workshop (spatial)** | Cut, shade, stack and resize shapes | Fractions and geometry by direct manipulation: split a bar into equal parts, fill with ½+⅓+⅙ strips, resize a rectangle to area 24 and perimeter 20, stack cubes for volume, build squares on triangle sides (Pythagoras). The constructed object is checked, not a typed number. | Shapes, patterns, halves | Fractions, area/perimeter | Volume, Pythagoras, coordinate plotting | Designed |
 | **Dice Race (pass-and-play)** | Roll dice, compute your move, race on a linear board | Luck (dice) plus your own adaptive items. A: count the dots and hop. B: choose how to combine the dice to reach a ladder square. C: powers and negatives. The computed move *is* the maths; the dice let the younger child win sometimes. Same device, zero shared state. | Count on | Combine + − × | Powers, negatives | Designed |
 | **Sprint (Race your shadow)** | Hop mode against your own ghost | Speed on already-solid facts, where accuracy strictly dominates speed (§1.8). | — | ✓ | ✓ | **Built** (on; per-child flag, A-26) |
-| **Puzzle track** | Logic grids, pattern extension, cryptarithms (e.g. TO + GO = OUT), pouring and weighing, spatial nets, estimation with no single exact answer | Reasoning, with its own per-type rating and no timer or streak coupling. Scales from A (picture patterns, balance with pictures) to C (cryptarithms, logic grids). | ✓ | ✓ | ✓ | Designed |
+| **Puzzle track** | Logic grids, pattern extension, cryptarithms (e.g. TO + GO = OUT), pouring and weighing, spatial nets, estimation with no single exact answer | Reasoning, with its own per-type rating and no timer or streak coupling. Scales from A (picture patterns, balance with pictures) to C (cryptarithms, logic grids). | ✓ | ✓ | ✓ | **Built**: patterns, balance scales, estimation ranges, logic grids, cryptarithms (on; per-child flag `mode.puzzle`, A-26). Pouring and nets: designed |
+
+**Puzzle track as built** (`src/puzzles/` pure core, `src/modes/puzzle/` UI, `src/app/puzzleActions.ts`):
+
+- **Types by band.** A: picture patterns (tap the next tile from the tiles used) and picture balance (count cubes, answer on pads 0–10). B adds number patterns, 2–3-scale balances (every weight entered), estimation ranges and logic grids; C adds cryptarithms. Every puzzle is language-neutral data (tile, shape, symbol and icon ids drawn as SVG, including ≠) generated from a seed and rebuildable from its log event.
+- **Quality guarantees, tested.** Number patterns are rejected when a simpler rule family fits the shown terms but predicts another next term. Balances have a full-rank system with one solution and can be solved one scale (or one comparison of two scales) at a time. Cryptarithms give away digits until one assignment remains, and the checker accepts any valid assignment. Logic grids are solvable by elimination alone with a minimal clue set.
+- **Rating.** Per type, `profile.puzzles[type] = {mu, s2, n, lastSeen, solved}`, updated by the engine's Glicko-Elo unchanged with y = solved ? max(0, 1 − 0.25·hints − 0.1·min(3, wrong checks)) : 0 (a reveal is 0; latency never counts). Level for p = 0.75, or 0.55 from the "Harder one" chip, via d = −2.5 + 5ℓ. New types start at a band prior (A μ = −0.5, B μ = 0, C μ = 0.5) so teens do not open on trivial puzzles. Never stored in `profile.skills`; merge keeps, per type, the copy with more rated puzzles. `replayPuzzleRatings` rebuilds the ratings from the `puzzle` events exactly.
+- **Feedback.** Checks are unlimited; a failed one says "not yet" and lights up the broken constraint (the tipping scale, the column, the clue). Estimates only ever say "not inside your range yet" or "too wide", never which way, so children estimate rather than home in by trial; the event keeps the precise violation. Band A reads nothing and never fails: a wrong tap brings the next hint (spoken, lit up), and after the last hint the answer glows to be tapped together (rated as a reveal).
+- **Coupling.** Ready once placement is done (a new child starts on the number trail, the only mode that places; Band A's home shows the tile from then on). A session record with mode `puzzle` counts minutes, sessions and "tried every mode", but puzzles write no item records: they never light the daily spark or advance quests. The track is a separate, lazily loaded chunk (≈21 KB gzipped), precached by the service worker like everything else.
 
 Modes are **parameterised across bands** by capability. A mode declares `requires: ['numberLine']`, and generators declare the capabilities they provide. The engine only offers compatible skills, so "twelve modes" never becomes "twelve codebases".
 
@@ -258,22 +266,19 @@ This is how the implementation honours each constraint:
 - **Correctness feedback is never variable**: immediate, specific, worked.
 - **No grind gates, no lives, no shop, no currency.** XP exists only as an internal effort counter.
 
-**Achievements.** 36 built (★ = secret, never listed, only counted). Bands are all unless stated.
+**Achievements.** 39 built (★ = secret, never listed, only counted). Bands are all unless stated.
 
 | Category | Built |
 |---|---|
 | **Mastery** (graph-based) | First Star · Five Bright Stars · Constellation (15) · Twenty Tamer (add within 20, A/B) · Table Master (all × facts, B/C) · Below Zero (integers, B/C) · Bridge Crosser (mastered a skill from the next band up, A/B) |
-| **Persistence** (effort, never correctness) | First Hop · 3/7/30/100-day streaks (7 = "Habit Hatched", the establishment milestone) · Welcome Back (returned after ≥3 days away) · Sunrise (played the day after a hard session) · Regular (25 sessions) |
-| **Exploration** | Two Tongues (both languages) · Switcheroo (switched language mid-game) · Mountain Goat (challenge path, B/C) · Explorer (3 topics) · Tried Everything (every mode, B/C) |
+| **Persistence** (effort, never correctness) | First Hop · 3/7/30/100-day streaks (7 = "Habit Hatched", the establishment milestone) · Welcome Back (returned after ≥3 days away) · Sunrise (played the day after a hard session) · Regular (25 sessions) · Puzzle Solver (10 puzzles solved, however many checks and hints it took) |
+| **Exploration** | Two Tongues (both languages) · Switcheroo (switched language mid-game) · Mountain Goat (challenge path, B/C) · Explorer (3 topics) · Tried Everything (every mode, B/C) · Above My Level (solved a puzzle from the "Harder one" chip, B/C) · Estimator (10 estimation ranges, B/C) |
 | **Resilience** (the important one) | Second Go (right when it came back) · Third Time's the Charm · Unstoppable (right after missing it **three** times) · Tough Cookie (finished a session you struggled in) · Boomerang (came back to a skill after a rough day) · Mistake Mechanic (25 fixes) |
 | **Discovery** ★ | Tickled (tap Pip 10×) · Mirror Number (palindrome answer) · Bullseye (exact estimate) · One Thousand · Zero Hero · Déjà Vu (same answer 3× in a row) · Early Bird · Weekend Warrior · Polyglot (5 switches) · Marathon Frog (1000 hops) |
 
 Planned for v1 alongside the new modes (same DSL):
 
-- Puzzle Solver
-- Above My Level (a puzzle rated above you)
 - Many Ways (found 3 Target solutions)
-- Estimator (10 estimates within tolerance)
 - Co-op Builder
 - Teacher (a sibling solved your authored problem)
 - Seasonal: Нова Година, Велигден
@@ -437,7 +442,7 @@ src/
   app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
   styles/                  fonts.css app.css
-tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (236 tests)
+tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (324 tests)
 sim/                       simulated learners + harness + report (npm run sim)
 e2e/                       run.mjs harness, lib.mjs helpers, flows/NN-<name>.mjs (MK, 360px, screenshots; npm run e2e)
 scripts/                   gen-skill-doc, gen-audio-script, gen-icons, level-report
@@ -640,9 +645,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **One skill branch across a band boundary.** In fact two: A→B arithmetic, and B→C via `num.line.1000 → int.intro → int.addsub`.
 - **Persistence:** versioned schema, migrations with rollback, compact append-only log, compaction, backup export/import with merge.
 - **Streaks** with silent freezes and the 7-stone establishment path.
-- **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
+- **Achievement evaluator** with 39 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
 - **Sprint timed mode** (on by default, per-child flag; A-26).
+- **Puzzle track** (§1.4): patterns, balance scales, estimation ranges, logic grids and cryptarithms, a per-type rating, no timer, no streak or quest coupling (on by default, per-child flag; A-26).
 - **Feature flags.**
 - **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, flags, voice report.
 - **Both locales**, fully wired.
@@ -652,10 +658,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Check | Result |
 |---|---|
-| `npm test` | **236 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
-| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). **35 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
+| `npm test` | **324 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets; puzzle track: determinism, level monotonicity, solver/checker agreement, unambiguous patterns, unique balances and cryptarithms, direction-free estimate feedback, per-type rating replay, merge, no spark or quest from puzzles, puzzle achievements |
+| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `60-puzzle`: Band B shelf, pattern ("not yet", hint), balance (a tipped scale), estimate (a direction-free miss), the "Harder one" chip; Band A picture shelf, pattern and balance asserted text-free; Band C cryptarithm and logic grid (24 screenshots). **59 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
 | Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache |
-| Size | 89 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| Size | 96 KB JS + 6 KB CSS gzipped at first load, plus the lazily loaded puzzle chunk (21 KB JS + 2 KB CSS); 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -689,7 +695,7 @@ Useful URL switches:
 
 - Macedonian voice clips are not recorded yet (A-14/A-15). Band A MK is silent until they are, unless the device has an mk voice.
 - Only the number-line mode exists, so Band C content is limited to integers.
-- The weekly themed challenge, hint ladder and puzzle track are designed, not built.
+- The weekly themed challenge and hint ladder are designed, not built. The puzzle track's pouring and spatial-net types are designed, not built; its level scorers are hand-built priors to re-fit from logged features.
 - Placement accuracy is bounded by the playable graph: it cannot resolve grade 5–6 positions until fraction and decimal generators exist.
 
 ---
@@ -713,7 +719,7 @@ Useful URL switches:
 | 5 | **Adaptive hint ladder** (strategy prompt → first hop → worked step; credit y = 1 − 0.25·tier) replacing the single hint | 2 days | B children will need scaffolds on multi-digit work |
 | 6 | **Weekly themed challenge** (5-session set, cosmetic set piece) | 2 days | Gives the week a shape |
 | 7 | **Dice Race pass-and-play** on one device, each child on their own adaptive items | 4 days | Real-time head-to-head with luck, zero shared state |
-| 8 | **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** | 8–10 days | The separate reasoning product |
+| 8 | **Done.** **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** (§1.4) | 8–10 days | The separate reasoning product |
 | 9 | **Workshop (fractions and area)**, then the "Balance" equation mode and a coordinate-plane mode for C | 10+ days | Needs direct-manipulation UI; this is where Band C content depth arrives |
 | 10 | Seasonal cosmetics (Нова Година, Велигден), audio for new modes, polish | ongoing | — |
 | 11 | **IndexedDB log store** behind the `KV` interface; localStorage keeps profiles and meta | 2–3 days | Must land by ~month 4 of daily play, before raw per-item history would be compacted (A-8) |

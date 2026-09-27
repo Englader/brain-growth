@@ -114,6 +114,7 @@ export const EVENTS = {
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
+  PUZZLE: 'puzzle',
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

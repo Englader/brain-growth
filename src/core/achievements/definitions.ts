@@ -68,6 +68,9 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
+  { id: 'puzzle.solver', category: 'persistence', bands: 'all', icon: 'puzzle', on: ON_ITEM, when: { metric: 'puzzle.solved', gte: 10 } },
+  { id: 'puzzle.aboveLevel', category: 'exploration', bands: ['B', 'C'], icon: 'mountain', on: ON_ITEM, when: { metric: 'puzzle.solvedHarder', gte: 1 } },
+  { id: 'puzzle.estimator', category: 'exploration', bands: ['B', 'C'], icon: 'ruler', on: ON_ITEM, when: { metric: 'puzzle.estimatesSolved', gte: 10 } },
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

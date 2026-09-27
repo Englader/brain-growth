@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
+import { recentLog, saveProfile, updateQuests } from '../src/app/persist';
+import { beginPuzzle, completePuzzle, endPuzzleSession, startPuzzleSession } from '../src/app/puzzleActions';
+import { now, repo } from '../src/app/services';
+import { setState } from '../src/app/store';
+import { ACHIEVEMENTS, evaluateAchievements, validateAchievements, type EvalContext } from '../src/core/achievements';
 import { levelToDifficulty } from '../src/core/engine/glicko';
-import type { LogRecord } from '../src/core/log/types';
+import { EVENTS, type LogRecord, type SessionRecord } from '../src/core/log/types';
+import { createProfile, type Profile } from '../src/core/profile';
+import { questsForDay } from '../src/core/quests';
+import { GRAPH } from '../src/core/skills';
+import { dayKey } from '../src/core/time';
+import { mergeProfiles } from '../src/data/merge';
+import { getLocale } from '../src/i18n/locales';
+import { parsePuzzleEvent, PUZZLE_VIOLATION_KEYS, type PuzzleRating } from '../src/puzzles';
+import { PUZZLE_PRIORS } from '../src/puzzles/rating';
 import { cmp, fromNumber, rat, toNumber } from '../src/core/rational';
 import { createRng } from '../src/core/rng';
 import { DAY_MS } from '../src/core/time';
@@ -566,5 +579,157 @@ describe('puzzle replay', () => {
     expect(violationKey('wide')).toBe('puzzle.violated.wide');
     expect(violationKey('col:0')).toBe('puzzle.violated.col');
     expect(violationKey('whatever')).toBe('puzzle.violated.answer');
+  });
+});
+
+// ── integration: the puzzle mode in the app ──────────────────────────────────
+describe('puzzle mode integration', () => {
+  const T = Date.now();
+  const placedKid = (age: number): Profile => {
+    const p = createProfile({ name: 'Марко', age, locale: 'mk', avatar: 'color.green' }, T);
+    const today = dayKey(now());
+    return saveProfile({
+      ...p,
+      placement: { done: true, state: null, g: 3.5, sd: 0.3 },
+      quests: { day: today, ids: questsForDay(p.id, today, p.band), done: [], rewarded: false },
+    });
+  };
+
+  it('a day of puzzles only neither lights the spark nor advances quests, but counts as a session', () => {
+    repo.init();
+    let p = placedKid(9);
+    setState({ profile: p, profiles: [p], session: null, meta: repo.meta() });
+    let s = startPuzzleSession(p);
+    const types = puzzleTypesFor(p.band).map((d) => d.id);
+    for (let i = 0; i < 12; i++) {
+      const started = beginPuzzle(p, types[i % types.length]!, false);
+      const r = completePuzzle(p, s, started, { solved: true, hints: i % 2, wrongChecks: 1, fails: ['next'] });
+      p = r.profile;
+      s = r.session;
+    }
+    const end = endPuzzleSession(p, s);
+    p = end.profile;
+    const log = recentLog(p.id);
+    expect(log.filter((r) => r.type === 'item')).toEqual([]);
+    const sess = log.filter((r): r is SessionRecord => r.type === 'session');
+    expect(sess.map((r) => [r.phase, r.mode])).toEqual([['start', 'puzzle'], ['end', 'puzzle']]);
+    expect(sess[1]!.items).toBe(12);
+    expect(sess[1]!.durationMs).toBeGreaterThanOrEqual(0);
+    expect(log.filter((r) => r.type === 'event' && r.name === EVENTS.PUZZLE)).toHaveLength(12);
+    expect(p.streak.activeDays).toEqual([]);
+    expect(p.quests!.done).toEqual([]);
+    expect(updateQuests(p, null).quests!.done).toEqual([]);
+    expect(p.stats.sessions).toBe(1);
+    expect(p.stats.items).toBe(0);
+    expect(Object.values(p.puzzles).reduce((n, r) => n + r.n, 0)).toBe(12);
+    // Ten solved puzzles earn "Puzzle Solver" (effort), logged like any achievement.
+    expect(p.achievements['puzzle.solver']).toBeDefined();
+    expect(p.achievements['puzzle.aboveLevel']).toBeUndefined();
+    // The profile's ratings are exactly what the log replays to.
+    expect(replayPuzzleRatings(puzzleEventsFromLog(log))).toEqual(p.puzzles);
+  });
+
+  it('starts each band at its own prior, so teens do not open on trivial puzzles', () => {
+    const lv = (b: BandId): number => puzzleLevelFor(undefined, PUZZLE_TARGET.NORMAL, T0, b);
+    expect(lv('A')).toBeLessThan(lv('B'));
+    expect(lv('B')).toBeLessThan(lv('C'));
+    expect(PUZZLE_PRIORS.B.mu).toBe(0);
+    expect(PUZZLE_PRIORS.C.mu).toBe(0.5);
+    // Replay uses the prior of the band on the type's first event.
+    const started = startPuzzle(getPuzzleType('pattern'), 'C', undefined, PUZZLE_TARGET.NORMAL, T0, 5);
+    const live = finishPuzzle({}, started, { solved: true, hints: 0, wrongChecks: 0 }, 'mk');
+    expect(replayPuzzleRatings([live.event])).toEqual(live.ratings);
+    expect(replayPuzzleRatings([{ ...live.event, band: 'A' }])).not.toEqual(live.ratings);
+  });
+
+  it('merges profile.puzzles per type: the copy with more rated puzzles wins, idempotently', () => {
+    const base = createProfile({ name: 'А', age: 9, locale: 'mk', avatar: 'color.green' }, T0);
+    const r = (n: number, lastSeen: number, mu = n / 10): PuzzleRating => ({ mu, s2: 1, n, lastSeen, solved: n });
+    const a: Profile = { ...base, puzzles: { pattern: r(5, 100), crypt: r(2, 50) } };
+    const b: Profile = { ...base, updatedAt: base.updatedAt + 1, puzzles: { pattern: r(3, 900), balance: r(2, 10), crypt: r(2, 60, 9) } };
+    const m = mergeProfiles(a, b);
+    expect(m.puzzles).toEqual({ pattern: r(5, 100), crypt: r(2, 60, 9), balance: r(2, 10) });
+    expect(mergeProfiles(b, a).puzzles).toEqual(m.puzzles);
+    expect(mergeProfiles(m, b).puzzles).toEqual(m.puzzles);
+    expect(mergeProfiles(m, m).puzzles).toEqual(m.puzzles);
+    // A profile written before puzzles existed merges cleanly.
+    const old = { ...base } as Partial<Profile>;
+    delete old.puzzles;
+    expect(mergeProfiles(old as Profile, a).puzzles).toEqual(a.puzzles);
+  });
+
+  it('estimate feedback never reveals a direction; the event log keeps the precise violation', () => {
+    expect(new Set([PUZZLE_VIOLATION_KEYS.below, PUZZLE_VIOLATION_KEYS.above])).toEqual(new Set(['puzzle.violated.outside']));
+    const shown = new Set<string>();
+    for (const b of ['B', 'C'] as const) {
+      for (const p of sample<EstimatePuzzle>(estimatePuzzle, b, SEEDS)) {
+        const tv = toNumber(estimateTruth(p.q));
+        const w = p.maxWidth;
+        for (const a of [[tv + 1, tv + 1 + w], [tv - 2 * w, tv - w], [tv - 3 * w, tv - w], [tv - w, tv + w]] as EstimateAnswer[]) {
+          for (const v of estimatePuzzle.check(p, a).violated ?? []) shown.add(violationKey(v));
+        }
+      }
+    }
+    expect([...shown].sort()).toEqual(['puzzle.violated.outside', 'puzzle.violated.wide']);
+    const en = getLocale('en').messages;
+    const mk = getLocale('mk').messages;
+    for (const k of Object.keys(en)) expect(k).not.toMatch(/^puzzle\.violated\.(below|above)$/);
+    for (const k of ['puzzle.violated.outside', 'puzzle.violated.wide']) {
+      expect(en[k]).not.toMatch(/\b(low|high|below|above|left|right|up|down|more|less|bigger|smaller)\b/i);
+      expect(mk[k]).not.toMatch(/(ниско|високо|под |над |лево|десно|повеќе|помалку|поголем|помал)/i);
+    }
+    // The log is precise.
+    const started = startPuzzle(estimatePuzzle, 'B', undefined, PUZZLE_TARGET.NORMAL, T0, 3);
+    const ev = finishPuzzle({}, started, { solved: true, hints: 0, wrongChecks: 2, fails: ['below', 'wide+above'] }, 'mk').event;
+    expect(ev.fails).toEqual(['below', 'wide+above']);
+    expect(parsePuzzleEvent(JSON.parse(JSON.stringify(ev)))!.fails).toEqual(['below', 'wide+above']);
+  });
+
+  it('every message key the core emits has strings in both locales', () => {
+    const keys = [...Object.values(PUZZLE_TYPE_KEYS), ...Object.values(PUZZLE_VIOLATION_KEYS), ...PUZZLE_HINT_KEYS];
+    for (const loc of ['en', 'mk']) {
+      const msgs = getLocale(loc).messages;
+      expect(keys.filter((k) => !(k in msgs)), loc).toEqual([]);
+      for (const d of allPuzzleTypes()) expect(`puzzle.about.${d.id}` in msgs && `puzzle.ask.${d.id}` in msgs, `${loc} ${d.id}`).toBe(true);
+    }
+  });
+
+  describe('achievements', () => {
+    const ctx = (p: Profile, log: LogRecord[] = []): EvalContext => ({
+      profile: p, now: T0, today: dayKey(T0), log, sessionId: 's1', graph: GRAPH, modesAvailable: 3, memo: new Map(),
+    });
+    const kid = (band: BandId, puzzles: PuzzleRatings = {}): Profile => ({
+      ...createProfile({ name: 'К', age: band === 'A' ? 6 : band === 'B' ? 9 : 13, locale: 'mk', avatar: 'color.green' }, T0),
+      puzzles,
+    });
+    const solvedEv = (type: string, target: number, solved = true): LogRecord => ({
+      type: 'event', ts: T0, sid: 's1', name: EVENTS.PUZZLE, data: { type, target, solved, y: solved ? 1 : 0 },
+    });
+    const rating = (solved: number): PuzzleRating => ({ mu: 0, s2: 1, n: solved + 3, lastSeen: T0, solved });
+    const got = (p: Profile, log?: LogRecord[]): string[] => evaluateAchievements(ACHIEVEMENTS, ctx(p, log), 'item');
+
+    it('are valid: none rewards correctness alone', () => {
+      expect(validateAchievements(ACHIEVEMENTS)).toEqual([]);
+      for (const id of ['puzzle.solver', 'puzzle.aboveLevel', 'puzzle.estimator']) expect(ACHIEVEMENTS.some((a) => a.id === id)).toBe(true);
+    });
+
+    it('Puzzle Solver: ten solved puzzles of any type, in every band', () => {
+      expect(got(kid('A', { pattern: rating(6), balance: rating(3) }))).not.toContain('puzzle.solver');
+      expect(got(kid('A', { pattern: rating(6), balance: rating(4) }))).toContain('puzzle.solver');
+      expect(got(kid('C', { crypt: rating(10) }))).toContain('puzzle.solver');
+    });
+
+    it('Above My Level: one puzzle solved from the "Harder one" chip (Bands B/C)', () => {
+      expect(got(kid('B'), [solvedEv('pattern', PUZZLE_TARGET.NORMAL)])).not.toContain('puzzle.aboveLevel');
+      expect(got(kid('B'), [solvedEv('pattern', PUZZLE_TARGET.HARDER, false)])).not.toContain('puzzle.aboveLevel');
+      expect(got(kid('B'), [solvedEv('balance', PUZZLE_TARGET.HARDER)])).toContain('puzzle.aboveLevel');
+      expect(got(kid('A'), [solvedEv('balance', PUZZLE_TARGET.HARDER)])).not.toContain('puzzle.aboveLevel');
+    });
+
+    it('Estimator: ten solved estimation ranges (Bands B/C)', () => {
+      expect(got(kid('B', { estimate: rating(9), pattern: rating(20) }))).not.toContain('puzzle.estimator');
+      expect(got(kid('C', { estimate: rating(10) }))).toContain('puzzle.estimator');
+      expect(got(kid('A', { estimate: rating(10) }))).not.toContain('puzzle.estimator');
+    });
   });
 });

@@ -8,6 +8,7 @@ import './metrics';
 // ── slot: target ──
 // ── slot: dice ──
 // ── slot: puzzle ──
+import './metrics/puzzle';
 // ── slot: workshop ──
 // ── slot: balance ──
 // ── slot: coord ──
