@@ -101,7 +101,7 @@ describe('percentages use the locale percent format (DESIGN §1.12)', () => {
 
 describe('band letters', () => {
   it('Macedonian names the bands А, Б, В: never the Latin A, B, C (which look alike but read differently)', () => {
-    const latin = Object.entries(getLocale('mk').messages).filter(([, v]) => /груп[аи]\s+[ABC]\b|\b[ABC]\s+и\s+[ABC]\b|\b[ABC]\/[ABC]\b/.test(v));
+    const latin = Object.entries(getLocale('mk').messages).filter(([, v]) => /груп\S*\s+[ABC]\b|\b[ABC]\s+и\s+[ABC]\b|\b[ABC]\/[ABC]\b/.test(v));
     expect(latin.map(([k, v]) => `${k} ${v}`)).toEqual([]);
   });
 });
