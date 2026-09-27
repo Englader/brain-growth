@@ -291,8 +291,8 @@ select {
   cursor: pointer;
 }
 .icon-btn.small {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   box-shadow: none;
   background: transparent;
 }
@@ -381,7 +381,8 @@ select {
   border-radius: 40px;
 }
 .btn.small {
-  min-height: 40px;
+  /* 44 px: the smallest tap target anywhere, also for small buttons (a11y pass). */
+  min-height: 44px;
   padding: 6px 12px;
   font-size: 0.9em;
 }

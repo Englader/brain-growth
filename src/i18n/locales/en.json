@@ -127,6 +127,7 @@
     "hopForward": "Hop forward {n}",
     "hopBack": "Hop back {n}",
     "tapLine": "Tap the line where it lands",
+    "line": "Number line from {from} to {to}",
     "typeNumber": "Type a number",
     "invalid": "Hmm, I can't read that number. Try again?",
     "hint": "Hint",

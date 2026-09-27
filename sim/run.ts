@@ -2,11 +2,15 @@
  * Simulation report (npm run sim): placement accuracy, realised success rate,
  * tracking error and curriculum progress over simulated weeks.
  */
+import { loadAllGenerators } from '../src/core/items/generators';
 import { createRng } from '../src/core/rng';
 import { GRAPH } from '../src/core/skills';
 import { DAY_MS } from '../src/core/time';
 import { newSnapshot, runSession, SimClock } from './harness';
 import { randomLearner } from './learner';
+
+// As in tests: every generator in, as if imported eagerly (the app loads feature modes' generators on demand).
+await loadAllGenerators();
 
 const N = Number(process.env.SIM_N ?? 300);
 const rng = createRng(12345);

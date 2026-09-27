@@ -1,9 +1,11 @@
 /**
- * Runs before every test file: locale bundles load on demand in the app
- * (i18n/locales.ts), so tests start with all of them in, as the app has them
- * after its idle prefetch. tests/i18n.test.ts checks this really happened, so
- * the parity tests can never pass vacuously over empty bundles.
+ * Runs before every test file. The app loads locale bundles and feature
+ * modes' generators on demand (i18n/locales.ts, generators/registry.ts);
+ * tests start with all of them in, as if imported eagerly, so they stay
+ * synchronous. tests/i18n.test.ts and tests/lazy.test.tsx check this really
+ * happened, so no test passes vacuously over an empty bundle or a stub.
  */
+import { loadAllGenerators } from '../src/core/items/generators';
 import { loadAllLocales } from '../src/i18n/locales';
 
-await loadAllLocales();
+await Promise.all([loadAllLocales(), loadAllGenerators()]);

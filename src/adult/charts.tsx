@@ -62,7 +62,8 @@ export function BarChart(props: {
   const padL = 34;
   const padB = 22;
   const padT = 8;
-  const max = niceMax(Math.max(...props.data.map((d) => d.value), 0));
+  // At least 1 on the axis: a scale topping at 0.1 labelled its middle tick "0.1" too (0.05 rounded).
+  const max = niceMax(Math.max(...props.data.map((d) => d.value), 1));
   const slot = Math.max(1, (width - padL - 4) / Math.max(1, props.data.length));
   const barW = Math.max(2, Math.min(24, slot - 2));
   const y = (v: number): number => padT + (1 - v / max) * (H - padT - padB);

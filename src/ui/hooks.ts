@@ -17,10 +17,12 @@ export function useT(): Translator {
   const wanted = useStore((s) => s.profile?.locale ?? s.meta?.uiLocale ?? guessLocale());
   const loaded = useStore((s) => s.locales);
   const band = useStore((s) => s.profile?.band ?? 'B');
-  const locale = loaded.includes(wanted) ? wanted : speakingLocale(wanted) ?? wanted;
+  const ready = loaded.includes(wanted);
+  const locale = ready ? wanted : speakingLocale(wanted) ?? wanted;
   // makeT starts loading `wanted` when it is missing; the translator below speaks `locale` meanwhile.
   if (locale !== wanted) makeT(wanted, band);
-  return useMemo(() => makeT(String(locale), band), [locale, band]);
+  // A new translator once the bundle is in, so effects that depend on it (the page title) run again.
+  return useMemo(() => makeT(String(locale), band), [locale, band, ready]);
 }
 
 export function useBand(): BandConfig {
