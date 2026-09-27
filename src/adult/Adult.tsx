@@ -17,6 +17,7 @@ import { defaultBandForAge, type Profile } from '../core/profile';
 import { GRAPH } from '../core/skills';
 import { BAND_IDS, type BandId } from '../core/types';
 import { weeklyFreeChoice } from '../core/weekly';
+import { formatDate } from '../i18n/dates';
 import { allLocales, getLocale } from '../i18n/locales';
 import { numberText, percentText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
@@ -100,7 +101,7 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const o = useMemo(() => overview(p, recentLog(p.id), now()), [p]);
   const weeklyFree = useMemo(() => weeklyFreeChoice(recentLog(p.id)), [p]);
-  const fmtDay = (d: string): string => new Intl.DateTimeFormat(getLocale(t.locale).bcp47, { day: 'numeric', month: 'numeric' }).format(new Date(`${d}T12:00:00`));
+  const fmtDay = (d: string): string => formatDate(new Date(`${d}T12:00:00`), getLocale(t.locale), 'dayMonth');
   return (
     <div class="stack">
       <div class="tiles">
@@ -324,7 +325,7 @@ function DataTab(): JSX.Element {
     const r = importBackup(await f.text());
     setMsg(r.ok ? t('adult.data.importOk', { added: r.profilesAdded.length, merged: r.profilesMerged.length, records: r.recordsAdded }) : t('adult.data.importFail', { reason: r.error ?? '?' }));
   };
-  const last = meta?.lastBackupAt ? new Intl.DateTimeFormat(getLocale(t.locale).bcp47, { dateStyle: 'medium' }).format(meta.lastBackupAt) : t('adult.data.never');
+  const last = meta?.lastBackupAt ? formatDate(meta.lastBackupAt, getLocale(t.locale), 'medium') : t('adult.data.never');
   return (
     <div class="stack">
       {readOnly && !otherTab && <p class="warn">{t('adult.data.readOnly')}</p>}

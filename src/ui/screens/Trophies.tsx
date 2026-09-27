@@ -8,6 +8,7 @@ import { markAchievementsSeen } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { useStore } from '../../app/store';
 import { ACHIEVEMENTS, appliesToBand, type AchievementCategory } from '../../core/achievements';
+import { formatDate } from '../../i18n/dates';
 import { getLocale } from '../../i18n/locales';
 import { TopBar } from '../components/common';
 import { Icon, iconFor } from '../components/Icon';
@@ -20,7 +21,7 @@ export function Trophies(): JSX.Element | null {
   const p = useStore((s) => s.profile);
   useEffect(() => () => markAchievementsSeen(), []);
   if (!p) return null;
-  const fmt = new Intl.DateTimeFormat(getLocale(p.locale).bcp47, { dateStyle: 'medium' });
+  const loc = getLocale(p.locale);
   const defs = ACHIEVEMENTS.filter((a) => appliesToBand(a, p.band));
   return (
     <div class="screen trophies">
@@ -44,7 +45,7 @@ export function Trophies(): JSX.Element | null {
                     <span class="trophy-text">
                       <strong>{got ? t.dyn(`ach.${a.id}.name`) : t('trophies.notYet')}</strong>
                       <small>{got ? t.dyn(`ach.${a.id}.desc`) : t.dyn(`ach.${a.id}.hint`)}</small>
-                      {got && <small class="muted">{t('trophies.found', { date: fmt.format(got.at) })}</small>}
+                      {got && <small class="muted">{t('trophies.found', { date: formatDate(got.at, loc, 'medium') })}</small>}
                     </span>
                   </li>
                 );
