@@ -14,7 +14,7 @@ import { getBand } from '../../bands/registry';
 import { ACHIEVEMENTS } from '../../core/achievements';
 import { getCosmetic } from '../../core/rewards/cosmetics';
 import { getMode } from '../../modes/registry';
-import { numberText } from '../../i18n/render';
+import { numberText, percentText } from '../../i18n/render';
 import type { Translator } from '../../i18n/i18n';
 import { Frog } from '../components/Frog';
 import { Icon, iconFor } from '../components/Icon';
@@ -86,7 +86,7 @@ export function Results(): JSX.Element | null {
   const bandA = band.id === 'A';
   const again = (): void => {
     const mode = getMode(r.modeId);
-    if (mode) launchMode(mode, r.opts.stretch ? { stretch: true } : {}, true);
+    if (mode) launchMode(mode, { ...(r.opts.stretch ? { stretch: true } : {}), ...(r.opts.theme ? { theme: r.opts.theme } : {}) }, true);
     else navigate('/', true);
   };
   const achIcon = (id: string): string => ACHIEVEMENTS.find((a) => a.id === id)?.icon ?? 'star';
@@ -136,7 +136,7 @@ export function Results(): JSX.Element | null {
                   <span class="meter-fill before" style={{ width: `${Math.round(Math.min(s.before, s.after) * 100)}%` }} />
                   <span class="meter-fill gain" style={{ left: `${Math.round(Math.min(s.before, s.after) * 100)}%`, width: `${Math.max(0, Math.round((s.after - s.before) * 100))}%` }} />
                 </span>
-                <span class="meter-value">{Math.round(s.after * 100)}%</span>
+                <span class="meter-value">{percentText(Math.round(s.after * 100), t.locale)}</span>
               </li>
             ))}
           </ul>

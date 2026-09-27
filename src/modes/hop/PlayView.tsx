@@ -25,7 +25,7 @@ import type { InputMethod } from '../../core/log/types';
 import { parseKey, toNumber } from '../../core/rational';
 import { tk } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
-import { answerText, lineValueText, numberText, percentText, promptText, promptVoice, solutionText, spokenPrompt } from '../../i18n/render';
+import { answerText, lineValueText, numberText, promptText, promptVoice, solutionText, spokenPrompt } from '../../i18n/render';
 import { animateHops, unitHops, type HopFrame } from '../../ui/anim';
 import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
@@ -131,12 +131,12 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     if (cur && band.audio === 'always' && phase === 'input') speakPrompt(cur);
   }, [locale]);
 
-  // Hint ladder: Bands B/C, typed answers, never in timed Sprint runs.
+  // Hint ladder: Bands B/C, typed answers and exact taps (not estimates), never in timed Sprint runs.
   const hints = useHintLadder(cur, {
     enabled: flag('hints') && band.id !== 'A' && !props.fastFeedback && cur?.item.answer.tolerance === undefined,
     waiting: phase === 'input',
     invalid,
-    activity: typed,
+    activity: `${typed}|${pick ?? ''}`,
     pid: profile.id,
   });
 
@@ -385,6 +385,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
           </div>
         ) : tapPick ? (
           <div class="estimate-controls">
+            {phase === 'input' && <HintButton h={hints} t={t} />}
             <p class="note">{t('play.tapLine')}</p>
             <button type="button" class="btn primary big" disabled={pick === null || phase !== 'input'} onClick={() => submit()}>
               {t('play.hop')}
@@ -437,7 +438,7 @@ function PromptVisual({ item, locale, label, bandA }: { item: Item; locale: stri
     case 'compare':
       return <CompareView a={p.a} b={p.b} locale={locale} />;
     case 'percentOf':
-      return <PercentOf text={tk(locale, 'frac.pctOf', { pct: percentText(p.pct, locale), of: p.of })} />;
+      return <PercentOf text={tk(locale, 'frac.pctOf', { pct: p.pct, of: p.of })} />;
     case 'read':
       return null;
     case 'word':

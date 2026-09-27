@@ -63,14 +63,28 @@ const PATHS = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  cards: 'M3 8h11v13H3zM8 5V3h11v13h-5',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',
+  restart: 'M3 12a9 9 0 103-6.7L3 8M3 3v5h5',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: dice ──
   // ── slot: puzzle ──
+  puzzle: 'M5 8h3.5a2.5 2.5 0 015 0H17v3.5a2.5 2.5 0 010 5V20H5z',
+  pattern: 'M3 12a2 2 0 104 0 2 2 0 00-4 0zM10 10h4v4h-4zM17 12a2 2 0 104 0 2 2 0 00-4 0z',
+  scale: 'M12 4v16M8 20h8M5 7h14M5 7l-3 6h6zM19 7l-3 6h6z',
+  ruler: 'M3 16L16 3l5 5L8 21zM7 12l2 2M10 9l2 2M13 6l2 2',
+  grid: 'M4 4h16v16H4zM4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16',
+  key: 'M8 16a4 4 0 110-8 4 4 0 010 8zM12 12h9M18 12v3M21 12v2',
   // ── slot: workshop ──
-  grid: 'M4 4h16v16H4zM4 12h16M12 4v16M4 4h8v8H4z',
-  peek: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
+  shapes: 'M4 4h16v16H4zM4 12h16M12 4v16M4 4h8v8H4z',
   // ── slot: balance ──
+  // (Balance uses `scale` from the puzzle slot and `undo` from the target slot.)
   // ── slot: coord ──
+  axes: 'M3 12h18M19 10l2 2-2 2M12 21V3M10 5l2-2 2 2M16 7.5a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0',
+  arrowU: 'M12 19V6M6 11l6-6 6 6',
+  arrowD: 'M12 5v13M6 13l6 6 6-6',
   // ── slot: season ──
+  egg: 'M12 3c-3.6 0-6.5 6-6.5 10.5a6.5 6.5 0 0013 0C18.5 9 15.6 3 12 3zM6 13l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5',
 } as const;
 
 export type IconName = keyof typeof PATHS;

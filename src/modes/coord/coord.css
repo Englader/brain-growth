@@ -1,0 +1,109 @@
+/* Coordinate plane mode (step 9c). Theme tokens come from app.css. */
+.coord-play .prompt {
+  min-height: 0;
+  gap: 4px;
+}
+.plane-wrap {
+  display: flex;
+  justify-content: center;
+}
+.plane {
+  display: block;
+  width: 100%;
+  max-width: 340px;
+  touch-action: manipulation;
+  user-select: none;
+}
+.coord-read .plane {
+  max-width: 250px;
+}
+.plane.pickable {
+  cursor: crosshair;
+}
+.pl-grid {
+  stroke: var(--line);
+  stroke-width: 0.6;
+  opacity: 0.7;
+}
+.pl-axis {
+  stroke: var(--ink);
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pl-num,
+.pl-name {
+  fill: var(--muted);
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: tabular-nums;
+}
+.pl-name {
+  fill: var(--ink);
+  font-size: 13px;
+  font-style: italic;
+}
+.pl-dot {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.pl-ghost {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+.pl-glow {
+  fill: none;
+  stroke: var(--good);
+  stroke-width: 4;
+}
+[data-theme='slate'] .pl-glow {
+  stroke: #34d399;
+}
+.coord-nudge {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.coord-nudge .chip.num {
+  min-width: 56px;
+}
+.coord-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.coord-field {
+  border: 3px solid transparent;
+  gap: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  font-size: 1.6em;
+  font-weight: 900;
+}
+.coord-field.on {
+  border-color: var(--primary);
+}
+.coord-var {
+  font-style: italic;
+  color: var(--primary);
+}
+.coord-eq {
+  color: var(--muted);
+}
+.coord-read .numpad .key {
+  min-height: 46px;
+}
+.coord-play .hint-btn {
+  align-self: center;
+}

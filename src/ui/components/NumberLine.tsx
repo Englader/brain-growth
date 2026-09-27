@@ -16,6 +16,7 @@ import type { JSX } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { LineSpec } from '../../core/items/types';
 import type { LocaleId } from '../../core/types';
+import { tk } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
 import { formatNumber, formatPercent } from '../../i18n/numbers';
 import { lineValueText, numberText } from '../../i18n/render';
@@ -267,17 +268,19 @@ export function RulerLine(props: LineViewProps): JSX.Element {
   const hx = xOf(pos);
   return (
     <div class={`ruler${pickable ? ' pickable' : ''}`} ref={box}>
-      <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} onClick={onClick} dir="ltr">
+      <svg
+        width={width}
+        height={H}
+        viewBox={`0 0 ${width} ${H}`}
+        onClick={onClick}
+        dir="ltr"
+        role="img"
+        aria-label={tk(locale, 'play.line', { from: lineValueText(line.min, line, locale), to: lineValueText(line.max, line, locale) })}
+      >
         <line x1={padX} x2={width - padX} y1={baseY} y2={baseY} class="axis" />
         {ticks}
         {labels}
         {pcts}
-        {trail?.map((h) => {
-          const x1 = xOf(h.from);
-          const x2 = xOf(h.to);
-          const peak = Math.min(46, 14 + Math.abs(x2 - x1) * 0.35);
-          return <path d={`M${x1} ${baseY - 4} Q${(x1 + x2) / 2} ${baseY - 4 - peak * 2} ${x2} ${baseY - 4}`} class="trail" />;
-        })}
         {line.flag !== undefined && (
           <g transform={`translate(${xOf(line.flag) - 2} ${baseY - 40})`} class="flag-svg">
             <path d="M2 40V2h18l-5 7 5 7H2" />
@@ -302,6 +305,25 @@ export function RulerLine(props: LineViewProps): JSX.Element {
       <div class="hopper ruler-hopper" style={{ transform: `translate(${hx - (look.kind === 'frog' ? 24 : 14)}px, ${baseY - (look.kind === 'frog' ? 46 : 14) - lift}px)` }}>
         {look.kind === 'frog' ? <Frog color={look.color} hat={look.hat} size={48} mood={mood ?? 'idle'} /> : <Marker />}
       </div>
+      {/* Hop trails (worked solution, hint tier 2) above the hopper: a short hop on a wide
+          scale (+10 on 0–300, 1/12 on 0–1) would otherwise hide under the frog. */}
+      {trail && trail.length > 0 && (
+        <svg class="ruler-overlay" width={width} height={H} viewBox={`0 0 ${width} ${H}`} aria-hidden="true">
+          {trail.map((h) => {
+            const x1 = xOf(h.from);
+            const x2 = xOf(h.to);
+            const peak = Math.min(46, 14 + Math.abs(x2 - x1) * 0.35);
+            const d = `M${x1} ${baseY - 4} Q${(x1 + x2) / 2} ${baseY - 4 - peak * 2} ${x2} ${baseY - 4}`;
+            return (
+              <g>
+                <path d={d} class="trail-halo" />
+                <path d={d} class="trail" />
+              </g>
+            );
+          })}
+          <circle cx={xOf(trail[trail.length - 1]!.to)} cy={baseY} r="6" class="trail-end" />
+        </svg>
+      )}
     </div>
   );
 }

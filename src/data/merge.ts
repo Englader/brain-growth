@@ -8,6 +8,7 @@ import type { SkillState } from '../core/engine/model';
 import type { Profile } from '../core/profile';
 import { mergeStreaks } from '../core/streaks';
 import type { SkillId } from '../core/types';
+import { mergeWeekly } from '../core/weekly';
 
 function mergeSkill(a: SkillState | undefined, b: SkillState | undefined): SkillState {
   if (!a) return b!;
@@ -62,9 +63,18 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
     // ── slot: pilot ──
     // ── slot: storage ──
     // ── slot: weekly ──
+    weekly: mergeWeekly(a.weekly ?? null, b.weekly ?? null),
     // ── slot: target ──
     // ── slot: dice ──
     // ── slot: puzzle ──
+    // Per puzzle type, the copy with more rated puzzles wins (then the later one): monotone and idempotent.
+    puzzles: Object.fromEntries(
+      [...new Set([...Object.keys(a.puzzles ?? {}), ...Object.keys(b.puzzles ?? {})])].map((type) => {
+        const x = a.puzzles?.[type];
+        const y = b.puzzles?.[type];
+        return [type, !x ? y! : !y ? x : y.n > x.n || (y.n === x.n && y.lastSeen > x.lastSeen) ? y : x];
+      }),
+    ),
     // ── slot: workshop ──
     // ── slot: balance ──
     // ── slot: coord ──

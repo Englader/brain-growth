@@ -1,9 +1,18 @@
-/** Registers the built-in generators. Import this module once at start-up. */
+/**
+ * Registers the built-in generators and declares the on-demand ones. Import
+ * this module once at start-up.
+ *
+ * BUILTIN generators are in the start-up bundle (Hop, placement, Sprint and
+ * Dice Race serve them). A feature mode's own generators go in ON_DEMAND:
+ * declared here by id and capabilities, their module fetched with the mode
+ * (registry.ts, "On-demand generators"). Keep each declaration's capabilities
+ * equal to the definition's; loading checks it.
+ */
 import { addSubGen } from './addsub';
 import { intAddSubGen } from './integers';
 import { divGen, groupsGen, mult10sGen, multGen, multMultiGen } from './muldiv';
 import { blocksGen, bondsGen, countGen, locateGen } from './number';
-import { hasGenerator, registerGenerator } from './registry';
+import { declareGenerators, hasGenerator, registerGenerator, type OnDemandGenerators } from './registry';
 import { wordGen } from './word';
 // Feature generator imports, each under its own anchor:
 // ── slot: frac ──
@@ -17,8 +26,9 @@ import { fracLineGen } from './fractions';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
-import { fracBarGen, perimeterHopsGen, rectGen } from './workshop';
+import { perimeterHopsGen } from './perimeterHops';
 // ── slot: balance ──
+import { eqBondGen } from './eqBond';
 // ── slot: coord ──
 // ── slot: season ──
 
@@ -49,14 +59,49 @@ const BUILTIN = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
-  fracBarGen,
-  rectGen,
+  // Hop serves geo.perimeter as "walk the sides" (no walls), so this one is eager.
   perimeterHopsGen,
   // ── slot: balance ──
+  // Hop serves al.eq.onestep as a missing number (no walls), so this one is eager.
+  eqBondGen,
   // ── slot: coord ──
   // ── slot: season ──
 ];
 
 for (const g of BUILTIN) if (!hasGenerator(g.id)) registerGenerator(g);
 
-export { getGenerator, hasGenerator, allGenerators } from './registry';
+/** Feature modes' generators, fetched with their mode: `{ declared: [{ id, capabilities }], load: () => import(…) }`. */
+const ON_DEMAND: OnDemandGenerators[] = [
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  {
+    declared: [
+      { id: 'makeTen', capabilities: ['deal', 'numeric'] },
+      { id: 'makeIt', capabilities: ['deal', 'numeric', 'reading'] },
+    ],
+    load: () => import('./makeIt').then((m) => [m.makeTenGen, m.makeItGen]),
+  },
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  {
+    declared: [
+      { id: 'fracBar', capabilities: ['build'] },
+      { id: 'rectBuild', capabilities: ['build'] },
+    ],
+    load: () => import('./workshop').then((m) => [m.fracBarGen, m.rectGen]),
+  },
+  // ── slot: balance ──
+  { declared: [{ id: 'equation', capabilities: ['build'] }], load: () => import('./equation').then((m) => [m.equationGen]) },
+  // ── slot: coord ──
+  { declared: [{ id: 'coord', capabilities: ['build'] }], load: () => import('./coord').then((m) => [m.coordGen]) },
+  // ── slot: season ──
+];
+
+for (const group of ON_DEMAND) declareGenerators(group);
+
+export { allGenerators, generatorLoaded, generatorsReadyFor, getGenerator, hasGenerator, loadAllGenerators, loadGeneratorsFor } from './registry';

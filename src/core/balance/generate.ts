@@ -45,6 +45,11 @@ export const BALANCE_LIMITS = {
 /** Signed magnitude in [1, cap], negative with probability `pNeg`. */
 const signed = (r: Rng, cap: number, pNeg: number): number => (r.chance(pNeg) ? -1 : 1) * r.int(1, cap);
 
+/** "0 = 6x − 18": an empty pan reads badly on the scale, so the samplers skip it. */
+export function hasEmptyPan(e: Equation): boolean {
+  return (e.l.x === 0 && e.l.k === 0) || (e.r.x === 0 && e.r.k === 0);
+}
+
 function swapSides(e: Equation): Equation {
   return { l: e.r, r: e.l };
 }
@@ -65,7 +70,7 @@ function sampleOneStep(r: Rng): Equation {
       e = eqn(a, 0, 0, a * s);
     }
     if (r.chance(0.25)) e = swapSides(e);
-    if (Math.max(...coefs(e).map(Math.abs)) <= L.maxConst) return e;
+    if (Math.max(...coefs(e).map(Math.abs)) <= L.maxConst && !hasEmptyPan(e)) return e;
   }
   return eqn(1, 2, 0, 5);
 }
@@ -92,7 +97,7 @@ function sampleLinear(r: Rng): Equation {
     }
     const [a, b, c, d] = coefs(e);
     if (Math.max(Math.abs(a), Math.abs(c)) > L.maxCoef) continue;
-    if (Math.max(Math.abs(b), Math.abs(d)) > L.maxConst) continue;
+    if (Math.max(Math.abs(b), Math.abs(d)) > L.maxConst || hasEmptyPan(e)) continue;
     return e;
   }
   return eqn(2, 1, 0, 7);

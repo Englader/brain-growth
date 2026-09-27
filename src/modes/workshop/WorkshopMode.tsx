@@ -14,6 +14,7 @@ import { fracBarOf, rectOf } from '../../core/items/generators/workshop';
 import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
 import { useT } from '../../ui/hooks';
+import { useFeedbackTime } from '../feedbackTime';
 import { FracBarBoard } from './FracBarBoard';
 import { RectBoard } from './RectBoard';
 import './workshop.css';
@@ -25,8 +26,11 @@ export function WorkshopMode(): JSX.Element | null {
   const locale = profile.locale;
   const [cur, setCur] = useState<PresentedItem | null>(null);
   const extraShapes = useRef(0);
+  // Pilot feedback time: from a wrong first check (or "show me") until the next item.
+  const fb = useFeedbackTime();
 
   const finish = (completed: boolean): void => {
+    fb.flush();
     const answered = getState().session?.firstAttempts ?? 0;
     const n = extraShapes.current;
     endSession(completed, n ? { extras: [{ key: 'workshop.results.shapes', params: { n } }] } : {});
@@ -34,11 +38,13 @@ export function WorkshopMode(): JSX.Element | null {
   };
 
   const load = (): void => {
+    fb.feedback(false);
     const p = nextItem();
     if (!p) {
       finish(true);
       return;
     }
+    fb.shown(p);
     setCur(p);
   };
 
@@ -64,7 +70,7 @@ export function WorkshopMode(): JSX.Element | null {
         </div>
         <LangToggle />
       </header>
-      {bar && <FracBarBoard key={boardKey} presented={cur} task={bar} locale={locale} band={profile.band} onNext={load} />}
+      {bar && <FracBarBoard key={boardKey} presented={cur} task={bar} locale={locale} band={profile.band} onNext={load} onWrong={() => fb.feedback(true)} />}
       {rect && (
         <RectBoard
           key={boardKey}
@@ -73,6 +79,7 @@ export function WorkshopMode(): JSX.Element | null {
           locale={locale}
           band={profile.band}
           onNext={load}
+          onWrong={() => fb.feedback(true)}
           onExtraShape={() => {
             extraShapes.current++;
           }}

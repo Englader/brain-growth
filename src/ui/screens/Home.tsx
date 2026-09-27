@@ -8,6 +8,7 @@ import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 import { evalCtx, launchMode, petTap, signOut, toast } from '../../app/actions';
 import { navigate } from '../../app/router';
+import { seasonNow } from '../../app/seasonActions';
 import { now, speaker } from '../../app/services';
 import { useStore } from '../../app/store';
 import { play as sfx, unlockAudio } from '../../audio/sfx';
@@ -16,10 +17,12 @@ import { isDue } from '../../core/engine/memory';
 import { wildcardForWeek } from '../../core/league';
 import type { Profile } from '../../core/profile';
 import { questProgress } from '../../core/quests';
+import { seasonGreetingKey } from '../../core/seasons';
 import { GRAPH } from '../../core/skills';
 import { streakView } from '../../core/streaks';
 import { dayKey, weekKey } from '../../core/time';
 import type { BandId, Strand } from '../../core/types';
+import { percentText } from '../../i18n/render';
 import { isReady, modesFor } from '../../modes/registry';
 import type { ModeDef } from '../../modes/types';
 import { HomeWidgets } from '../homeWidgets';
@@ -142,8 +145,11 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
   const hop = modes.find((m) => m.id === 'hop')!;
   // Other modes offered to pre-readers: big icon tiles, only once they can be started (no locked states in A).
   const tray = modes.filter((m) => m.homeA && m.id !== 'hop' && isReady(m, p));
+  // In season the spoken welcome is the season's greeting (voice.season.*).
+  const season = seasonNow(p, now());
+  const welcome = season ? seasonGreetingKey(season) : 'voice.welcome';
   useEffect(() => {
-    if (p.settings.voice) speaker.say('voice.welcome', {}, p.locale);
+    if (p.settings.voice) speaker.say(welcome, {}, p.locale);
   }, [p.locale]);
   const tapFrog = (): void => {
     unlockAudio();
@@ -156,7 +162,7 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
   return (
     <div class="screen home home-a">
       <header class="topbar">
-        <button type="button" class="icon-btn big" aria-label={t('common.speaker')} onClick={() => speaker.say('voice.welcome', {}, p.locale)}>
+        <button type="button" class="icon-btn big" aria-label={t('common.speaker')} onClick={() => speaker.say(welcome, {}, p.locale)}>
           <Icon name="speaker" size={30} />
         </button>
         <span class="grow" />
@@ -323,10 +329,18 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
             return (
               <li>
                 <span class="meter-label">{t.dyn(`strand.${strand}`)}</span>
-                <span class="meter" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <span
+                  class="meter"
+                  role="meter"
+                  aria-label={t.dyn(`strand.${strand}`)}
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuetext={percentText(pct, t.locale)}
+                >
                   <span class="meter-fill" style={{ width: `${pct}%` }} />
                 </span>
-                <span class="meter-value">{pct}%</span>
+                <span class="meter-value">{percentText(pct, t.locale)}</span>
               </li>
             );
           })}

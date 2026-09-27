@@ -44,6 +44,7 @@ export function RectBoard({
   locale,
   band,
   onNext,
+  onWrong,
   onExtraShape,
 }: {
   presented: PresentedItem;
@@ -51,6 +52,7 @@ export function RectBoard({
   locale: LocaleId;
   band: BandId;
   onNext: () => void;
+  onWrong: () => void;
   onExtraShape: () => void;
 }): JSX.Element {
   const t = useT();
@@ -58,7 +60,7 @@ export function RectBoard({
   const c = task.constraints;
   const M = c.maxSide;
   const hints = useMemo(() => rectHints(c), [c]);
-  const b = useBuild(presented, locale, band, hints);
+  const b = useBuild(presented, locale, band, hints, onWrong);
   const [w, setW] = useState(1);
   const [h, setH] = useState(1);
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -284,7 +286,7 @@ export function RectBoard({
                   </button>
                 ) : (
                   <button type="button" class="btn ws-another" disabled={!others.length} onClick={another}>
-                    <Icon name="grid" size={20} /> {t('workshop.rect.another')}
+                    <Icon name="shapes" size={20} /> {t('workshop.rect.another')}
                   </button>
                 )}
                 <button type="button" class={`btn ws-others-btn${showOthers ? ' on' : ''}`} aria-pressed={showOthers} onClick={() => setShowOthers(!showOthers)}>

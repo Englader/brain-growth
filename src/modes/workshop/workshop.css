@@ -92,27 +92,24 @@
   overflow: hidden;
   background: var(--surface);
 }
+/* A part is a pointer target only (at 12 parts it is narrower than 44 px);
+   the Parts and Shaded steppers are the accessible controls. */
 .ws-part {
   flex: 1 1 0;
   min-width: 0;
-  padding: 0;
-  border: 0;
   border-left: 2px solid var(--ink);
-  background: transparent;
   cursor: pointer;
   transition: background 0.15s;
 }
 .ws-part:first-child {
   border-left: 0;
 }
+/* Shaded: colour and hatching (more than colour alone). */
 .ws-part.on {
-  background: var(--accent);
+  background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(0, 0, 0, 0.16) 9px 12px), var(--accent);
 }
 .ws-bar.done .ws-part {
   cursor: default;
-}
-.ws-part:disabled {
-  opacity: 1;
 }
 .ws-readout {
   display: flex;

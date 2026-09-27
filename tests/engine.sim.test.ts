@@ -41,6 +41,36 @@ describe('cold-start placement (≤ 8 items, inside the first ordinary session)'
 });
 
 describe('item selection hits the target success rate', () => {
+  const fourWeeks = (seed: number, n: number, range: [number, number]): number[] => {
+    const rng = createRng(seed);
+    const rates: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const learner = randomLearner(rng, GRAPH, range);
+      const clock = new SimClock();
+      let snap = newSnapshot(Math.round(learner.params.g + 5));
+      let fa = 0;
+      let fc = 0;
+      for (let day = 0; day < 28; day++) {
+        const r = runSession(learner, snap, clock, rng, { items: 12, targetP: 0.85, seed: seed * 1000 + 100 * i + day });
+        snap = r.snapshot;
+        if (day > 0) {
+          fa += r.firstAttempts;
+          fc += r.firstCorrect;
+        }
+        clock.advance(DAY_MS - 120_000);
+      }
+      rates.push(fc / fa);
+    }
+    return rates;
+  };
+
+  it('grades 4–6.5 too: consolidation far below the child no longer inflates success (DESIGN §1.5)', () => {
+    const rates = fourWeeks(78, 30, [4, 6.5]);
+    expect(mean(rates)).toBeGreaterThan(0.8);
+    expect(mean(rates)).toBeLessThan(0.9);
+    expect(Math.min(...rates)).toBeGreaterThan(0.7);
+  });
+
   it('realised first-attempt success stays near 85% over four weeks', () => {
     const rng = createRng(77);
     const rates: number[] = [];

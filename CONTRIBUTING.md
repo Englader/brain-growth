@@ -5,12 +5,29 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 462 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 798 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
-npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow or clipped text
+npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
+npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)
 E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e at once (default 4173)
 ```
+
+## How to add a mode now (size, loading, usability)
+
+Since the polish wave, the start-up bundle is budgeted and every screenshot is checked for usability. A mode branch that merges after it (Balance + Coord, Dice Race, Workshop) does four things; recipe (a) below has the details:
+
+1. **Screens are chunks.** Register `Component` (and `intro`) with `lazyScreen(() => import('./XMode').then((m) => m.XMode))` from `src/modes/lazy.tsx`. Never import a screen into your `index.ts`, and remove any hand-written lazy loader of your own. Keep in `index.ts` only what the home card needs: ids, keys, icon, `ready`, `filter`, `plannedItems`. If `ready` needs a helper that lives next to your screens (e.g. `canRace` in `diceActions.ts`), move the helper into `index.ts`, or into a small module that imports no screen. `launchMode` preloads the chunk. Pass `{ placeholderClass: 'play lazy-screen' }` to keep your play background while it loads.
+2. **Your own generators go in `ON_DEMAND`**, not `BUILTIN`, in `src/core/items/generators/index.ts`. Add one `{ declared: [{ id, capabilities }], load: () => import('./x').then((m) => [m.xGen]) }` entry under your anchor. The declared capabilities must equal the definition's (loading checks it). The play screen waits until they are in, and tests, the sim and scripts load everything. Two cases stay in `BUILTIN`:
+   - a generator Hop can serve (`numberLine` capability, e.g. an `eqBond` or `perimeterHops`); split it into its own module so the mode-only ones can go on demand;
+   - a generator whose module also registers a checker or custom prompt that is needed outside a session.
+3. **Stay inside the budget.** After `npm run build`, run `npm run size`: start-up JS ≤ 100 kB gzipped, and start-up plus the larger language ≤ 130 kB. It prints what sits in each chunk. If it fails, something eager is pulling in a screen or a solver.
+4. **Pass the usability check.** Every `t.shot()` now fails on:
+   - a tap target under 44×44 px at 360 px (`.btn.small` and `.icon-btn.small` are 44 px now);
+   - a button or link without an accessible name (an `aria-label` from an i18n key for icon-only buttons);
+   - a focusable control inside `aria-hidden`.
+
+   Mark a selected state with more than colour (an outline, `aria-pressed`, an icon), and let reduced motion stop any animation (the global rule in `app.css` does this for CSS animations). Write a percentage as `{pct, percent}`, never `{pct}%`.
 
 ## (a) Add a game mode
 
@@ -28,9 +45,11 @@ E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e a
      homeA: true,                      // also a big icon tile on the Band A home
      ready: (p) => p.placement.done,   // shown but locked until it can be played well
      maxReturns: () => 0,
-     Component: TargetMode,
+     // A chunk loaded on first use (src/modes/lazy.tsx): never import screens into index.ts.
+     Component: lazyScreen(() => import('./TargetMode').then((m) => m.TargetMode)),
    });
    ```
+   **Lazy by rule.** Every mode except Hop registers its screens (`Component`, `intro`) through `lazyScreen` from `src/modes/lazy.tsx`, so they are chunks loaded on first use and the start-up bundle carries only the registration (cards, readiness and flags still work before any chunk arrives). `launchMode` preloads them before navigating; `lazyScreen(load, { placeholderClass })` keeps your play background while the chunk loads. If your mode has **its own generators**, declare them in `ON_DEMAND` in `src/core/items/generators/index.ts` (under your anchor: `{ declared: [{ id, capabilities }], load: () => import('./x').then((m) => [m.xGen]) }`) instead of `BUILTIN`: their solver code leaves the start-up bundle, and the play screen waits until they are in (the engine generates synchronously). Keep the declared capabilities equal to the definition's (loading checks it). Tests, the sim and scripts load everything first. `npm run size` fails CI when the start-up bundle passes its budget.
    Optional: `intro` (a pre-session screen at `/intro/<id>`, opened by the home card and "again"), `engine: false` (standalone: `/play/<id>` renders without the store's session), `launch(opts)` (custom start), `plannedItems` (default: the band's session or quick length), `filter`, `timed` (Sprint only). Only Hop has `placement: true`.
    If the mode needs a new item capability, add it under your anchor in `Capability` (`src/core/items/types.ts`) and declare it on the generators that support it.
 3. **Add the flag** under your anchor in `FLAGS` (`src/core/flags.ts`) with `default: true` and `labelKey: '<feature>.flag'`.
@@ -79,7 +98,7 @@ E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e a
      ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
      speech: ['sq-MK', 'sq-AL', 'sq'], messages: flatten(sq), wordProblems: sqWP });
    ```
-4. **Voice.** Add the number-word composition rule to `numberClips()` in `src/audio/voiceScript.ts` (e.g. "njëzet e një"). Run `npm run gen:audio-script` for the recording list, then record the clips and list them in `src/audio/clips.ts`.
+4. **Voice.** Add the number-word composition rule to `numberClips()` in `src/audio/voiceScript.ts` (e.g. "njëzet e një"). Run `npm run gen:audio-script` for the recording list, then record the clips into `public/audio/<id>/` and run `npm run gen:clips` (the build also does it; see DESIGN §1.12).
 5. **Run `npm run check`.** Parity (keys, placeholders), ICU validity, word-bank slots and **font coverage** (every character must exist in the self-hosted fonts) tell you exactly what's missing. Then run `npm run e2e` with the new language to check nothing overflows. The language toggle lists every registered locale automatically.
 
 ## Parallel work conventions
@@ -113,7 +132,7 @@ Put your lines **directly under your own anchor**, in each region the file has. 
 |---|---|---|
 | `src/modes/index.ts` | imports | `import './<id>';` (your mode's `index.ts` calls `registerMode`) |
 | `src/ui/widgets/index.ts` | imports | `import './<Feature>Card';` |
-| `src/core/items/generators/index.ts` | imports, `BUILTIN` | your generator import, then the generators |
+| `src/core/items/generators/index.ts` | imports, `BUILTIN`, `ON_DEMAND` | Hop-servable generators: the import, then the generators in `BUILTIN`; a mode's own generators: one `{ declared, load }` entry in `ON_DEMAND` |
 | `src/core/items/types.ts` | `Capability` | `\| 'deal'` |
 | `src/core/achievements/definitions.ts` | `ACHIEVEMENTS` | achievements with ids `<feature>.<name>` |
 | `src/core/achievements/index.ts` | imports | `import './metrics/<feature>';` |
@@ -140,7 +159,7 @@ If you must change shared code **outside** a slot, land that change first as a s
   - `voice`: `frac, weekly, target, dice, puzzle, workshop, season`. Keys `voice.target.*`.
   - `cos`: `weekly, season`. Cosmetic `weekly.pads` → `cos.weekly.pads`.
 
-You may nest deeper inside your own block (e.g. `mis.frac.dec.longerIsLarger`). Macedonian is authored, not machine-translated, uses the existing terminology, and only glyphs in the font subsets (no ≠ ≤ ≥ √ π ⅓ →; draw those as SVG). Numbers go through the formatters and operators through `getLocale().ops`.
+You may nest deeper inside your own block (e.g. `mis.frac.dec.longerIsLarger`). Macedonian is authored, not machine-translated, uses the existing terminology, and only glyphs in the font subsets (no ≠ ≤ ≥ √ π ⅓ →; draw those as SVG). Numbers go through the formatters and operators through `getLocale().ops`. A percentage is `{pct, percent}` with the number as the parameter ("25%" in English, "25 %" with a no-break space in Macedonian), never `{pct}%` (tested). Bundles load on demand: in the app a language arrives with `loadLocale` (the tests load all of them in `tests/setup.ts`).
 
 ### 4. Features ship ON
 
@@ -159,6 +178,7 @@ New modes and features are enabled by default once their e2e flow passes (DESIGN
 | Checkers | `src/core/items/checkers.ts` | `registerChecker(id, (item, response, params, conv) => ({ correct, given, invalid?, misconception?, delta? }))`; an item opts in with `answer.check = { id, params? }`. Import the checker module from the generator that emits it. |
 | Built answers | `src/core/items/grade.ts` | `Response` `{ kind: 'built', value: Rational \| null, repr, data? }`: graded by the item's checker, else by `value`. |
 | Evidence weight | `src/core/engine/params.ts` | `MODE_EVIDENCE[mode]` (default 1) scales the ability update of that mode's first attempts, identically in live sessions and in log replay. |
+| Fixed items | `GeneratorDef.fromOperands` (`src/core/items/types.ts`), `SessionEngine.presentFixed` | `gen.fromOperands({ a, op, b }, config)` builds the item for operands the MODE chose (level from the generator's own scorer; null if it cannot express them; `addsub`, `intAddSub`, `mult`). `engine.presentFixed(skillId, generated, gen, seed)` presents it with source `fixed`, rated and logged like any first attempt. Dice Race uses both. |
 
 ### 6. e2e flows
 
@@ -167,7 +187,9 @@ New modes and features are enabled by default once their e2e flow passes (DESIGN
 - `t.page`, `t.context`, `t.name`;
 - `t.goto(path, params)` opens `…/?e2e=1&<params>#<path>` and waits for boot;
 - `t.url(path, params)` builds that URL;
-- `t.shot(name)` checks horizontal overflow and clipped text (buttons, chips, nav labels, headings, labels and paragraphs narrower than their content), then saves `screens/<flow>-NN-<name>.png`, numbered per flow.
+- `t.shot(name)` checks horizontal overflow, clipped text (buttons, chips, nav labels, headings, labels and paragraphs narrower than their content) and unusable controls (a tap target under 44×44 px, a button or link without an accessible name, a focusable control inside `aria-hidden`), then saves `screens/<flow>-NN-<name>.png`, numbered per flow.
+
+Service workers are blocked, so every flow runs against the network, unless the flow module exports `serviceWorkers = 'allow'` (as `90-offline` does).
 
 Helpers in `e2e/lib.mjs`: `seed`, `forceSkill`, `recentLog`, `hopa` (call any hook), `state`, `waitNext`, `answer`, `playSession`, `createPlayer`.
 
@@ -186,7 +208,7 @@ Flow numbers:
 |---|---|
 | (core) | `10-core` |
 | (hooks) | `11-hooks` |
-| pilot | 15 |
+| pilot | `15-pilot` |
 | frac | 20 |
 | hint | 25 |
 | weekly | 30 |
@@ -198,6 +220,7 @@ Flow numbers:
 | balance | 72 |
 | coord | 74 |
 | season | 80 |
+| offline (service worker, lazy chunks) | `90-offline` |
 
 New screens get a 360 px Macedonian screenshot, and you look at it.
 
@@ -207,6 +230,8 @@ New screens get a 360 px Macedonian screenshot, and you look at it.
 - `tests/strings.test.ts`: no literal letters in JSX text or in `aria-label`, `title`, `placeholder` or `alt` under `src/ui`, `src/modes` and `src/adult`.
 - `tests/generated-docs.test.ts`: `design/skill-graph.md` and `design/audio-recording-script.md` match `npm run gen:skill-doc` and `npm run gen:audio-script`.
 - `tests/slots.test.ts`: anchors complete and in order; locale keys identical and in the same order.
+- `tests/lazy.test.tsx`: every mode but Hop registers lazy screens; on-demand generators match their declarations.
+- `npm run size` (`scripts/size-check.mjs`, after the build): the start-up JS (the entry chunk and what it imports statically) at most 100 kB gzipped, and with the larger language bundle at most 130 kB.
 
 ### 8. Docs
 

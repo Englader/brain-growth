@@ -9,40 +9,23 @@
  * 0.75 (MODE_EVIDENCE): a construction found against a live readout is
  * noisier evidence than a typed answer.
  *
- * The board UI is a separate chunk, loaded when the mode opens (the service
- * worker precaches every chunk, so it works offline). The generators stay in
- * the main bundle: the engine generates items synchronously.
+ * The board is a chunk loaded on first use (lazyScreen) and the two
+ * generators load on demand with it (ON_DEMAND in generators/index.ts); this
+ * module holds only what the home card needs.
  */
-import type { ComponentType, JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
 import type { BandId } from '../../core/types';
 import { isUnlocked } from '../../core/engine/scheduler';
-import { WORKSHOP_GENERATORS } from '../../core/items/generators/workshop';
 import type { Profile } from '../../core/profile';
 import { GRAPH } from '../../core/skills';
 import type { SkillDef } from '../../core/skills/types';
+import { lazyScreen } from '../lazy';
 import { registerMode } from '../registry';
 
-let loaded: ComponentType | null = null;
-
-function WorkshopModeLazy(): JSX.Element {
-  const [C, setC] = useState<ComponentType | null>(() => loaded);
-  useEffect(() => {
-    if (C) return undefined;
-    let live = true;
-    void import('./WorkshopMode').then((m) => {
-      loaded = m.WorkshopMode;
-      if (live) setC(() => m.WorkshopMode);
-    });
-    return () => {
-      live = false;
-    };
-  }, []);
-  return C ? <C /> : <div class="play ws-play" />;
-}
+/** Generator ids of the Workshop (generators/workshop.ts: FRAC_BAR_GEN, RECT_GEN). */
+const WORKSHOP_GEN_IDS: ReadonlySet<string> = new Set(['fracBar', 'rectBuild']);
 
 /** A skill the Workshop can serve: bound to one of its generators. */
-export const isWorkshopSkill = (s: SkillDef): boolean => (s.gens ?? []).some((b) => WORKSHOP_GENERATORS.has(b.id));
+export const isWorkshopSkill = (s: SkillDef): boolean => (s.gens ?? []).some((b) => WORKSHOP_GEN_IDS.has(b.id));
 
 /** The playable skills the Workshop serves (fraction bar: f.unit, f.equiv; rectangles: geo.perimeter, geo.area.rect). */
 export const workshopSkills = (): SkillDef[] => GRAPH.playableSkills().filter(isWorkshopSkill);
@@ -58,13 +41,15 @@ registerMode({
   order: 50,
   titleKey: 'workshop.title',
   descKey: 'workshop.desc',
-  icon: 'grid',
+  icon: 'shapes',
   requires: ['build'],
   bands: ['B', 'C'],
   flag: 'mode.workshop',
+  // 'build' is shared with Balance and the coordinate plane: serve fraction bars and rectangles only.
   filter: (skill) => isWorkshopSkill(skill),
   ready: workshopReady,
   notReadyKey: 'workshop.notReady',
   plannedItems: (band, opts) => (opts.quick ? band.quickItems : WORKSHOP_ITEMS[band.id]),
-  Component: WorkshopModeLazy,
+  // Its own chunk: the boards load when the mode opens.
+  Component: lazyScreen(() => import('./WorkshopMode').then((m) => m.WorkshopMode), { placeholderClass: 'play ws-play lazy-screen' }),
 });

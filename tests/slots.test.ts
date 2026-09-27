@@ -16,7 +16,7 @@ export const SLOT_ORDER = ['frac', 'hint', 'pilot', 'storage', 'weekly', 'target
 const SLOTTED: Record<string, number> = {
   'src/modes/index.ts': 1,
   'src/ui/widgets/index.ts': 1,
-  'src/core/items/generators/index.ts': 2,
+  'src/core/items/generators/index.ts': 3,
   'src/core/items/types.ts': 1,
   'src/core/achievements/definitions.ts': 1,
   'src/core/achievements/index.ts': 1,

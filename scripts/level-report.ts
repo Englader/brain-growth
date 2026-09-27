@@ -1,7 +1,10 @@
 /** Dev report: how well each generator tracks the requested level. `npx vite-node scripts/level-report.ts` */
 import { GRAPH } from '../src/core/skills';
-import { getGenerator } from '../src/core/items/generators';
+import { getGenerator, loadAllGenerators } from '../src/core/items/generators';
 import { createRng } from '../src/core/rng';
+
+// Feature modes' generators load on demand in the app; this report needs them all.
+await loadAllGenerators();
 
 for (const s of GRAPH.playableSkills()) {
   for (const g of s.gens ?? []) {

@@ -22,14 +22,8 @@ import { SessionEngine, type AnswerInput, type PresentedItem } from '../src/core
 import { hasChecker } from '../src/core/items/checkers';
 import { getCustomPrompt } from '../src/core/items/customPrompts';
 import { getGenerator } from '../src/core/items/generators';
-import {
-  fracBarOf,
-  PERIMETER_HOPS_GEN,
-  rectOf,
-  WALK_MISCONCEPTIONS,
-  WALK_PROMPT_TYPE,
-  WORKSHOP_GENERATORS,
-} from '../src/core/items/generators/workshop';
+import { PERIMETER_HOPS_GEN, WALK_MISCONCEPTIONS, WALK_PROMPT_TYPE } from '../src/core/items/generators/perimeterHops';
+import { fracBarOf, rectOf, WORKSHOP_GENERATORS } from '../src/core/items/generators/workshop';
 import { gradeResponse, type Response } from '../src/core/items/grade';
 import type { Item } from '../src/core/items/types';
 import { EVENTS, type EventRecord, type ItemRecord, type LogRecord } from '../src/core/log/types';
@@ -78,13 +72,15 @@ const built = (repr: string, data?: Record<string, number>): Response => ({ kind
 const REVEAL = built('', { reveal: 1 });
 
 describe('workshop: registration', () => {
-  it('registers both checkers and all three custom prompts (once, at start-up)', () => {
+  it('registers both checkers and all three custom prompts, once each', () => {
     expect(hasChecker(FRAC_BAR_CHECK_ID)).toBe(true);
     expect(hasChecker(RECT_CHECK_ID)).toBe(true);
     for (const type of [FRAC_BAR_PROMPT_TYPE, RECT_PROMPT_TYPE, WALK_PROMPT_TYPE]) expect(getCustomPrompt(type), type).toBeDefined();
-    const src = read('src/core/items/generators/workshop.ts');
-    expect(src.match(/registerChecker\(/g)).toHaveLength(2);
-    expect(src.match(/registerCustomPrompt\(/g)).toHaveLength(3);
+    // The two on-demand generators' module registers the checkers and their prompts; the eager Hop walk its own prompt.
+    const onDemand = read('src/core/items/generators/workshop.ts');
+    expect(onDemand.match(/registerChecker\(/g)).toHaveLength(2);
+    expect(onDemand.match(/registerCustomPrompt\(/g)).toHaveLength(2);
+    expect(read('src/core/items/generators/perimeterHops.ts').match(/registerCustomPrompt\(/g)).toHaveLength(1);
   });
 
   it("the Capability union carries exactly one 'build' member (shared with Balance and Coord)", () => {

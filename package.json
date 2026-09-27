@@ -5,8 +5,11 @@
   "type": "module",
   "description": "Adaptive, bilingual (EN/MK) math game for ages 5-14. Static site, offline-first.",
   "scripts": {
+    "predev": "npm run gen:clips",
     "dev": "vite",
+    "prebuild": "npm run gen:clips",
     "build": "tsc --noEmit && vite build",
+    "size": "node scripts/size-check.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -16,7 +19,8 @@
     "sim": "vite-node sim/run.ts",
     "icons": "node scripts/gen-icons.mjs",
     "gen:skill-doc": "vite-node scripts/gen-skill-doc.ts",
-    "gen:audio-script": "vite-node scripts/gen-audio-script.ts",
+    "gen:audio-script": "npm run gen:clips && vite-node scripts/gen-audio-script.ts",
+    "gen:clips": "vite-node scripts/gen-clip-manifest.ts",
     "level-report": "vite-node scripts/level-report.ts"
   },
   "dependencies": {

@@ -1,6 +1,8 @@
 /**
- * The fraction bar: split it with the ± stepper, shade parts by tapping them,
- * check. The target is the shared stacked fraction; the readout under the bar
+ * The fraction bar: split it with the ± stepper, shade parts by tapping them
+ * (or with the "shaded" stepper: at 12 parts a part is narrower than a 44 px
+ * target, so the bar is a pointer surface and the steppers are the accessible
+ * controls), check. The target is the shared stacked fraction; the readout under the bar
  * writes what the child built the same way (3 of 4 shaded is 3/4), so the
  * construction and the notation meet. Every equivalent bar is right (2/4 and
  * 4/8 for 1/2) unless the task fixes the number of parts.
@@ -30,13 +32,27 @@ interface Msg {
   tip: string | null;
 }
 
-export function FracBarBoard({ presented, task, locale, band, onNext }: { presented: PresentedItem; task: FracTaskData; locale: LocaleId; band: BandId; onNext: () => void }): JSX.Element {
+export function FracBarBoard({
+  presented,
+  task,
+  locale,
+  band,
+  onNext,
+  onWrong,
+}: {
+  presented: PresentedItem;
+  task: FracTaskData;
+  locale: LocaleId;
+  band: BandId;
+  onNext: () => void;
+  onWrong: () => void;
+}): JSX.Element {
   const t = useT();
   const item = presented.item;
   const { target } = task;
   const want = target.parts ?? target.d;
   const hints = useMemo(() => fracBarHints(target), [target]);
-  const b = useBuild(presented, locale, band, hints);
+  const b = useBuild(presented, locale, band, hints, onWrong);
   const [parts, setParts] = useState(1);
   const [shaded, setShaded] = useState<readonly number[]>([]);
   const [msg, setMsg] = useState<Msg | null>(null);
@@ -54,6 +70,15 @@ export function FracBarBoard({ presented, task, locale, band, onNext }: { presen
     if (!building) return;
     sfx('tap');
     setShaded(shaded.includes(i) ? shaded.filter((x) => x !== i) : [...shaded, i].sort((a, c) => a - c));
+    setMsg(null);
+  };
+
+  /** The "shaded" stepper: one more shades the first unshaded part, one less clears the last shaded one. */
+  const shadeCount = (k: number): void => {
+    if (k > shaded.length) {
+      const i = Array.from({ length: parts }, (_, j) => j).find((j) => !shaded.includes(j));
+      if (i !== undefined) setShaded([...shaded, i].sort((a, c) => a - c));
+    } else if (k < shaded.length) setShaded(shaded.slice(0, -1));
     setMsg(null);
   };
 
@@ -97,34 +122,41 @@ export function FracBarBoard({ presented, task, locale, band, onNext }: { presen
       </section>
 
       <section class="ws-bar-wrap">
-        <div class={`ws-bar${building ? '' : ' done'}`} role="group" aria-label={t('workshop.frac.parts')}>
+        <div class={`ws-bar${building ? '' : ' done'}`} role="img" aria-label={t('workshop.frac.bar', { parts: shownParts, shaded: count })}>
           {Array.from({ length: shownParts }, (_, i) => (
-            <button
-              type="button"
-              class={`ws-part${shaded.includes(i) ? ' on' : ''}`}
-              aria-pressed={shaded.includes(i)}
-              aria-label={t('workshop.frac.part', { i: i + 1, parts: shownParts })}
-              disabled={!building}
-              onClick={() => toggle(i)}
-            />
+            <div class={`ws-part${shaded.includes(i) ? ' on' : ''}`} onClick={() => toggle(i)} />
           ))}
         </div>
         <div class="ws-readout" aria-live="polite">
           <span>{t('workshop.frac.shaded')}</span>
           <Frac n={numberText(count, locale)} d={numberText(shownParts, locale)} cls="ws-made" />
         </div>
-        <Stepper
-          cls="ws-parts"
-          label={t('workshop.frac.parts')}
-          value={parts}
-          min={1}
-          max={MAX_BAR_PARTS}
-          down={t('workshop.frac.fewer')}
-          up={t('workshop.frac.more')}
-          disabled={!building}
-          locale={locale}
-          onChange={split}
-        />
+        <div class="ws-steppers">
+          <Stepper
+            cls="ws-parts"
+            label={t('workshop.frac.parts')}
+            value={parts}
+            min={1}
+            max={MAX_BAR_PARTS}
+            down={t('workshop.frac.fewer')}
+            up={t('workshop.frac.more')}
+            disabled={!building}
+            locale={locale}
+            onChange={split}
+          />
+          <Stepper
+            cls="ws-shade"
+            label={t('workshop.frac.shadedLabel')}
+            value={count}
+            min={0}
+            max={parts}
+            down={t('workshop.frac.shadeLess')}
+            up={t('workshop.frac.shadeMore')}
+            disabled={!building}
+            locale={locale}
+            onChange={shadeCount}
+          />
+        </div>
       </section>
 
       <section class="feedback ws-feedback" aria-live="assertive">

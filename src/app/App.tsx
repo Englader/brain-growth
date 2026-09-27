@@ -1,8 +1,9 @@
 import type { JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
-import { Adult } from '../adult/Adult';
+import { AdultScreen } from '../adult/screen';
 import { getBand } from '../bands/registry';
 import { getLocale } from '../i18n/locales';
+import { ModeScreen } from '../modes/lazy';
 import { getMode, modesFor } from '../modes/registry';
 import { Toast } from '../ui/components/common';
 import { accentFor, useT } from '../ui/hooks';
@@ -17,6 +18,8 @@ import { Wardrobe } from '../ui/screens/Wardrobe';
 import { OtherTabNotice } from '../ui/storage/OtherTabNotice';
 import { receiveRival } from './actions';
 import { navigate } from './router';
+import { seasonNow } from './seasonActions';
+import { now } from './services';
 import { useStore } from './store';
 
 function Screen(): JSX.Element | null {
@@ -27,7 +30,7 @@ function Screen(): JSX.Element | null {
   const meta = useStore((s) => s.meta);
 
   if (route.startsWith('/rival/')) return <RivalImport payload={route.slice(7)} />;
-  if (route === '/adult') return <Adult />;
+  if (route === '/adult') return <AdultScreen />;
   if (route === '/new' || (!profile && profiles.length === 0)) return <Create />;
   if (!profile) return <Profiles />;
   // Generic mode routes: /intro/<id> (the mode's pre-session screen) and /play/<id>.
@@ -41,7 +44,9 @@ function Screen(): JSX.Element | null {
       navigate('/', true);
       return null;
     }
-    return <C key={section === 'play' ? session?.id ?? mode!.id : mode!.id} />;
+    // A play screen waits for the generators the mode may serve (feature modes load theirs on demand).
+    if (section === 'play') return <ModeScreen key={session?.id ?? mode!.id} mode={mode!} screen={C} />;
+    return <C key={mode!.id} />;
   }
   switch (route) {
     case '/results':
@@ -68,7 +73,9 @@ export function App(): JSX.Element {
 
   useEffect(() => {
     document.documentElement.lang = getLocale(t.locale).bcp47;
-    document.title = t('app.name');
+    // Empty until the first language bundle is in (index.html's own title stays meanwhile).
+    const name = t('app.name');
+    if (name) document.title = name;
   }, [t]);
 
   useEffect(() => {
@@ -77,11 +84,16 @@ export function App(): JSX.Element {
 
   if (!booted) return <div class="boot" />;
   const accent = profile ? accentFor(profile) : undefined;
+  const adult = route === '/adult';
+  // Seasonal decoration (CSS only, app.css "Seasons"): child screens in season, never during play (nothing
+  // competes with the problem) and never when switched off for the child.
+  const season = adult || route.startsWith('/play/') ? null : seasonNow(profile, now());
   return (
     <div
       class="app"
       data-band={band?.id ?? 'none'}
-      data-theme={route === '/adult' ? 'adult' : band?.theme ?? 'lagoon'}
+      data-theme={adult ? 'adult' : band?.theme ?? 'lagoon'}
+      data-season={season ?? undefined}
       style={accent ? { '--accent': accent } : undefined}
     >
       <OtherTabNotice />

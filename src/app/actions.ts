@@ -21,8 +21,10 @@ import type { Response } from '../core/items/grade';
 import { decodeRivalCard, encodeRivalCard, weeklyEffort, type RivalCard } from '../core/league';
 import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../core/log/types';
 import { EVENTS } from '../core/log/types';
+import { isEnabled } from '../core/flags';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
 import { questsForDay } from '../core/quests';
+import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
 import { createRng } from '../core/rng';
@@ -30,13 +32,18 @@ import { GRAPH } from '../core/skills';
 import { applyFreezes, currentStreak, MIN_ITEMS_FOR_DAY, recordActiveDay } from '../core/streaks';
 import { dayKey, weekKey } from '../core/time';
 import type { LocaleId, ModeId } from '../core/types';
+import { tk } from '../i18n/i18n';
 import { getLocale } from '../i18n/locales';
+import { preloadMode } from '../modes/lazy';
 import { defaultPlannedItems, getMode } from '../modes/registry';
 import type { ModeDef } from '../modes/types';
+import { whenLocaleReady } from './localeActions';
 import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
 import { nextSeed, now, repo, storage, testOverrides } from './services';
+import { seasonalDropDate } from './seasonActions';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
+import { pinWeeklyFor, settleWeekly, weeklyBoostFor } from './weeklyActions';
 
 export { evalCtx, recentLog } from './persist';
 
@@ -73,6 +80,7 @@ export function openProfile(p: Profile): void {
   if (questsOn(next) && next.quests?.day !== today) {
     next = { ...next, quests: { day: today, ids: questsForDay(p.id, today, p.band), done: [], rewarded: false } };
   }
+  next = pinWeeklyFor(next, t);
   setState({ profile: next });
   appendLog(p.id, recs);
   next = unlockAchievements(next, 'open', null).profile;
@@ -136,6 +144,11 @@ export function deleteProfile(pid: string): void {
  * switch is not counted as mid-session (their session is not the store's).
  */
 export function switchLocale(locale: LocaleId, pid?: string): void {
+  // Bundles load on demand: the switch applies once this language's messages are in (at once after the idle prefetch).
+  whenLocaleReady(locale, () => applyLocale(locale, pid), localeFailed);
+}
+
+function applyLocale(locale: LocaleId, pid?: string): void {
   const st = getState();
   const active = !pid || pid === st.profile?.id;
   const p = active ? st.profile : st.profiles.find((x) => x.id === pid) ?? repo.loadProfile(pid);
@@ -149,7 +162,13 @@ export function switchLocale(locale: LocaleId, pid?: string): void {
 }
 
 export function setUiLocale(locale: LocaleId): void {
-  setState({ meta: repo.saveMeta({ uiLocale: locale }) });
+  whenLocaleReady(locale, () => setState({ meta: repo.saveMeta({ uiLocale: locale }) }), localeFailed);
+}
+
+/** A language bundle could not be fetched (offline before the service worker cached it): say so; tapping again retries. */
+function localeFailed(): void {
+  const st = getState();
+  toast(tk(st.profile?.locale ?? st.meta?.uiLocale ?? 'en', 'lang.failed'));
 }
 
 // ── sessions (profile-parameterised) ───────────────────────────────────────
@@ -171,6 +190,15 @@ export interface FinishExtra {
 }
 
 /**
+ * Four-item sessions for testing (`debug.shortSessions`): the URL (`?ff=debug.shortSessions`)
+ * wins, then a per-child value (e2e seeds set it on the profile), then the device switch.
+ */
+function shortSessions(p: Profile, deviceFlags: Record<string, boolean>): boolean {
+  const id = 'debug.shortSessions';
+  return isEnabled(id, undefined, id in p.flags ? { ...deviceFlags, [id]: p.flags[id]! } : deviceFlags);
+}
+
+/**
  * Create a session for `profile` in `modeId` and log its start record. Pure
  * with respect to the store: the caller keeps the returned session (the store
  * for the active child, or its own state for pass-and-play). Placement items
@@ -188,8 +216,9 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   const only = opts.only ?? testOverrides.only ?? undefined;
   const o: SessionOptions = only ? { ...opts, only } : opts;
   let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
-  if ((p.flags['debug.shortSessions'] ?? deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
+  if (shortSessions(p, deviceFlags)) planned = Math.min(planned, 4);
   const timed = !!mode.timed && !o.noClock;
+  const boost = weeklyBoostFor(p, o.theme);
   const engine = new SessionEngine(
     { graph: GRAPH, model: glickoElo, now },
     { skills: p.skills, placement: mode.placement ? p.placement : { ...p.placement, state: null } },
@@ -208,6 +237,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
       stretch: !!o.stretch,
       timed,
       ...(only ? { only } : {}),
+      ...(boost ? { boost } : {}),
     },
   );
   const masteryStart: Record<string, number> = {};
@@ -235,7 +265,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   };
   const rec: SessionRecord = {
     type: 'session', ts: t, sid, phase: 'start', mode: modeId, band: p.band, locale: p.locale,
-    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null,
+    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null, lastCorrect: null, exitIndex: null,
   };
   appendLog(p.id, [rec]);
   return session;
@@ -282,7 +312,7 @@ export function recordAnswer(
   let rewards = p.rewards;
   const gifts = [...s.gifts];
   if (first) {
-    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, now()));
     rewards = {
       itemsSinceDrop: roll.itemsSinceDrop,
       pending: roll.dropped ? [...p.rewards.pending, roll.dropped.id] : p.rewards.pending,
@@ -333,7 +363,8 @@ export function recordAnswer(
 }
 
 /**
- * Close `session` for `profile`: end record, session count, sprint personal
+ * Close `session` for `profile`: end record (including how it ended: whether
+ * the last answer was right and, if left early, the exit point), session count, sprint personal
  * best, achievements, quest reward. Saves the profile and returns the result
  * for the results screen (the caller decides where it goes).
  */
@@ -344,6 +375,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const rec: SessionRecord = {
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
     items: s.firstAttempts, firstCorrect: s.firstCorrect, durationMs: t - s.startedAt, completed,
+    lastCorrect: lastAnswerCorrect(recentLog(p.id), s.id), exitIndex: exitIndex(completed, s.engine.stats.firstPresented),
   };
   appendLog(p.id, [rec]);
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };
@@ -365,7 +397,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const gifts = [...s.gifts];
   const quests = p.quests;
   if (quests && !quests.rewarded && quests.ids.length && quests.done.length === quests.ids.length) {
-    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, t));
     p = {
       ...p,
       quests: { ...quests, rewarded: true },
@@ -374,6 +406,10 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     if (c) gifts.push(c.id);
     appendLog(p.id, [event(EVENTS.QUEST_DONE, { ids: quests.ids }, s.id)]);
   }
+  const weekly = settleWeekly(p, s.id, t, s.rng);
+  p = weekly.profile;
+  gifts.push(...weekly.gifts);
+  const extras = [...(extra.extras ?? []), ...weekly.extras];
   const final = p;
   const skills = s.skillsSeen
     .filter((id) => final.skills[id])
@@ -392,7 +428,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     placed: s.placed,
     skills,
     sprint: sprintResult,
-    ...(extra.extras?.length ? { extras: extra.extras } : {}),
+    ...(extras.length ? { extras } : {}),
   };
   return { profile: saveProfile(p), result };
 }
@@ -413,6 +449,8 @@ export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
  * screen (/intro/<id>), else straight into a session.
  */
 export function launchMode(mode: ModeDef, opts: SessionOptions = {}, replace = false): void {
+  // Lazy screens (modes/lazy.tsx) start fetching now, so the chunk is usually in before the route renders.
+  preloadMode(mode);
   if (mode.launch) mode.launch(opts);
   else if (mode.intro) navigate(`/intro/${mode.id}`, replace);
   else startSession(mode.id, opts);

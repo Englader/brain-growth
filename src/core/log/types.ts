@@ -61,6 +61,8 @@ export interface SessionOptions {
   quick?: boolean;
   /** Serve only these skills, bypassing scheduling and placement (e2e `__hopa.forceSkill`; never set by the UI). */
   only?: SkillId[];
+  /** Weekly theme id when started from the weekly card: its skills get the scheduler boost (src/core/weekly.ts). */
+  theme?: string;
 }
 
 export interface SessionRecord {
@@ -77,6 +79,14 @@ export interface SessionRecord {
   firstCorrect: number | null;
   durationMs: number | null;
   completed: boolean | null;
+  /**
+   * End-only pilot fields (DESIGN §5.2, I-1). Optional because records written
+   * before them lack them; the codec decodes those as null.
+   * `lastCorrect`: whether the session's last answer (any attempt) was right; null if nothing was answered.
+   * `exitIndex`: for a session left early, how many items had been shown when the child quit (1 = on the first item); null when it ran to the end.
+   */
+  lastCorrect?: boolean | null;
+  exitIndex?: number | null;
 }
 
 export interface EventRecord {
@@ -116,11 +126,18 @@ export const EVENTS = {
   // ── slot: frac ──
   // ── slot: hint ──
   // ── slot: pilot ──
+  /** Time on the feedback after a wrong answer, until the next item: `{ key, attempt, ms }` (Hop mode). */
+  FEEDBACK: 'pilot_feedback',
   // ── slot: storage ──
   // ── slot: weekly ──
+  WEEKLY_DONE: 'weekly_done',
   // ── slot: target ──
+  TARGET_WAY: 'target_way',
   // ── slot: dice ──
+  /** A finished (or abandoned) Dice Race, in each player's own log: facts for fairness tuning, never a winner. */
+  DICE_MATCH: 'dice_match',
   // ── slot: puzzle ──
+  PUZZLE: 'puzzle',
   // ── slot: workshop ──
   WORKSHOP_SHAPE: 'workshop_shape',
   // ── slot: balance ──

@@ -43,7 +43,11 @@ export interface Build {
   praise: number;
 }
 
-export function useBuild(presented: PresentedItem, locale: LocaleId, band: BandId, hints: WorkshopHint[]): Build {
+/**
+ * `onWrong` fires when the graded first check is wrong, or on "show me" before
+ * any check: the wrong-answer feedback opens (pilot feedback time, ../feedbackTime).
+ */
+export function useBuild(presented: PresentedItem, locale: LocaleId, band: BandId, hints: WorkshopHint[], onWrong?: () => void): Build {
   const [phase, setPhase] = useState<BuildPhase>('build');
   const [checks, setChecks] = useState(0);
   const [firstWrong, setFirstWrong] = useState(false);
@@ -72,6 +76,7 @@ export function useBuild(presented: PresentedItem, locale: LocaleId, band: BandI
       if (!grade.invalid) {
         setFirstWrong(!grade.correct);
         setWillReturn(r.willReturn);
+        if (!grade.correct) onWrong?.();
       }
     } else grade = gradeResponse(presented.item, response, getLocale(locale).numbers);
     setLast(grade);
@@ -93,6 +98,7 @@ export function useBuild(presented: PresentedItem, locale: LocaleId, band: BandI
       const r = submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, meta());
       setWillReturn(r.willReturn);
       setChecks(1);
+      onWrong?.();
     }
     setLast(null);
     setPhase('revealed');

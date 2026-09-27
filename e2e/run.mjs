@@ -13,9 +13,13 @@
  * Screenshots are named <flow>-NN-<name>.png, numbered per flow, so adding a
  * flow never renumbers another's. A run fails on any page or console error,
  * any horizontal overflow, any clipped text (an element narrower than its own
- * content: catches Macedonian text expansion), or a flow that throws.
+ * content: catches Macedonian text expansion), any control a child cannot use
+ * (a tap target under 44×44 px, a button with no accessible name, or a
+ * focusable control inside aria-hidden), or a flow that throws.
  *
  * A flow module default-exports `async (t) => {…}`; see lib.mjs for `t` and helpers.
+ * Service workers are blocked (every flow starts from the network) unless the
+ * flow exports `serviceWorkers = 'allow'` (e.g. the offline flow).
  */
 import { existsSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { chromium } from 'playwright-core';
@@ -53,6 +57,33 @@ const CLIPPED = () => {
   return out;
 };
 
+/**
+ * Controls a child (or a screen reader) cannot use: tap targets under 44×44 px at 360 px, buttons and
+ * links without an accessible name, focusable controls hidden from assistive tech. A visually hidden
+ * input counts through its label; a link inside running text is exempt (WCAG 2.5.8 inline targets).
+ */
+const UNUSABLE = () => {
+  const out = [];
+  const nameOf = (el) => {
+    const by = el.getAttribute('aria-labelledby');
+    return (el.getAttribute('aria-label') || (by && document.getElementById(by)?.textContent) || el.textContent || el.getAttribute('title') || '').trim();
+  };
+  const what = (el) => `${el.tagName.toLowerCase()}${el.classList.length ? `.${[...el.classList].join('.')}` : ''} "${nameOf(el).replace(/\s+/g, ' ').slice(0, 40)}"`;
+  for (const el of document.querySelectorAll('button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])')) {
+    const box = el.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0 || getComputedStyle(el).visibility === 'hidden') continue;
+    if (el.closest('[aria-hidden="true"]')) {
+      out.push(`focusable inside aria-hidden: ${what(el)}`);
+      continue;
+    }
+    const label = el.closest('label');
+    const target = el.matches('input') && label && (box.width < 2 || el.type === 'checkbox' || el.type === 'radio') ? label.getBoundingClientRect() : box;
+    if (!(el.matches('a') && el.closest('p')) && (target.width < 43.5 || target.height < 43.5)) out.push(`tap target ${Math.round(target.width)}×${Math.round(target.height)} px: ${what(el)}`);
+    if (el.matches('button, a, [role="button"]') && !nameOf(el)) out.push(`no accessible name: ${what(el)}`);
+  }
+  return out;
+};
+
 const server = await serve('dist', '/brain-growth/', PORT);
 const browser = await chromium.launch({ executablePath: EXE });
 const failures = [];
@@ -61,6 +92,7 @@ let total = 0;
 for (const name of flows) {
   console.log(`flow ${name}`);
   for (const f of readdirSync(OUT)) if (f.startsWith(`${name}-`)) rmSync(`${OUT}/${f}`);
+  const mod = await import(new URL(`./flows/${name}.mjs`, import.meta.url).href);
   const context = await browser.newContext({
     viewport: { width: 360, height: 740 },
     deviceScaleFactor: 2,
@@ -68,7 +100,7 @@ for (const name of flows) {
     locale: 'mk-MK',
     hasTouch: true,
     isMobile: true,
-    serviceWorkers: 'block',
+    serviceWorkers: mod.serviceWorkers === 'allow' ? 'allow' : 'block',
   });
   const page = await context.newPage();
   const problems = [];
@@ -94,6 +126,7 @@ for (const name of flows) {
       const o = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       if (o > 1) problems.push(`overflow on ${shotName}: +${o}px`);
       for (const c of await page.evaluate(CLIPPED)) problems.push(`clipped on ${shotName}: ${c}`);
+      for (const c of await page.evaluate(UNUSABLE)) problems.push(`unusable on ${shotName}: ${c}`);
       n++;
       const file = `${name}-${String(n).padStart(2, '0')}-${shotName}.png`;
       await page.screenshot({ path: `${OUT}/${file}`, fullPage: true });
@@ -102,7 +135,6 @@ for (const name of flows) {
   };
 
   try {
-    const mod = await import(new URL(`./flows/${name}.mjs`, import.meta.url).href);
     await mod.default(t);
   } catch (e) {
     problems.push(`flow threw: ${e.stack ?? e}`);

@@ -5,8 +5,9 @@
  * fraction labels, a wrong fraction comparison explained with its misconception
  * tip, and one English spot-check; then a Band A child forced onto f.unit
  * hops in fractions of a whole on lily pads, including the errorless step.
- * ?seed=3 gives f.equiv as "land 1/2 on a line in sixths" (labelled ticks) and
- * f.compare with the bigger-denominator trap.
+ * ?seed=3 gives f.equiv as "land 1/2 on a line in sixths" (labelled ticks; its
+ * tier-2 hint names the first hop 0 → 1/6) and f.compare with the
+ * bigger-denominator trap.
  */
 import { answer, forceSkill, seed, state, tapRuler, waitNext } from '../lib.mjs';
 
@@ -39,6 +40,16 @@ export default async function frac(t) {
       await tapRuler(t, line, value);
       assert(await page.locator('.estimate-controls .btn.primary:not([disabled])').count(), `${skill}: the pick enables Hop`);
       await t.shot(`play-B-${skill}`);
+      if (skill === 'f.equiv') {
+        // Hint ladder on a fraction line: tier 2 names the first hop as a fraction (1/6, never 0,166667)
+        // and its trail is drawn above the frog, ending in a dot.
+        await page.locator('.hint-btn').click();
+        await page.locator('.hint-btn').click();
+        const hint = await page.locator('.hint-text').innerText();
+        assert(/\d+\/\d+/.test(hint) && !/\d,\d{3}/.test(hint), `tier-2 hint writes a fraction: "${hint}"`);
+        assert(await page.locator('.ruler-overlay .trail-end').count(), 'the hint trail has a landing dot above the frog');
+        await t.shot('hint-B-f.equiv');
+      }
       if (skill === 'f.compare') {
         // Land on the other fraction: the wrong answer is explained, with its misconception tip.
         const wrongV = await page.evaluate(() => {

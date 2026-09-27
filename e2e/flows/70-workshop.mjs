@@ -47,12 +47,14 @@ async function clickTimes(loc, n) {
   for (let i = 0; i < n; i++) await loc.click();
 }
 
-/** Split the bar into `parts` (from 1) and shade the first `shade` parts. */
-async function buildBar(t, parts, shade) {
+/** Split the bar into `parts` (from 1) and shade `shade` parts: by tapping them, or with the Shaded stepper. */
+async function buildBar(t, parts, shade, { stepper = false } = {}) {
   const { page } = t;
   await clickTimes(page.locator('.ws-parts .ws-step.up'), parts - 1);
   assert((await page.locator('.ws-part').count()) === parts, `bar split into ${parts}`);
-  for (let i = 0; i < shade; i++) await page.locator('.ws-part').nth(i).click();
+  if (stepper) await clickTimes(page.locator('.ws-shade .ws-step.up'), shade);
+  else for (let i = 0; i < shade; i++) await page.locator('.ws-part').nth(i).click();
+  assert((await page.locator('.ws-part.on').count()) === shade, `${shade} parts shaded`);
 }
 
 /** Size the rectangle with the steppers (from its current size). */
@@ -198,7 +200,7 @@ export default async function workshop(t) {
     assert(parts > 0, 'f.equiv fixes the number of parts');
     await page.locator('.ws-hint-btn').click();
     assert(await page.locator('.ws-hint').count(), 'the hint line is shown');
-    await buildBar(t, parts, (n * parts) / d);
+    await buildBar(t, parts, (n * parts) / d, { stepper: true });
     await t.shot('frac-equiv-hint');
     await page.locator('.ws-check').click();
     await page.waitForSelector('.ws-next');

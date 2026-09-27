@@ -9,7 +9,7 @@
  */
 import { rat } from '../../rational';
 import type { Rng } from '../../rng';
-import type { GeneratorDef, LineSpec, SolutionStep } from '../types';
+import type { GeneratedItem, GeneratorDef, LineSpec, SolutionStep } from '../types';
 import {
   addNoCarry,
   bin,
@@ -231,6 +231,55 @@ function solve(cfg: AddSubConfig, a: number, b: number): SolutionStep[] {
   return steps;
 }
 
+/** The item for a chosen pair (shared by sampling and fixed operands). */
+function build(cfg: AddSubConfig, { a, b }: Pair, level: number, line: LineSpec): GeneratedItem {
+  const plus = cfg.op === '+';
+  const r = plus ? a + b : a - b;
+  const mis: Array<{ value: number; code: string }> = [];
+  if (plus) {
+    if (cfg.range <= 20) {
+      mis.push({ value: r - 1, code: 'count.off_by_one' }, { value: r + 1, code: 'count.off_by_one' });
+      if (a < 10 && r > 10) mis.push({ value: r - 10, code: 'add.dropped_ten' });
+    } else {
+      mis.push({ value: addNoCarry(a, b), code: 'add.no_carry' });
+      const onesSum = ones(a) + ones(b);
+      if (onesSum >= 10 && a < 100 && b < 100) {
+        mis.push({ value: (Math.floor(a / 10) + Math.floor(b / 10)) * 100 + onesSum, code: 'add.carry_concat' });
+      }
+      mis.push({ value: r + 10, code: 'add.tens_slip' }, { value: r - 10, code: 'add.tens_slip' });
+    }
+  } else {
+    mis.push({ value: a + b, code: 'sub.added' });
+    if (cfg.range <= 20) {
+      mis.push({ value: r + 1, code: 'sub.count_includes_start' }, { value: r - 1, code: 'count.off_by_one' });
+      if (a > 10 && ones(a) < b) mis.push({ value: subSmallerFromLarger(a, b), code: 'sub.smaller_from_larger' });
+    } else {
+      mis.push(
+        { value: subSmallerFromLarger(a, b), code: 'sub.smaller_from_larger' },
+        { value: subBorrowNoDecrement(a, b), code: 'sub.borrow_no_decrement' },
+      );
+    }
+  }
+  return {
+    level,
+    prompt: { kind: 'expr', expr: bin(cfg.op, a, b) },
+    answer: { value: rat(r) },
+    line,
+    solution: solve(cfg, a, b),
+    misconceptions: uniqMisconceptions(mis.filter((m) => m.value >= 0), r),
+    features: {
+      a,
+      b,
+      r,
+      carries: plus ? carries(a, b) : 0,
+      borrows: plus ? 0 : borrows(a, b).count,
+      acrossZero: plus ? 0 : borrows(a, b).acrossZero ? 1 : 0,
+    },
+  };
+}
+
+const RANGES: ReadonlyArray<AddSubConfig['range']> = [10, 20, 100, 1000];
+
 export const addSubGen: GeneratorDef<AddSubConfig> = {
   id: 'addsub',
   version: 1,
@@ -249,49 +298,15 @@ export const addSubGen: GeneratorDef<AddSubConfig> = {
       },
       (p) => clamp01(score(cfg, p)),
     );
-    const { a, b } = value;
-    const plus = cfg.op === '+';
-    const r = plus ? a + b : a - b;
-    const mis: Array<{ value: number; code: string }> = [];
-    if (plus) {
-      if (cfg.range <= 20) {
-        mis.push({ value: r - 1, code: 'count.off_by_one' }, { value: r + 1, code: 'count.off_by_one' });
-        if (a < 10 && r > 10) mis.push({ value: r - 10, code: 'add.dropped_ten' });
-      } else {
-        mis.push({ value: addNoCarry(a, b), code: 'add.no_carry' });
-        const onesSum = ones(a) + ones(b);
-        if (onesSum >= 10 && a < 100 && b < 100) {
-          mis.push({ value: (Math.floor(a / 10) + Math.floor(b / 10)) * 100 + onesSum, code: 'add.carry_concat' });
-        }
-        mis.push({ value: r + 10, code: 'add.tens_slip' }, { value: r - 10, code: 'add.tens_slip' });
-      }
-    } else {
-      mis.push({ value: a + b, code: 'sub.added' });
-      if (cfg.range <= 20) {
-        mis.push({ value: r + 1, code: 'sub.count_includes_start' }, { value: r - 1, code: 'count.off_by_one' });
-        if (a > 10 && ones(a) < b) mis.push({ value: subSmallerFromLarger(a, b), code: 'sub.smaller_from_larger' });
-      } else {
-        mis.push(
-          { value: subSmallerFromLarger(a, b), code: 'sub.smaller_from_larger' },
-          { value: subBorrowNoDecrement(a, b), code: 'sub.borrow_no_decrement' },
-        );
-      }
-    }
-    return {
-      level: lv,
-      prompt: { kind: 'expr', expr: bin(cfg.op, a, b) },
-      answer: { value: rat(r) },
-      line: lineFor(cfg, a, r),
-      solution: solve(cfg, a, b),
-      misconceptions: uniqMisconceptions(mis.filter((m) => m.value >= 0), r),
-      features: {
-        a,
-        b,
-        r,
-        carries: plus ? carries(a, b) : 0,
-        borrows: plus ? 0 : borrows(a, b).count,
-        acrossZero: plus ? 0 : borrows(a, b).acrossZero ? 1 : 0,
-      },
-    };
+    const r = cfg.op === '+' ? value.a + value.b : value.a - value.b;
+    return build(cfg, value, lv, lineFor(cfg, value.a, r));
+  },
+  fromOperands({ a, op, b }, cfg) {
+    if (op !== cfg.op || !Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 1) return null;
+    const r = op === '+' ? a + b : a - b;
+    if (r < 0) return null;
+    // Same scorer as sampling; the line is the config's, widened when the operands run past it.
+    const range = RANGES.find((x) => x >= cfg.range && Math.max(a, r) <= x) ?? 1000;
+    return build(cfg, { a, b }, clamp01(score(cfg, { a, b })), lineFor({ ...cfg, range }, a, r));
   },
 };

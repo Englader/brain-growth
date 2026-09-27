@@ -99,6 +99,15 @@ export const SELECTION = {
   IN_PROGRESS_BOOST: 1.5,
   /** Solid-but-not-mastered skills keep being practised toward mastery, at lower priority. */
   CONSOLIDATE_WEIGHT: 0.5,
+  /**
+   * ...but consolidation fades for skills more than CONSOLIDATE_SPAN grades below the leading edge
+   * (the hardest skill the child is learning): weight × exp(−CONSOLIDATE_BELOW_DECAY · (distance − span)).
+   * Placement makes skills far below a child Solid (never mastered); served as consolidation they
+   * were 43% of a grade 4–6.5 child's items at 0.96 success, overshooting the target (simulation:
+   * 0.912 → 0.880; DESIGN §1.5). Review still reaches them when due.
+   */
+  CONSOLIDATE_SPAN: 3,
+  CONSOLIDATE_BELOW_DECAY: 1.2,
   /** At most this many never-seen skills introduced per session. */
   MAX_NEW_PER_SESSION: 2,
   /** A wrong item returns after this many other items. */
@@ -144,13 +153,21 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  // A deal has many solutions and mixes skills: half evidence until calibration data exists.
+  target: 0.5,
   // ── slot: dice ──
+  /** Dice Race moves are ordinary fact items, answered untimed: full evidence. */
+  dice: 1,
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // A construction found by adjusting it against live feedback (a readout, unlimited checks) is noisier evidence than a typed answer.
   workshop: 0.75,
   // ── slot: balance ──
+  // A scale with blocked moves and hints is scaffolded evidence, not a bare answer.
+  balance: 0.75,
   // ── slot: coord ──
+  // A snapped tap on a small lattice is easier to hit by chance than a typed number.
+  coord: 0.75,
   // ── slot: season ──
 };
 

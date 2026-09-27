@@ -64,7 +64,7 @@ export function Tools({ b, children }: { b: Build; children: ComponentChildren }
             </button>
           )}
           <button type="button" class="btn small ghost ws-show" onClick={b.reveal}>
-            <Icon name="peek" size={18} /> {t('workshop.showMe')}
+            <Icon name="eye" size={18} /> {t('workshop.showMe')}
           </button>
         </div>
       )}
