@@ -28,7 +28,19 @@ export const MODEL = {
   Q_DAY: 0.03,
   S2_MIN: 0.05,
   S2_MAX: 2.0,
-  /** Credit for a correct answer given after a hint. */
+  /**
+   * Hint ladder (DESIGN §1.5): a correct answer after hint tier t (the highest
+   * tier used; 0 = none) earns y = 1 − HINT_TIER_PENALTY·t, so tiers 1/2/3
+   * give 0.75/0.5/0.25.
+   */
+  HINT_TIER_PENALTY: 0.25,
+  /**
+   * Records from before the ladder carry `hint` without a tier; they count as
+   * this tier, so their credit is exactly the old single-hint HINT_CREDIT and
+   * replaying old logs gives identical states.
+   */
+  LEGACY_HINT_TIER: 2,
+  /** Credit of the old single hint (= 1 − HINT_TIER_PENALTY·LEGACY_HINT_TIER). */
   HINT_CREDIT: 0.5,
   /** Logits subtracted from ability when predicted recall R → 0 (applied as FORGET·(1−R)). */
   FORGET: 1.0,

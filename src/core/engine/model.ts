@@ -35,7 +35,7 @@ export interface SkillState {
 }
 
 export interface Observation {
-  /** 1 = correct first attempt, HINT_CREDIT = correct after hint, 0 = wrong. */
+  /** 1 = correct first attempt, 1 − 0.25·tier = correct after hint tier 1–3 (observe.hintCredit), 0 = wrong. */
   y: number;
   difficulty: number;
   ts: number;

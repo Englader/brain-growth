@@ -53,7 +53,7 @@ describe('pilot readout metrics (synthetic logs)', () => {
     expect(exitsAfterError([])).toEqual({ exits: 0, afterError: 0, share: null, medianIndex: null });
   });
 
-  it('hintUsage: untimed Band B/C first attempts; the single hint counts as tier 2 until the ladder logs tiers', () => {
+  it('hintUsage: untimed Band B/C first attempts per logged tier; an untiered (legacy) hint counts as tier 2', () => {
     const log: LogRecord[] = [
       item({ hint: true }),
       item({ hint: false }),
@@ -67,6 +67,12 @@ describe('pilot readout metrics (synthetic logs)', () => {
     expect(hintTier(item())).toBe(0);
     expect(hintUsage(log)).toEqual({ n: 4, used: 2, share: 0.5, byTier: [2, 0, 2, 0] });
     expect(hintUsage([item({ band: 'A' })]).share).toBeNull();
+    // The ladder logs its tier; the tier wins over the legacy rule.
+    expect(hintTier(item({ hint: true, tier: 3 }))).toBe(3);
+    expect(hintTier(item({ hint: true, tier: null }))).toBe(2);
+    expect(hintTier(item({ hint: false, tier: 0 }))).toBe(0);
+    const tiered: LogRecord[] = [item({ hint: true, tier: 1 }), item({ hint: true, tier: 3 }), item({ hint: true, tier: 3 }), item({ tier: 0 }), item({ hint: true })];
+    expect(hintUsage(tiered)).toEqual({ n: 5, used: 4, share: 0.8, byTier: [1, 1, 1, 2] });
   });
 
   it('feedbackTime: median of the logged feedback events, ignoring other events and malformed data', () => {

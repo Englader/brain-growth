@@ -4,6 +4,7 @@
  */
 import { daysUntilDue, retrievability } from '../core/engine/memory';
 import type { LearnerModel } from '../core/engine/model';
+import { hintTierOf } from '../core/engine/observe';
 import type { ItemRecord, LogRecord, SessionRecord } from '../core/log/types';
 import { EVENTS } from '../core/log/types';
 import type { Profile } from '../core/profile';
@@ -220,11 +221,12 @@ export function exitsAfterError(log: readonly LogRecord[]): ExitStats {
 }
 
 /**
- * Hint tier of a response: 0 none, 1 strategy prompt, 2 first hop / worked
- * step, 3 full solution. Until the hint ladder (§4 step 5) logs its tier, the
- * single hint the game has counts as tier 2.
+ * Highest hint-ladder tier used on a response: 0 none, 1 strategy prompt,
+ * 2 first hop, 3 first worked step (§1.11). The logged `tier` when present;
+ * records from before the ladder (`hint` without a tier) count as tier 2,
+ * the same rule the engine credits them by (engine/observe.hintTierOf).
  */
-export const hintTier = (r: ItemRecord): number => (r.hint ? 2 : 0);
+export const hintTier = (r: ItemRecord): number => hintTierOf(r.hint, r.tier);
 
 export interface HintStats {
   /** Untimed Band B/C first attempts (Band A has no hint button). */
