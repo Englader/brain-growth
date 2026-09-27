@@ -179,11 +179,11 @@ describe('coord: point notation', () => {
 
 describe('coord: solution steps', () => {
   it('walks across, then up or down, with listed keys', () => {
-    const steps = coordSolutionSteps({ x: -3, y: 0 }, '(−3, 0)');
+    const steps = coordSolutionSteps({ x: -3, y: 0 });
     expect(steps).toEqual([
       { k: 'say', key: COORD_SOL_KEYS.across, params: { n: 3, dir: 'left' } },
       { k: 'say', key: COORD_SOL_KEYS.upDown, params: { n: 0, dir: 'none' } },
-      { k: 'say', key: COORD_SOL_KEYS.result, params: { point: '(−3, 0)' } },
+      { k: 'say', key: COORD_SOL_KEYS.result, params: { x: -3, y: 0 } },
     ]);
     for (const code of COORD_MISCONCEPTIONS) expect(COORD_MIS_KEYS[code]).toBe(`mis.${code}`);
   });
