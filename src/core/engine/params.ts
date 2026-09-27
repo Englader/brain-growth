@@ -144,6 +144,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  // A deal has many solutions and mixes skills: half evidence until calibration data exists.
+  target: 0.5,
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

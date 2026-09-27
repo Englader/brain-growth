@@ -63,6 +63,10 @@ const PATHS = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  cards: 'M3 8h11v13H3zM8 5V3h11v13h-5',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',
+  restart: 'M3 12a9 9 0 103-6.7L3 8M3 3v5h5',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

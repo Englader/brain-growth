@@ -6,6 +6,7 @@ import './metrics';
 // ── slot: storage ──
 // ── slot: weekly ──
 // ── slot: target ──
+import './metrics/target';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
