@@ -1001,6 +1001,37 @@
   "hint": {
   },
   "pilot": {
+    "title": "Pilot readout",
+    "help": "The two-week pilot measures, computed from the play log on this device. Compare them week by week rather than judging by one number.",
+    "exits": "Exits after a mistake",
+    "exitsOf": "{n} of {total, plural, one {# early exit} other {# early exits}}",
+    "exitsNone": "No early exits",
+    "hints": "Hint use",
+    "hintsOf": "{n} of {total, plural, one {# problem} other {# problems}}",
+    "hintsNone": "No Band B or C problems",
+    "feedback": "Time on feedback",
+    "feedbackOf": "median of {n, plural, one {# mistake} other {# mistakes}}",
+    "feedbackNone": "No mistakes yet",
+    "freeChoice": "Play after the quest",
+    "freeChoiceOf": "of that day's problems",
+    "freeChoiceNone": "No quest completed",
+    "session": "last 30 days",
+    "calTitle": "Largest calibration gaps",
+    "calNone": "Shown after 15 first tries on a skill.",
+    "misTitle": "Most frequent mistake patterns",
+    "strategy": {
+      "title": "Strategy",
+      "help": "Strategy (Band A): how often an answer used the hop buttons (counting on) rather than a direct tap on the number, and the median time of correct answers in the earlier half, then the later half. Fewer hops and faster answers mean a fact is moving from counting to memory.",
+      "split": "Hop buttons {hops}% · direct taps {taps}%",
+      "counting": "Counting on",
+      "mixed": "Mixed",
+      "retrieval": "Knows it by heart"
+    },
+    "clips": {
+      "missing": "Recording checklist: {n, plural, one {# clip} other {# clips}} to go",
+      "done": "Every clip is recorded.",
+      "how": "Record each clip as an MP3 with the name shown and put it in {dir}. Then run npm run gen:clips (npm run build does it too)."
+    }
   },
   "storage": {
     "otherTab": "Hopa is already open in another browser tab or window, so nothing is saved here. Close Hopa there, then reload this page.",
