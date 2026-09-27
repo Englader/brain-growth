@@ -69,6 +69,7 @@ const PATHS = {
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  egg: 'M12 3c-3.6 0-6.5 6-6.5 10.5a6.5 6.5 0 0013 0C18.5 9 15.6 3 12 3zM6 13l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5',
 } as const;
 
 export type IconName = keyof typeof PATHS;

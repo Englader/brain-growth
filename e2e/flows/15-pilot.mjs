@@ -6,7 +6,12 @@
  * grown-ups Overview shows the pilot readout, Skills the Band A strategy, and
  * Voices the recording checklist of missing clips.
  */
+import { readFileSync } from 'node:fs';
 import { forceSkill, recentLog, seed, waitNext } from '../lib.mjs';
+
+/** The mk clips still to record, from the generated recording script (kept current by tests/generated-docs). */
+const [, MK_TOTAL, MK_RECORDED] = /## Македонски \(mk\) — (\d+) clips, (\d+) recorded/.exec(readFileSync(new URL('../../design/audio-recording-script.md', import.meta.url), 'utf8'));
+const MK_CLIPS = Number(MK_TOTAL) - Number(MK_RECORDED);
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -146,6 +151,6 @@ export default async function pilot(t) {
   assert((await lists.count()) === 2, 'a recording checklist per locale');
   await lists.nth(1).locator('summary').click();
   const missing = await lists.nth(1).locator('.pilot-cliplist li').count();
-  assert(missing === 51, `mk checklist lists every clip (${missing})`);
+  assert(missing === MK_CLIPS, `mk checklist lists every clip (${missing} of ${MK_CLIPS})`);
   await t.shot('adult-voices-missing-mk');
 }

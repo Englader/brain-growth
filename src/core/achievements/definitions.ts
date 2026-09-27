@@ -72,4 +72,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  // "Played during …" (plan step 10): secret discoveries, earned by any session in the season, any year.
+  { id: 'season.newYear', category: 'discovery', bands: 'all', secret: true, icon: 'snow', on: ON_SESSION, when: { metric: 'season.played', params: { season: 'newYear' }, gte: 1 } },
+  { id: 'season.easter', category: 'discovery', bands: 'all', secret: true, icon: 'egg', on: ON_SESSION, when: { metric: 'season.played', params: { season: 'easter' }, gte: 1 } },
 ];

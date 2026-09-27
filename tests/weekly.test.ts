@@ -468,7 +468,8 @@ describe('weekly in the app: pin, boost, lit stones, the reward once', () => {
 
   it('a child plays five themed sessions: stones light, the set piece arrives once, WEEKLY_DONE is logged', () => {
     repo.init();
-    let p = saveProfile(pinWeeklyFor(placed('Марко', 9, 3.5, Date.now()), Date.now()));
+    // Seasonal touches off: in a seasonal week (tests/seasons.test.ts) the season's theme would replace the ordinary one.
+    let p = saveProfile(pinWeeklyFor({ ...placed('Марко', 9, 3.5, Date.now()), flags: { season: false } }, Date.now()));
     setState({ profile: p, profiles: [p], session: null, meta: repo.meta() });
     const view = weeklyView(p, Date.now())!;
     expect(view.theme.id).toBe(p.weekly!.theme);
@@ -524,7 +525,7 @@ describe('weekly in the app: pin, boost, lit stones, the reward once', () => {
       const t = day(7 * w);
       const pinned = pinWeeklyFor({ ...p, weekly: null }, t).weekly!;
       const theme = getWeeklyTheme(pinned.theme)!;
-      if (theme.id === MIXED_THEME.id) continue;
+      if (theme.id === MIXED_THEME.id || theme.season) continue; // seasonal weeks count every skill
       const inPlay = skillsInPlay(p, t);
       expect(theme.skills.some((s) => inPlay.includes(s)), theme.id).toBe(true);
     }

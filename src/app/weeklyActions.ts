@@ -24,6 +24,7 @@ import {
   MIXED_THEME,
   pinWeekly,
   rewardFor,
+  seasonalThemeFor,
   sessionCounts,
   themeBoost,
   themeFor,
@@ -38,6 +39,7 @@ import {
 import type { MessageParams } from '../i18n/format';
 import { getMode } from '../modes/registry';
 import { appendLog, event, recentLog } from './persist';
+import { seasonalDropDate, seasonOn } from './seasonActions';
 import { getState } from './store';
 
 /** The weekly challenge is on for this child (profile flag, device flag, URL override; default on). */
@@ -83,10 +85,18 @@ export function skillsInPlay(p: Profile, t: number): SkillId[] {
   return [...new Set([...near, ...review].map((c) => c.skill.id))];
 }
 
-/** This week's state for `p` (pinned if it already is; otherwise what pinning would choose). */
+/**
+ * This week's state for `p` (pinned if it already is; otherwise what pinning
+ * would choose). In a seasonal week the season's theme overrides the usual
+ * pick, unless the child has seasonal touches switched off.
+ */
 export function weeklyStateFor(p: Profile, t: number): WeeklyState {
   const week = weekKey(t);
-  return pinWeekly(p.weekly ?? null, week, p.band, () => themeFor(week, p.band, skillsInPlay(p, t)));
+  const on = seasonOn(p);
+  const seasonal = on ? seasonalThemeFor(week) : null;
+  // An adult switched seasonal touches off mid-week: re-pick an ordinary theme (same week, same rewarded flag).
+  const pinned = p.weekly && !on && getWeeklyTheme(p.weekly.theme)?.season ? { ...p.weekly, theme: '' } : p.weekly ?? null;
+  return pinWeekly(pinned, week, p.band, () => seasonal ?? themeFor(week, p.band, skillsInPlay(p, t)));
 }
 
 /** Pin this week's theme on the profile (unsaved). No-op when off or not placed yet. */
@@ -149,7 +159,7 @@ export function settleWeekly(p: Profile, sid: string, t: number, rng: Rng): Week
   if (r.grant) {
     const have = [...next.cosmetics.owned, ...next.rewards.pending];
     const piece = rewardFor(theme, next.band);
-    const gift = piece && !have.includes(piece) ? piece : pickCosmetic(have, next.band, rng)?.id ?? null;
+    const gift = piece && !have.includes(piece) ? piece : pickCosmetic(have, next.band, rng, seasonalDropDate(next, t))?.id ?? null;
     next = {
       ...next,
       weekly: r.state,

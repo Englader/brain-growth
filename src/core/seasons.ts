@@ -1,5 +1,5 @@
 /**
- * Seasonal calendar (plan step 10; DESIGN E-3): Нова Година and Велигден.
+ * Seasonal calendar (plan step 10; DESIGN E-3): Нова година and Велигден.
  *
  *   newYear  Dec 20 – Jan 10 (crosses the year boundary)
  *   easter   Orthodox Easter ± 7 days
@@ -149,16 +149,26 @@ export type SeasonCosmeticDef = CosmeticDef & { source: 'season'; season: Season
 const AB: readonly BandId[] = ['A', 'B'];
 const C: readonly BandId[] = ['C'];
 
+/*
+ * Seasonal lily pads are CSS backgrounds like the weekly pad sets: the
+ * pattern stays near the rim and the centre stays light, so the dark pad
+ * number keeps its contrast (a plain red egg pad would not).
+ */
+const SNOWY_PAD =
+  'radial-gradient(circle at 26% 28%, #fff 0 7%, transparent 8%), radial-gradient(circle at 72% 20%, #fff 0 5%, transparent 6%), radial-gradient(circle at 82% 66%, #fff 0 7%, transparent 8%), radial-gradient(circle at 24% 76%, #fff 0 5%, transparent 6%), radial-gradient(circle at 54% 88%, #fff 0 4%, transparent 5%), #bae6fd';
+const PAINTED_EGG_PAD =
+  'radial-gradient(ellipse 11% 15% at 22% 30%, #ef4444 0 95%, transparent), radial-gradient(ellipse 11% 15% at 78% 30%, #60a5fa 0 95%, transparent), radial-gradient(ellipse 11% 15% at 24% 74%, #c084fc 0 95%, transparent), radial-gradient(ellipse 11% 15% at 76% 74%, #f472b6 0 95%, transparent), #fef9c3';
+
 export const SEASON_COSMETICS: readonly SeasonCosmeticDef[] = [
-  // Нова Година: winter hat and snowy pad for A/B; frost accent and a title for C.
+  // Нова година: winter hat and snowy pad for A/B; frost accent and a title for C.
   { id: 'season.newYear.hat', slot: 'hat', bands: AB, rarity: 2, value: 'winterHat', source: 'season', season: 'newYear' },
-  { id: 'season.newYear.pad', slot: 'pad', bands: AB, rarity: 1, value: '#e0f2fe', source: 'season', season: 'newYear' },
+  { id: 'season.newYear.pad', slot: 'pad', bands: AB, rarity: 1, value: SNOWY_PAD, source: 'season', season: 'newYear' },
   { id: 'season.newYear.color', slot: 'color', bands: AB, rarity: 3, value: '#b91c1c', source: 'season', season: 'newYear' },
   { id: 'season.newYear.theme', slot: 'theme', bands: C, rarity: 1, value: '#7dd3fc', source: 'season', season: 'newYear' },
   { id: 'season.newYear.title', slot: 'title', bands: C, rarity: 2, value: '', source: 'season', season: 'newYear' },
   // Велигден: painted-egg pad, flower crown; spring accent and a title for C.
   { id: 'season.easter.hat', slot: 'hat', bands: AB, rarity: 2, value: 'flowerCrown', source: 'season', season: 'easter' },
-  { id: 'season.easter.pad', slot: 'pad', bands: AB, rarity: 1, value: '#dc2626', source: 'season', season: 'easter' },
+  { id: 'season.easter.pad', slot: 'pad', bands: AB, rarity: 1, value: PAINTED_EGG_PAD, source: 'season', season: 'easter' },
   { id: 'season.easter.color', slot: 'color', bands: AB, rarity: 3, value: '#facc15', source: 'season', season: 'easter' },
   { id: 'season.easter.theme', slot: 'theme', bands: C, rarity: 1, value: '#86efac', source: 'season', season: 'easter' },
   { id: 'season.easter.title', slot: 'title', bands: C, rarity: 2, value: '', source: 'season', season: 'easter' },
@@ -188,5 +198,28 @@ export function seasonalDropPool(date: number | string, band: BandId, owned: rea
   return SEASON_COSMETICS.filter((c) => active.includes(c.season) && c.bands.includes(band) && !owned.includes(c.id));
 }
 
-/** Message keys: `season.<id>.name` (Нова Година / Велигден) and `cos.season.*` via `cos.${id}`. */
+/**
+ * Wardrobe: an owned cosmetic always shows (seasonal ones never disappear).
+ * An unowned seasonal one shows as a "?" only while it can drop, so nothing
+ * teases an item that is out of reach until next year. `date` null means
+ * seasonal touches are switched off for the child.
+ */
+export function shownInWardrobe(def: MaybeSeasonal, owned: boolean, date: number | string | null): boolean {
+  if (owned || def.source !== 'season') return true;
+  return date !== null && inSeasonDrop(def, date);
+}
+
+/** Profile flag (default on) that switches every seasonal touch for a child: decoration, drops, weekly theme, greetings. */
+export const SEASON_FLAG = 'season';
+
+/**
+ * Message keys (strings only in the `season` block, `cos.season.*`,
+ * `ach.season.*` and `voice.season.*`). None takes a time, date or days
+ * parameter: the calendar is never shown as something running out.
+ */
 export const seasonNameKey = (id: SeasonId): string => `season.${id}.name`;
+/** The seasonal weekly theme's name and description. */
+export const seasonWeekKey = (id: SeasonId): string => `season.${id}.week`;
+export const seasonWeekDescKey = (id: SeasonId): string => `season.${id}.weekDesc`;
+/** Band A home greeting in season (spoken instead of voice.welcome). */
+export const seasonGreetingKey = (id: SeasonId): string => `voice.season.${id}`;

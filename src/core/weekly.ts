@@ -23,6 +23,7 @@ import { fnv1a } from './hash';
 import type { LogRecord } from './log/types';
 import { EVENTS } from './log/types';
 import { COSMETICS, type CosmeticDef } from './rewards/cosmetics';
+import { seasonForWeek, seasonWeekDescKey, seasonWeekKey, type SeasonId } from './seasons';
 import { weekKey as weekKeyOf } from './time';
 import type { BandId, SkillId } from './types';
 
@@ -31,8 +32,10 @@ export interface WeeklyTheme {
   bands: readonly BandId[];
   /** Theme skills. Empty means every skill counts (the mixed fallback). */
   skills: readonly SkillId[];
-  /** Set-piece cosmetic id (`weekly.*`) for each band the theme runs in. */
+  /** Set-piece cosmetic id (`weekly.*`, or `season.*` for a seasonal week) for each band the theme runs in. */
   reward: Readonly<Partial<Record<BandId, string>>>;
+  /** Set on the seasonal weeks' themes (SEASONAL_THEMES): the season whose week this is. */
+  season?: SeasonId;
 }
 
 export const MIXED_THEME_ID = 'mixed';
@@ -127,8 +130,31 @@ export const MIXED_THEME: WeeklyTheme = {
   reward: { A: 'weekly.mixed.pad', B: 'weekly.mixed.color', C: 'weekly.mixed.theme' },
 };
 
+/**
+ * Seasonal weeks (plan step 10): during Нова година and Велигден the week's
+ * theme is the season's, for every band. Every game counts (no skill list,
+ * so no scheduler boost and every child can finish), and the set piece is
+ * the season's signature cosmetic: the frog's hat for A/B, an accent for C.
+ * If the child already has it, settleWeekly gives a surprise from the drop
+ * pool instead, where the season's other items are in play.
+ */
+export const SEASONAL_THEMES: readonly WeeklyTheme[] = [
+  { id: 'newYear', season: 'newYear', bands: ['A', 'B', 'C'], skills: [], reward: { A: 'season.newYear.hat', B: 'season.newYear.hat', C: 'season.newYear.theme' } },
+  { id: 'easter', season: 'easter', bands: ['A', 'B', 'C'], skills: [], reward: { A: 'season.easter.hat', B: 'season.easter.hat', C: 'season.easter.theme' } },
+];
+
+/**
+ * The seasonal theme that overrides `themeFor` in `week`, or null. A whole
+ * ISO week belongs to one season (judged on its Thursday: seasonForWeek), so
+ * siblings share it and it never changes mid-week.
+ */
+export function seasonalThemeFor(week: string): WeeklyTheme | null {
+  const season = seasonForWeek(week);
+  return season ? SEASONAL_THEMES.find((t) => t.season === season) ?? null : null;
+}
+
 export function getWeeklyTheme(id: string): WeeklyTheme | undefined {
-  return id === MIXED_THEME_ID ? MIXED_THEME : WEEKLY_THEMES.find((t) => t.id === id);
+  return id === MIXED_THEME_ID ? MIXED_THEME : WEEKLY_THEMES.find((t) => t.id === id) ?? SEASONAL_THEMES.find((t) => t.id === id);
 }
 
 /** The registered set pieces (they live in the weekly slot of cosmetics.ts, `source: 'weekly'`). */
@@ -326,5 +352,5 @@ export const WEEKLY_KEYS = {
   voiceDone: 'voice.weekly.done',
 } as const;
 
-export const weeklyThemeNameKey = (theme: WeeklyTheme): string => `weekly.theme.${theme.id}.name`;
-export const weeklyThemeDescKey = (theme: WeeklyTheme): string => `weekly.theme.${theme.id}.desc`;
+export const weeklyThemeNameKey = (theme: WeeklyTheme): string => (theme.season ? seasonWeekKey(theme.season) : `weekly.theme.${theme.id}.name`);
+export const weeklyThemeDescKey = (theme: WeeklyTheme): string => (theme.season ? seasonWeekDescKey(theme.season) : `weekly.theme.${theme.id}.desc`);

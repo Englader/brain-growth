@@ -51,6 +51,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  'voice.season.newYear': ['voice.season.newYear'],
+  'voice.season.easter': ['voice.season.easter'],
 };
 
 /** Per-locale overrides where word order differs (none needed for en/mk yet). */

@@ -4,6 +4,7 @@
  * affect play. Bands A/B get pet colours, hats and lily pads; Band C gets
  * themes and titles — nothing cute.
  */
+import { SEASON_COSMETICS } from '../seasons';
 import type { BandId } from '../types';
 
 export type CosmeticSlot = 'color' | 'hat' | 'pad' | 'theme' | 'title';
@@ -100,6 +101,8 @@ export const COSMETICS: readonly CosmeticDef[] = [
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  // Seasonal cosmetics (src/core/seasons.ts): drop only in their season, kept for good once earned.
+  ...SEASON_COSMETICS,
 ];
 
 const byId = new Map(COSMETICS.map((c) => [c.id, c]));

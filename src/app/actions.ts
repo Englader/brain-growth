@@ -36,6 +36,7 @@ import type { ModeDef } from '../modes/types';
 import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
 import { nextSeed, now, repo, storage, testOverrides } from './services';
+import { seasonalDropDate } from './seasonActions';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
 import { pinWeeklyFor, settleWeekly, weeklyBoostFor } from './weeklyActions';
 
@@ -283,7 +284,7 @@ export function recordAnswer(
   let rewards = p.rewards;
   const gifts = [...s.gifts];
   if (first) {
-    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, now()));
     rewards = {
       itemsSinceDrop: roll.itemsSinceDrop,
       pending: roll.dropped ? [...p.rewards.pending, roll.dropped.id] : p.rewards.pending,
@@ -368,7 +369,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const gifts = [...s.gifts];
   const quests = p.quests;
   if (quests && !quests.rewarded && quests.ids.length && quests.done.length === quests.ids.length) {
-    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, t));
     p = {
       ...p,
       quests: { ...quests, rewarded: true },

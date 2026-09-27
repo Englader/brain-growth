@@ -4,7 +4,8 @@
  * make-ten, a bridge for crossing ten, a domino double, tens rods, a
  * two-arch bridge for crossing a hundred, a times-table array, big blocks, a
  * number line with a hop, a line dipping below the water, and confetti for
- * the mixed week.
+ * the mixed week. Seasonal weeks: a snowy New Year tree and a painted egg
+ * with a spring flower.
  */
 import type { JSX } from 'preact';
 
@@ -20,6 +21,8 @@ const TILE: Record<string, string> = {
   numberLine: '#e0f2fe',
   belowZero: '#dbeafe',
   mixed: '#fae8ff',
+  newYear: '#e0f2fe',
+  easter: '#fef9c3',
 };
 
 const dot = (cx: number, cy: number, r: number, fill: string): JSX.Element => <circle cx={cx} cy={cy} r={r} fill={fill} />;
@@ -129,6 +132,37 @@ function Art({ id }: { id: string }): JSX.Element {
           ))}
           <path d="M24 34h16" stroke="#1e3a8a" stroke-width="3.5" stroke-linecap="round" />
           {dot(32, 46, 4.5, '#f59e0b')}
+        </g>
+      );
+    case 'newYear':
+      return (
+        <g>
+          {dot(9, 14, 2.2, '#93c5fd')}
+          {dot(55, 12, 2.6, '#93c5fd')}
+          {dot(8, 40, 2.6, '#93c5fd')}
+          {dot(57, 34, 2.2, '#93c5fd')}
+          <rect x="29" y="49" width="6" height="8" rx="1.5" fill="#92400e" />
+          <path d="M32 9L44 24H38.5L48 37H41.5L51 50H13L22.5 37H16L25.5 24H20Z" fill="#16a34a" stroke="#15803d" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M22 42c6 3 14 3 20-1M25 30c4 2 10 2 14-1" fill="none" stroke="#fde047" stroke-width="1.8" stroke-linecap="round" />
+          {dot(27, 35, 2.8, '#ef4444')}
+          {dot(38, 31, 2.6, '#3b82f6')}
+          {dot(21, 46, 2.8, '#f472b6')}
+          {dot(43, 45, 2.8, '#ef4444')}
+          {dot(32, 44, 2.6, '#facc15')}
+          <path d="M32 2.5l1.9 3.8 4.2.6-3 3 .7 4.2-3.8-2-3.8 2 .7-4.2-3-3 4.2-.6z" fill="#facc15" stroke="#ca8a04" stroke-width="1" stroke-linejoin="round" />
+        </g>
+      );
+    case 'easter':
+      return (
+        <g>
+          <path d="M25 8C15.5 8 9 26 9 38a16 16 0 0032 0C41 26 34.5 8 25 8z" fill="#ef4444" />
+          <path d="M14.5 24h21M13.5 47h23" stroke="#fde68a" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M11.5 33l3.5-3.5 3.5 3.5 3.5-3.5 3.5 3.5 3.5-3.5 3.5 3.5 3.5-3.5 3.5 3.5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          {[15, 21, 27, 33].map((x) => dot(x + 0.5, 40, 1.7, '#fde68a'))}
+          <path d="M52 60V46" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" />
+          <path d="M52 55c-5 0-8-3-8-6 4 0 8 2 8 6z" fill="#22c55e" />
+          {[0, 72, 144, 216, 288].map((a) => dot(52 + Math.cos(((a - 90) * Math.PI) / 180) * 5, 40 + Math.sin(((a - 90) * Math.PI) / 180) * 5, 4, '#f9a8d4'))}
+          {dot(52, 40, 3.2, '#facc15')}
         </g>
       );
     default:

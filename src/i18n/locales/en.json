@@ -197,6 +197,8 @@
     "workshop": {
     },
     "season": {
+      "newYear": "Hi! Happy New Year! Let's play!",
+      "easter": "Hi! Happy holidays! Let's play!"
     }
   },
   "results": {
@@ -740,6 +742,16 @@
       "mixed.theme": "Orchid"
     },
     "season": {
+      "newYear.hat": "Winter hat",
+      "newYear.pad": "Snowy pad",
+      "newYear.color": "Festive red",
+      "newYear.theme": "Frost",
+      "newYear.title": "Polar Explorer",
+      "easter.hat": "Flower crown",
+      "easter.pad": "Painted-egg pad",
+      "easter.color": "Sunny yellow",
+      "easter.theme": "Meadow",
+      "easter.title": "Spring Explorer"
     }
   },
   "ach": {
@@ -971,6 +983,14 @@
     "coord": {
     },
     "season": {
+      "newYear": {
+        "name": "Winter Wonder",
+        "desc": "You played during the New Year holidays."
+      },
+      "easter": {
+        "name": "Spring Blossom",
+        "desc": "You played during the Easter holidays."
+      }
     }
   },
   "clip": {
@@ -1147,5 +1167,18 @@
   "coord": {
   },
   "season": {
+    "flag": "Seasonal touches: New Year and Easter decorations, seasonal cosmetics as surprise gifts, a festive weekly theme and a festive greeting.",
+    "newYear": {
+      "name": "New Year",
+      "week": "New Year week",
+      "weekDesc": "Snowflakes and sparkles: every kind of problem counts this week.",
+      "weekDesc@C": "Festive week: every skill counts."
+    },
+    "easter": {
+      "name": "Easter",
+      "week": "Painted-egg week",
+      "weekDesc": "Painted eggs and spring flowers: every kind of problem counts this week.",
+      "weekDesc@C": "Spring week: every skill counts."
+    }
   }
 }
