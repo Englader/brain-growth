@@ -124,7 +124,8 @@ export const IDB_NAME = 'bg';
 export const IDB_VERSION = 1;
 /** One object store: log months and rollups, keyed by their full KV key. */
 export const IDB_STORE = 'logs';
-export const IDB_OPEN_TIMEOUT_MS = 4000;
+/** Upper bound for open() and for the write probe: a hanging IndexedDB delays boot by at most this, twice. */
+export const IDB_OPEN_TIMEOUT_MS = 2500;
 const PROBE_KEY = `${NS}probe`;
 
 export interface OpenIDBOptions {

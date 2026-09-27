@@ -26,10 +26,16 @@ import { CURRENT_SCHEMA, KEYS, type Meta } from './schema';
 // ── single writer (Web Locks) ──────────────────────────────────────────────
 
 export const WRITER_LOCK_NAME = 'bg:writer';
+/**
+ * How long a new page waits for the lock before deciding another tab has it.
+ * On a reload the previous page releases its lock a moment after the new one
+ * starts; without this wait a reload could look like a second tab.
+ */
+export const WRITER_LOCK_WAIT_MS = 1000;
 
 /** The subset of `navigator.locks` used here. */
 export interface LockManagerLike {
-  request(name: string, options: { ifAvailable?: boolean }, callback: (lock: unknown) => unknown): Promise<unknown>;
+  request(name: string, options: { ifAvailable?: boolean; signal?: AbortSignal }, callback: (lock: unknown) => unknown): Promise<unknown>;
 }
 
 export interface WriterLock {
@@ -52,27 +58,46 @@ function defaultLocks(): LockManagerLike | null {
 }
 
 /**
- * Tries once, without waiting, to become the single writer. Holds the lock
- * until `release()` or the tab goes away. Never throws.
+ * Tries to become the single writer, waiting up to `waitMs` for a page that is
+ * going away (a reload) to let go. Holds the lock until `release()` or the tab
+ * goes away. Never throws.
  */
-export function acquireWriterLock(opts: { locks?: LockManagerLike | null; name?: string } = {}): Promise<WriterLock> {
+export function acquireWriterLock(opts: { locks?: LockManagerLike | null; name?: string; waitMs?: number } = {}): Promise<WriterLock> {
   const locks = opts.locks === undefined ? defaultLocks() : opts.locks;
   if (!locks) return Promise.resolve(assumedWriter);
+  const waitMs = opts.waitMs ?? WRITER_LOCK_WAIT_MS;
+  const busy: WriterLock = { writer: false, status: 'busy', release: () => undefined };
   return new Promise((resolve) => {
     let release!: () => void;
     const held = new Promise<void>((r) => (release = r));
+    const options: { ifAvailable?: boolean; signal?: AbortSignal } = {};
+    let abort: AbortController | null = null;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (waitMs > 0 && typeof AbortController === 'function') {
+      abort = new AbortController();
+      options.signal = abort.signal;
+      timer = setTimeout(() => abort!.abort(), waitMs);
+    } else {
+      options.ifAvailable = true;
+    }
     try {
       locks
-        .request(opts.name ?? WRITER_LOCK_NAME, { ifAvailable: true }, (lock) => {
+        .request(opts.name ?? WRITER_LOCK_NAME, options, (lock) => {
+          clearTimeout(timer);
           if (!lock) {
-            resolve({ writer: false, status: 'busy', release: () => undefined });
+            resolve(busy);
             return undefined;
           }
           resolve({ writer: true, status: 'held', release });
           return held; // the lock lives as long as this promise is pending
         })
-        .catch(() => resolve(assumedWriter));
+        .catch(() => {
+          clearTimeout(timer);
+          // Aborted after waiting: another tab keeps the lock. Any other failure: assume writer.
+          resolve(abort?.signal.aborted ? busy : assumedWriter);
+        });
     } catch {
+      clearTimeout(timer);
       resolve(assumedWriter);
     }
   });
@@ -131,6 +156,8 @@ export interface CreateStorageOptions {
   storageManager?: StorageManagerLike | null;
   /** Default `navigator.locks`; null = unsupported (writer assumed). */
   locks?: LockManagerLike | null;
+  /** Default WRITER_LOCK_WAIT_MS. */
+  lockWaitMs?: number;
   /** Where to flush on pagehide/visibilitychange. Default window/document; null disables. */
   lifecycle?: { window: EventTargetLike | null; document: DocumentLike | null } | null;
   flushDelayMs?: number;
@@ -191,7 +218,7 @@ export async function createStorage(opts: CreateStorageOptions = {}): Promise<St
     },
   };
 
-  const writer = await acquireWriterLock({ locks: opts.locks });
+  const writer = await acquireWriterLock({ locks: opts.locks, waitMs: opts.lockWaitMs });
   const meta = readJSON<Meta>(local, KEYS.meta);
   const logsInIdb = meta?.logStore === 'idb';
   const newer = !!meta && meta.schema > CURRENT_SCHEMA;

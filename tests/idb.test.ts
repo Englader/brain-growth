@@ -39,19 +39,29 @@ function hybrid(local = new MemoryKV(), store = new MemoryAsyncStore()): { kv: H
   return { kv: new HybridKV(local, store, { flushDelayMs: 60_000 }), local, store };
 }
 
-/** Minimal Web Locks: exclusive, `ifAvailable` grants null when held. */
+/** Minimal Web Locks: exclusive; `ifAvailable` grants null when held; otherwise queues until released or aborted. */
 class FakeLocks implements LockManagerLike {
   readonly held = new Set<string>();
-  async request(name: string, options: { ifAvailable?: boolean }, callback: (lock: unknown) => unknown): Promise<unknown> {
+  private readonly waiting = new Map<string, Array<() => void>>();
+  async request(name: string, options: { ifAvailable?: boolean; signal?: AbortSignal }, callback: (lock: unknown) => unknown): Promise<unknown> {
     if (this.held.has(name)) {
       if (options.ifAvailable) return callback(null);
-      throw new Error('queued requests are not modelled');
+      await new Promise<void>((resolve, reject) => {
+        const queue = this.waiting.get(name) ?? [];
+        this.waiting.set(name, queue);
+        queue.push(resolve);
+        options.signal?.addEventListener('abort', () => {
+          queue.splice(queue.indexOf(resolve), 1);
+          reject(new Error('AbortError'));
+        });
+      });
     }
     this.held.add(name);
     try {
       return await callback({ name });
     } finally {
       this.held.delete(name);
+      this.waiting.get(name)?.shift()?.();
     }
   }
 }
@@ -582,7 +592,7 @@ describe('createStorage', () => {
     const locks = new FakeLocks();
     const firstTab = await acquireWriterLock({ locks });
     const store = new MemoryAsyncStore();
-    const s = await createStorage({ ...quiet, local, openStore: async () => store, locks });
+    const s = await createStorage({ ...quiet, local, openStore: async () => store, locks, lockWaitMs: 20 });
     expect(s.mode).toBe('idb');
     expect(s.writer).toMatchObject({ writer: false, status: 'busy' });
     expect(s.relocation).toBeNull();
@@ -633,12 +643,21 @@ describe('single writer (Web Locks)', () => {
   it('grants the lock to one tab at a time and hands it over on release', async () => {
     const locks = new FakeLocks();
     const a = await acquireWriterLock({ locks });
-    const b = await acquireWriterLock({ locks });
+    const b = await acquireWriterLock({ locks, waitMs: 20 });
     expect(a).toMatchObject({ writer: true, status: 'held' });
     expect(b).toMatchObject({ writer: false, status: 'busy' });
     a.release();
     await later();
-    expect(await acquireWriterLock({ locks })).toMatchObject({ writer: true, status: 'held' });
+    expect(await acquireWriterLock({ locks, waitMs: 20 })).toMatchObject({ writer: true, status: 'held' });
+    expect(await acquireWriterLock({ locks, waitMs: 0 })).toMatchObject({ writer: false, status: 'busy' }); // ifAvailable path
+  });
+
+  it('a reload is not a second tab: it waits briefly for the previous page to let go', async () => {
+    const locks = new FakeLocks();
+    const previousPage = await acquireWriterLock({ locks });
+    const reloaded = acquireWriterLock({ locks, waitMs: 1000 });
+    setTimeout(() => previousPage.release(), 10); // released a moment after the new page starts
+    expect(await reloaded).toMatchObject({ writer: true, status: 'held' });
   });
 
   it('assumes this tab is the writer when the API is missing or throws', async () => {
