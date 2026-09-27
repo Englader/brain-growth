@@ -19,7 +19,7 @@ const item = (over: Partial<ItemRecord> = {}): ItemRecord => ({
 
 describe('log codec', () => {
   it('round-trips every record type', () => {
-    const s: SessionRecord = { type: 'session', ts: T, sid: 's1', phase: 'end', mode: 'hop', band: 'B', locale: 'en', opts: { stretch: true }, items: 12, firstCorrect: 10, durationMs: 300000, completed: true };
+    const s: SessionRecord = { type: 'session', ts: T, sid: 's1', phase: 'end', mode: 'hop', band: 'B', locale: 'en', opts: { stretch: true }, items: 12, firstCorrect: 10, durationMs: 300000, completed: true, lastCorrect: true, exitIndex: null };
     const e: EventRecord = { type: 'event', ts: T, sid: null, name: 'pet_tap', data: { n: 3 } };
     for (const r of [item(), item({ correct: false, mis: 'add.no_carry', hops: null }), s, e]) {
       expect(decodeRecord(JSON.parse(JSON.stringify(encodeRecord(r))))).toEqual(r);
