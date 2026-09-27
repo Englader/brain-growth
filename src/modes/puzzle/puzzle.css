@@ -408,14 +408,15 @@
 .pz-grid tr.mark th {
   border-radius: 8px;
 }
-.pz-grid .sep {
-  padding-left: 8px;
+.pz-grid + .pz-grid {
+  margin-top: 10px;
 }
 .pz-box {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  /* 44 px: the smallest tap target (the grid stacks one block per category to make room). */
+  width: 44px;
+  height: 44px;
   padding: 0;
   border: 2px solid var(--line);
   border-radius: 8px;

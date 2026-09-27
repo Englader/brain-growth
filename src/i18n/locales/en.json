@@ -1547,7 +1547,7 @@
     "to": "To",
     "width": "Width {w} (at most {max})",
     "range": "From {lo} to {hi}",
-    "percentOf": "{pct}% of {of}"
+    "percentOf": "{pct, percent} of {of}"
   },
   "workshop": {
   },

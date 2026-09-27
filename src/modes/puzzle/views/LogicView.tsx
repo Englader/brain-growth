@@ -29,30 +29,30 @@ function Board(props: BoardProps<LogicPuzzle, State, LogicAnswer>): JSX.Element 
           </li>
         ))}
       </ul>
-      <table class="pz-grid" role="grid" aria-label={t('puzzle.ask.logic')}>
-        <thead>
-          <tr>
-            <th />
-            {cats.map((cat, k) =>
-              cat.map((it, j) => (
-                <th class={`${j === 0 && k > 0 ? 'sep ' : ''}${marks.has(`missing:${it}`) ? 'mark' : ''}`}>
+      {/* One block per category of things, stacked: side by side, a 3-category grid of 4 would need
+          8 columns, too narrow for 44 px boxes at 360 px. Each block repeats the friends' column. */}
+      {cats.map((cat, k) => (
+        <table class="pz-grid" role="grid" aria-label={t('puzzle.ask.logic')}>
+          <thead>
+            <tr>
+              <th />
+              {cat.map((it) => (
+                <th class={marks.has(`missing:${it}`) ? 'mark' : ''}>
                   <Item id={it} size={26} />
                 </th>
-              )),
-            )}
-          </tr>
-        </thead>
-        <tbody>
-          {anchors.map((a, r) => (
-            <tr class={cats.some((_, k) => marks.has(`twice:${a}:${k + 1}`)) ? 'mark' : ''}>
-              <th>
-                <Item id={a} size={28} />
-              </th>
-              {cats.map((cat, k) =>
-                cat.map((it, j) => {
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {anchors.map((a, r) => (
+              <tr class={marks.has(`twice:${a}:${k + 1}`) ? 'mark' : ''}>
+                <th>
+                  <Item id={a} size={28} />
+                </th>
+                {cat.map((it, j) => {
                   const v = state.cells[key(a, it)];
                   return (
-                    <td class={j === 0 && k > 0 ? 'sep' : ''}>
+                    <td>
                       <button
                         type="button"
                         class={`pz-box${v ? ` ${v}` : ''}${marks.has(`cell:${a}:${it}`) ? ' mark' : ''}`}
@@ -73,12 +73,12 @@ function Board(props: BoardProps<LogicPuzzle, State, LogicAnswer>): JSX.Element 
                       </button>
                     </td>
                   );
-                }),
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ))}
     </div>
   );
 }

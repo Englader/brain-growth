@@ -5,13 +5,29 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 642 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 671 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)
 E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e at once (default 4173)
 ```
+
+## How to add a mode now (size, loading, usability)
+
+Since the polish wave, the start-up bundle is budgeted and every screenshot is checked for usability. A mode branch that merges after it (Balance + Coord, Dice Race, Workshop) does four things; recipe (a) below has the details:
+
+1. **Screens are chunks.** Register `Component` (and `intro`) with `lazyScreen(() => import('./XMode').then((m) => m.XMode))` from `src/modes/lazy.tsx`. Never import a screen into your `index.ts`, and remove any hand-written lazy loader of your own. Keep in `index.ts` only what the home card needs: ids, keys, icon, `ready`, `filter`, `plannedItems`. If `ready` needs a helper that lives next to your screens (e.g. `canRace` in `diceActions.ts`), move the helper into `index.ts`, or into a small module that imports no screen. `launchMode` preloads the chunk. Pass `{ placeholderClass: 'play lazy-screen' }` to keep your play background while it loads.
+2. **Your own generators go in `ON_DEMAND`**, not `BUILTIN`, in `src/core/items/generators/index.ts`. Add one `{ declared: [{ id, capabilities }], load: () => import('./x').then((m) => [m.xGen]) }` entry under your anchor. The declared capabilities must equal the definition's (loading checks it). The play screen waits until they are in, and tests, the sim and scripts load everything. Two cases stay in `BUILTIN`:
+   - a generator Hop can serve (`numberLine` capability, e.g. an `eqBond` or `perimeterHops`); split it into its own module so the mode-only ones can go on demand;
+   - a generator whose module also registers a checker or custom prompt that is needed outside a session.
+3. **Stay inside the budget.** After `npm run build`, run `npm run size`: start-up JS ≤ 100 kB gzipped, and start-up plus the larger language ≤ 130 kB. It prints what sits in each chunk. If it fails, something eager is pulling in a screen or a solver.
+4. **Pass the usability check.** Every `t.shot()` now fails on:
+   - a tap target under 44×44 px at 360 px (`.btn.small` and `.icon-btn.small` are 44 px now);
+   - a button or link without an accessible name (an `aria-label` from an i18n key for icon-only buttons);
+   - a focusable control inside `aria-hidden`.
+
+   Mark a selected state with more than colour (an outline, `aria-pressed`, an icon), and let reduced motion stop any animation (the global rule in `app.css` does this for CSS animations). Write a percentage as `{pct, percent}`, never `{pct}%`.
 
 ## (a) Add a game mode
 

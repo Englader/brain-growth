@@ -4,11 +4,13 @@
  * per-child switch `mode.puzzle`; ready once placement is done, so a new child
  * starts on the number trail (the only mode that places) and meets puzzles
  * from the second visit to the home screen; the Band A home simply shows the
- * tile then. The mode itself is a lazily loaded chunk (./lazy).
+ * tile then. The mode itself (core generators, solvers and views, ~21 KB
+ * gzipped) is a chunk loaded on first use (../lazy.tsx); launchMode starts
+ * fetching it before navigating, and the service worker precaches it.
  */
 import { navigate } from '../../app/router';
+import { lazyScreen } from '../lazy';
 import { registerMode } from '../registry';
-import { LazyPuzzleMode, loadPuzzleMode } from './lazy';
 
 registerMode({
   id: 'puzzle',
@@ -23,9 +25,7 @@ registerMode({
   homeA: true,
   ready: (p) => p.placement.done,
   notReadyKey: 'puzzle.notReady',
-  launch: () => {
-    void loadPuzzleMode();
-    navigate('/play/puzzle');
-  },
-  Component: LazyPuzzleMode,
+  // Straight to the shelf (no engine session); launchMode has already started fetching the chunk.
+  launch: () => navigate('/play/puzzle'),
+  Component: lazyScreen(() => import('./PuzzleMode').then((m) => m.PuzzleMode)),
 });

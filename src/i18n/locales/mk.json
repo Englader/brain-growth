@@ -1523,7 +1523,7 @@
         "roundEach": "{to, plural, =10 {Заокружи го секој број на десетки.} =100 {Заокружи го секој број на стотки.} other {Заокружи го секој број на најблискиот содржател на {to}.}}",
         "roundBoth": "Замисли {a} {op} {b}.",
         "friendlyDivide": "Замисли {a} {op} {b}.",
-        "tenPercent": "10% од бројот е околу {tenth}.",
+        "tenPercent": "10 % од бројот е околу {tenth}.",
         "about": "Тоа е околу {value}.",
         "between": "Тоа е меѓу {lo} и {hi}."
       },
@@ -1547,7 +1547,7 @@
     "to": "До",
     "width": "Ширина {w} (најмногу {max})",
     "range": "Од {lo} до {hi}",
-    "percentOf": "{pct}% од {of}"
+    "percentOf": "{pct, percent} од {of}"
   },
   "workshop": {
   },
