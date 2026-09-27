@@ -1008,8 +1008,47 @@
   "hint": {
   },
   "pilot": {
+    "title": "Pilot readout",
+    "help": "The two-week pilot measures, computed from the play log on this device. Compare them week by week rather than judging by one number.",
+    "exits": "Exits after a mistake",
+    "exitsOf": "{n} of {total, plural, one {# early exit} other {# early exits}}",
+    "exitsNone": "No early exits",
+    "hints": "Hint use",
+    "hintsOf": "{n} of {total, plural, one {# problem} other {# problems}}",
+    "hintsNone": "No Band B or C problems",
+    "feedback": "Time on feedback",
+    "feedbackOf": "median of {n, plural, one {# mistake} other {# mistakes}}",
+    "feedbackNone": "No mistakes yet",
+    "freeChoice": "Play after the quest",
+    "freeChoiceOf": "of that day's problems",
+    "freeChoiceNone": "No quest completed",
+    "session": "last 30 days",
+    "calTitle": "Largest calibration gaps",
+    "calNone": "Shown after 15 first tries on a skill.",
+    "misTitle": "Most frequent mistake patterns",
+    "strategy": {
+      "title": "Strategy",
+      "help": "Strategy (Band A): how often an answer used the hop buttons (counting on) rather than a direct tap on the number, and the median time of correct answers in the earlier half, then the later half. Fewer hops and faster answers mean a fact is moving from counting to memory.",
+      "split": "Hop buttons {hops}% · direct taps {taps}%",
+      "counting": "Counting on",
+      "mixed": "Mixed",
+      "retrieval": "Knows it by heart"
+    },
+    "clips": {
+      "missing": "Recording checklist: {n, plural, one {# clip} other {# clips}} to go",
+      "done": "Every clip is recorded.",
+      "how": "Record each clip as an MP3 with the name shown and put it in {dir}. Then run npm run gen:clips (npm run build does it too)."
+    }
   },
   "storage": {
+    "otherTab": "Hopa is already open in another browser tab or window, so nothing is saved here. Close Hopa there, then reload this page.",
+    "idbUsed": "Answer history: {kb} KB in the browser's database, with room for years of play.",
+    "localOnly": "The browser's database is not available, so the answer history stays in the storage above; when it fills up, the oldest months are summarised.",
+    "historyHidden": "Older answer history could not be opened this time. Nothing is lost: reload the page. A backup made now would not include it.",
+    "persisted": "Protected: the browser will not clear this data to free up space.",
+    "notPersisted": "The browser may clear this data if the device runs low on space.",
+    "keepSafe": "Keep data safe",
+    "keepSafeDenied": "The browser has not allowed it yet. Adding Hopa to the Home Screen and regular backups also keep the data safe."
   },
   "weekly": {
   },

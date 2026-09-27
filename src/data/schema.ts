@@ -7,6 +7,10 @@
  *   bg:rollup:<pid>:<YYYY-MM>       Rollup (compacted month; raw chunk removed)
  *   bg:rivals                       Record<pid, RivalCard> imported via share links
  *   bg:backup:pre-v<N>              safety snapshot taken before migrating from N
+ *
+ * With Meta.logStore = 'idb' the bg:log:* and bg:rollup:* keys live in
+ * IndexedDB (data/idb.ts) behind the same KV interface (data/hybridKV.ts);
+ * everything else stays in localStorage.
  */
 import { NS } from './kv';
 
@@ -24,6 +28,12 @@ export interface Meta {
   adultSeen: boolean;
   /** Language for screens shown before a player is chosen (additive field, optional). */
   uiLocale?: string;
+  /**
+   * 'idb' once log months (bg:log:*, bg:rollup:*) have moved to IndexedDB
+   * (additive field, optional; deliberately NO schema bump: a bump would put an
+   * older cached build into read-only mode mid-play). Absent = localStorage.
+   */
+  logStore?: 'idb';
 }
 
 export const KEYS = {
