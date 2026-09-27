@@ -113,6 +113,8 @@ export const EVENTS = {
   // ── slot: weekly ──
   // ── slot: target ──
   // ── slot: dice ──
+  /** A finished (or abandoned) Dice Race, in each player's own log: facts for fairness tuning, never a winner. */
+  DICE_MATCH: 'dice_match',
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──

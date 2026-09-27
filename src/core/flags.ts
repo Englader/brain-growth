@@ -36,6 +36,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: weekly ──
   // ── slot: target ──
   // ── slot: dice ──
+  { id: 'mode.dice', scope: 'profile', default: true, labelKey: 'dice.flag', description: 'Dice Race: two children on this device race on their own lanes, each move one of their own adaptive items (pass-and-play).' },
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──

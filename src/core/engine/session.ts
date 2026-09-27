@@ -12,7 +12,7 @@
 import type { NumberConventions } from '../../i18n/numbers';
 import { gradeResponse, type GradeResult, type Response } from '../items/grade';
 import { getGenerator } from '../items/generators/registry';
-import type { Capability, Item } from '../items/types';
+import type { Capability, GeneratedItem, GeneratorDef, Item } from '../items/types';
 import { clamp01 } from '../items/util';
 import type { InputMethod, ItemRecord } from '../log/types';
 import { key as ratKey } from '../rational';
@@ -397,6 +397,24 @@ export class SessionEngine {
     this.states = next;
     this.placement = { done: true, state: null, g: round3(mean), sd: round3(sd) };
     return { g: mean, sd };
+  }
+
+  /**
+   * Present an item the MODE chose (e.g. a Dice Race move built from the dice
+   * with the generator's `fromOperands`) instead of one the scheduler picked.
+   * It is predicted, graded, rated and logged exactly like any first attempt,
+   * with source 'fixed'. The skill must be one the generator is bound to, so
+   * the level means what the rating model expects.
+   */
+  presentFixed(skillId: SkillId, generated: GeneratedItem, gen: Pick<GeneratorDef, 'id' | 'version'>, seed: number): PresentedItem {
+    const skill = this.ctx.graph.get(skillId);
+    this.itemCounter++;
+    const item: Item = { ...generated, key: String(this.itemCounter), skillId: skill.id, genId: gen.id, genVersion: gen.version, seed };
+    const before = this.states[skill.id];
+    if (!before || before.n === 0) this.newIntroduced++;
+    this.firstPresented++;
+    this.history.push(skill.id);
+    return this.present(item, 'fixed', 1);
   }
 }
 

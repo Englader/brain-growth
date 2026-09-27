@@ -1,0 +1,371 @@
+/*
+ * Dice Race (src/modes/dice). Every lane, turn screen and result card belongs
+ * to ONE player and carries that player's data-theme / data-band on a
+ * `.dice-themed` wrapper. The theme blocks in app.css are unscoped attribute
+ * selectors, so they re-theme the subtree. :where() gives the base tokens
+ * zero specificity: a Lagoon lane (whose block only sets --fs) inside a Meadow
+ * or Slate app still starts from the Lagoon base, while Meadow and Slate
+ * blocks override it.
+ */
+:where(.dice-themed) {
+  --font: 'Nunito', system-ui, sans-serif;
+  --fs: 17px;
+  --radius: 18px;
+  --gap: 14px;
+  --target: 52px;
+  --bg: #eef7fb;
+  --surface: #ffffff;
+  --surface-2: #e4f1f7;
+  --ink: #10303d;
+  --muted: #4d6671;
+  --primary: #0b7a99;
+  --primary-ink: #ffffff;
+  --go: #16804a;
+  --line: #9cc5d6;
+  --pad: #86efac;
+  --water: #bfe6f5;
+  --good: #16804a;
+  --shadow: 0 2px 0 rgba(16, 48, 61, 0.08), 0 6px 18px rgba(16, 48, 61, 0.08);
+  color-scheme: light;
+}
+.dice-themed {
+  color: var(--ink);
+  font-family: var(--font);
+}
+/* Rules app.css keys on an ANCESTOR's theme or band (the active child's) must not leak into another player's subtree. */
+.dice-themed:not([data-theme='slate']) .key-submit {
+  color: #fff;
+}
+.dice-themed:not([data-theme='slate']) .dot {
+  fill: #e34948;
+}
+.dice-themed:not([data-theme='slate']) .praise {
+  color: var(--good);
+  font-size: 1.4em;
+}
+.dice-themed[data-band] .expr {
+  font-size: 2.2em;
+}
+.dice-themed[data-band='A'] .expr {
+  font-size: 3em;
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────── */
+.dice-page {
+  min-height: 100dvh;
+  background: var(--bg);
+  font-size: var(--fs);
+  line-height: 1.35;
+}
+.dice-screen {
+  gap: 10px;
+}
+.dice-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--target);
+}
+.dice-who {
+  display: inline-flex;
+}
+.dice-page .key {
+  min-height: 46px;
+}
+
+/* ── Board: one proportional lane per player ─────────────────────────── */
+.dice-board {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dice-lane {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px 0 4px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.dice-lane.on {
+  border-color: var(--primary);
+}
+.lane-who {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.lane-track {
+  display: block;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.lane-water {
+  fill: var(--water);
+}
+.lane-axis {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.lane-dot {
+  fill: var(--pad);
+  stroke: rgba(0, 0, 0, 0.18);
+  stroke-width: 0.8;
+}
+.dice-lane[data-theme='slate'] .lane-dot {
+  fill: var(--muted);
+  stroke: none;
+}
+.lane-dot.zero,
+.dice-lane[data-theme='slate'] .lane-dot.zero {
+  fill: var(--accent);
+}
+.lane-tick {
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+.lane-label {
+  fill: var(--muted);
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+}
+.lane-label.zero {
+  fill: var(--ink);
+}
+.lane-pos {
+  fill: var(--ink);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 900;
+}
+.lane-ladder .rail {
+  fill: none;
+  stroke: #b45309;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+.lane-ladder .rungs {
+  fill: none;
+  stroke: #fde68a;
+  stroke-width: 4;
+  stroke-dasharray: 2 3;
+}
+.lane-ladder .foot {
+  fill: #b45309;
+}
+.pond-water {
+  fill: #38bdf8;
+}
+.pond-pad {
+  fill: #22c55e;
+}
+
+/* ── Roll ─────────────────────────────────────────────────────────────── */
+.dice-roll {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+}
+.roll-btn {
+  min-width: 170px;
+  min-height: calc(var(--target) + 16px);
+  border-radius: 999px;
+  font-size: 1.2em;
+}
+.dice-themed[data-band='A'] .roll-btn {
+  min-width: 200px;
+  min-height: 100px;
+}
+.dice-faces {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.dice-faces .dots.dice {
+  width: 62px;
+}
+.dice-faces.one .dots.dice {
+  width: 100px;
+}
+.die-face {
+  display: inline-grid;
+  place-items: center;
+  min-width: 62px;
+  height: 62px;
+  padding: 0 10px;
+  border: 3px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  font-size: 2em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.die-face.form {
+  color: var(--primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dice-faces {
+    animation: dice-pop 0.35s ease-out;
+  }
+}
+@keyframes dice-pop {
+  0% {
+    opacity: 0;
+    transform: rotate(-18deg) scale(0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Band B: operator choice and the ladders ahead ─────────────────────── */
+.dice-choose {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.dice-ask {
+  margin: 0;
+  font-weight: 800;
+  text-align: center;
+}
+.op-chips {
+  justify-content: center;
+}
+.op-chip {
+  justify-content: center;
+  min-width: 92px;
+  font-size: 1.25em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.ladder-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.9em;
+}
+.ladder-icon {
+  fill: none;
+  stroke: #b45309;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+.ladder-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #7c2d12;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dice-prompt {
+  display: flex;
+  justify-content: center;
+}
+.dice-answer {
+  min-width: 1.5em;
+  padding: 0 0.15em;
+}
+.dice-answer.filled {
+  border-style: solid;
+}
+.dice-sol {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.dice-note {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* ── Pass the device ──────────────────────────────────────────────────── */
+.pass-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  padding: 18px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.pass-title {
+  margin: 0;
+  font-size: 1.25em;
+}
+.pass-ready {
+  max-width: 320px;
+}
+
+/* ── Setup ────────────────────────────────────────────────────────────── */
+.dice-pick .player-tile {
+  position: relative;
+  border: 3px solid transparent;
+}
+.dice-pick .player-tile.on {
+  border-color: var(--primary);
+}
+.pick-order {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-weight: 900;
+}
+.dice-start {
+  margin-top: auto;
+}
+
+/* ── Results ──────────────────────────────────────────────────────────── */
+.dice-hero {
+  display: flex;
+  justify-content: center;
+}
+.hero-pond {
+  width: 180px;
+  height: auto;
+}
+.dice-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--fs);
+}
+.dice-result-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dice-result h2 {
+  margin: 0;
+}
+.dice-gift {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-weight: 800;
+}

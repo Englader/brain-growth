@@ -2,6 +2,8 @@
 
 An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, and mistakes replay as worked hops.
 
+Two children on one device can also play **Dice Race**: they pass the device, and every roll of the dice is one of their own problems.
+
 It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device, with backup export and import.
 
 - **Play:** https://englader.github.io/brain-growth/ (live after the first push to `main`; see below)

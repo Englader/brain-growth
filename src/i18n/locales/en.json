@@ -189,6 +189,9 @@
     "target": {
     },
     "dice": {
+      "roll": "Roll the die!",
+      "yourTurn": "Your turn!",
+      "pass": "Now pass it on!"
     },
     "puzzle": {
     },
@@ -570,6 +573,10 @@
     "target": {
     },
     "dice": {
+      "hop": "{expr} = {r}, so you hop {r, plural, one {# square} other {# squares}}!",
+      "hop@C": "{expr} = {r}: {r, plural, one {# square} other {# squares}} forward.",
+      "land": "{expr} = {r}, so you land on square {r}.",
+      "land@C": "{expr} = {r}: square {r}."
     },
     "workshop": {
     },
@@ -1009,6 +1016,60 @@
   "target": {
   },
   "dice": {
+    "title": "Dice Race",
+    "desc": "Roll, solve your own problem and hop to the pond. For two players!",
+    "desc@C": "Pass-and-play race for two: every move is one of your own problems.",
+    "notReady": "Needs two players on this device who have each played once.",
+    "flag": "Dice Race: two children on one device race on their own lanes; every move is one of their own problems (pass-and-play).",
+    "setup": {
+      "pick": "Pick two players",
+      "how": "Roll the dice, solve your own problem and hop along your lane. Everyone gets the same number of turns.",
+      "how@C": "Each move is a problem at your own level. Everyone gets the same number of turns; the dice add the luck.",
+      "start": "Start the race",
+      "few": "Dice Race needs two players on this device who have each played once."
+    },
+    "roll": "Roll!",
+    "roll@C": "Roll",
+    "die": "{n, plural, one {# dot} other {# dots}}",
+    "numberDie": "Number die: {n}",
+    "formDie": "Sign die",
+    "choose": "How will you combine the dice?",
+    "choose@C": "Choose an operation",
+    "ladders": "Ladders ahead",
+    "ladder": "Ladder from {from} to {to}",
+    "square": "Square {n}",
+    "next": "Next player",
+    "quit": "Stop the race",
+    "pass": {
+      "first": "Starting the race:",
+      "title": "Swap time! Pass the device to…",
+      "title@C": "Pass the device to…",
+      "ready": "My turn!",
+      "ready@C": "Start turn"
+    },
+    "note": {
+      "ladder": "A ladder! Climb from {from} up to {to}!",
+      "ladder@C": "Ladder: {from} to {to}.",
+      "capped": "{hops, plural, one {# hop} other {# hops}} and you are at the pond!",
+      "capped@C": "Stopped at the finish after {hops, plural, one {# square} other {# squares}}.",
+      "bounce": "That would take you off the lane, so the move bounces forward!",
+      "bounce@C": "That move would leave the lane, so it is mirrored forward.",
+      "arrived": "You reached the pond!",
+      "arrived@C": "Finish reached."
+    },
+    "result": {
+      "pond": "Reached the pond in {turns, plural, one {# turn} other {# turns}}!",
+      "pond@C": "Finished in {turns, plural, one {# turn} other {# turns}}.",
+      "journey": "Hopped {squares, plural, one {# square} other {# squares}} in {turns, plural, one {# turn} other {# turns}}!",
+      "journey@C": "{squares, plural, one {# square} other {# squares}} in {turns, plural, one {# turn} other {# turns}}."
+    },
+    "results": {
+      "title": "We reached the pond!",
+      "title@C": "Race complete",
+      "items": "{n, plural, one {# problem} other {# problems}} practised",
+      "gift": "A surprise is waiting in the wardrobe!",
+      "again": "Race again"
+    }
   },
   "puzzle": {
   },

@@ -122,10 +122,26 @@ export type Capability =
   // ── slot: season ──
   ;
 
+/** The operands of a fixed item: `a op b`. `b` is signed where the generator allows it (`a − (−3)` is b = −3). */
+export interface Operands {
+  a: number;
+  op: Op;
+  b: number;
+}
+
 export interface GeneratorDef<C = Record<string, unknown>> {
   id: string;
   /** Bump when output for a given (seed, level, config) changes. Logged per item. */
   version: number;
   capabilities: readonly Capability[];
   generate(level: number, rng: Rng, config: C): GeneratedItem;
+  /**
+   * The item for GIVEN operands instead of sampled ones (a fixed item, e.g. a
+   * Dice Race move). Its level comes from the same scorer `generate` uses, so
+   * the rating update treats it like any other item. Operands may lie outside
+   * the sampler's range; the line widens to fit. null when this generator and
+   * config cannot express the operation (another operator, a negative result…).
+   * Sampled output never changes, so adding this does not bump `version`.
+   */
+  fromOperands?(operands: Operands, config: C): GeneratedItem | null;
 }

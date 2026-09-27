@@ -133,6 +133,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: weekly ──
   // ── slot: target ──
   // ── slot: dice ──
+  /** Dice Race moves are ordinary fact items, answered untimed: full evidence. */
+  dice: 1,
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──

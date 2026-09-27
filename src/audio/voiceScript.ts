@@ -44,6 +44,9 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: weekly ──
   // ── slot: target ──
   // ── slot: dice ──
+  'voice.dice.roll': ['voice.dice.roll'],
+  'voice.dice.yourTurn': ['voice.dice.yourTurn'],
+  'voice.dice.pass': ['voice.dice.pass'],
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
