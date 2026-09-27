@@ -72,6 +72,19 @@ export const STRATEGY_BY_SOL: Readonly<Record<string, string>> = {
   'sol.subNeg': 'subNeg',
   'sol.addNeg': 'addNeg',
   'sol.intMove': 'intMove',
+  // Fractions, decimals and percent (§4 step 3): the first worked step of each item kind.
+  'sol.frac.unitSplit': 'frac.unit',
+  'sol.frac.equivDen': 'frac.equiv',
+  'sol.frac.sameNum': 'frac.sameNum',
+  'sol.frac.sameDen': 'frac.sameDen',
+  'sol.frac.commonDen': 'frac.commonDen',
+  'sol.frac.tenthsWindow': 'frac.tenths',
+  'sol.frac.hundredthsWindow': 'frac.hundredths',
+  'sol.frac.decPlaces': 'frac.decCompare',
+  'sol.frac.decTenths': 'frac.decCompare',
+  'sol.frac.decSplit2': 'frac.decParts',
+  'sol.frac.decSplit3': 'frac.decParts',
+  'sol.frac.pctTen': 'frac.pct',
 };
 
 /** Operations the op-dependent strategies have prompts for. */
@@ -116,6 +129,17 @@ export function allStrategyIds(): string[] {
 }
 
 /**
+ * A hop position for the tier-2 text, written as the line writes it: k/den on a
+ * fraction line ("1/12", never "0,083333"), a number otherwise (formatted per
+ * locale when rendered). Locale-free: digits and a slash only.
+ */
+function linePosition(v: number, line: Item['line']): number | string {
+  if (!line.den || line.labelStyle !== 'fraction') return v;
+  const k = Math.round(v * line.den);
+  return k % line.den === 0 ? k / line.den : `${k}/${line.den}`;
+}
+
+/**
  * The ladder for an item, lowest tier first, with every revealing rung
  * already skipped. Tier 1 is always present.
  */
@@ -132,7 +156,10 @@ export function hintLadder(item: Item): HintRung[] {
     // Count items are answered by where the hops stop (the flag); land items by the answer itself.
     const stop = line.answerMode === 'count' ? line.flag : answer;
     const gives = [hop.from, hop.to].some((v) => reveals(v) || v === stop);
-    if (!gives) rungs.push({ tier: 2, say: { k: 'say', key: HOP_KEY, params: { from: hop.from, to: hop.to } }, hop: { from: hop.from, to: hop.to } });
+    if (!gives) {
+      const params = { from: linePosition(hop.from, line), to: linePosition(hop.to, line) };
+      rungs.push({ tier: 2, say: { k: 'say', key: HOP_KEY, params }, hop: { from: hop.from, to: hop.to } });
+    }
   }
 
   const step = item.solution.find((s): s is SayStep => isSay(s) && !s.key.startsWith('sol.count') && !Object.values(s.params).some(reveals));

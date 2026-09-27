@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 347 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 399 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow or clipped text
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)
@@ -41,14 +41,15 @@ E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e a
 
 1. **Add one line** to `src/core/skills/catalog.ts`:
    ```ts
-   s('f.equiv', 'fractions', 4.5, 'B', ['f.unit', 'md.mult.facts'], ['visual'], [g('fractionLine', { maxDen: 12 })]),
+   s('f.equiv', 'fractions', 4.5, 'B', ['f.unit', 'md.mult.facts'], ['visual'], [g('fracLine', { mode: 'equiv' })]),
    ```
    The grade is its curriculum position (4.5 = middle of одделение 4). The band must match the grade window. Omit `gens` to add a planned node: it appears in docs and can never block anything.
 2. **Add names:** `skill.<id>` in every bundle.
 3. **Add a generator** if none fits. Create `src/core/items/generators/<file>.ts` exporting a `GeneratorDef` and add it to `BUILTIN` in `generators/index.ts`. A generator must:
    - be pure and seeded (`rng` only);
    - map `level ∈ [0,1]` to parameters through a difficulty **scorer** of known factors (use `pickByLevel`);
-   - return exact `Rational` answers, a `LineSpec`, worked `solution` hops and `say` steps (`sol.*` keys), predicted `misconceptions` (`mis.<code>.name` and `mis.<code>.tip` keys), and raw `features`.
+   - return exact `Rational` answers, a `LineSpec`, worked `solution` hops and `say` steps (`sol.*` keys), predicted `misconceptions` (`mis.<code>.name` and `mis.<code>.tip` keys), and raw `features`;
+   - for fractions and decimals, put the line on a grid of 1/den (`den`, `labelStyle`, and `pick: 'tap'` for tapped answers). Ticks, pads, hops and taps are then exact k/den, and a landing grades as the rational k/den. Compute every position as an integer division k/den, never by adding floats (see `generators/fractions.ts`).
 4. **Run `npm run check`.** `tests/skills.test.ts` checks validity (answer follows from prompt, hops end on the answer), determinism, and that harder requests give harder items. `tests/i18n.test.ts` checks every emitted `sol.*` and `mis.*` key exists.
 5. **Regenerate docs:** `npm run gen:skill-doc` (and `npm run level-report` to eyeball level tracking).
 
