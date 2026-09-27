@@ -15,6 +15,28 @@ import { KEYS, type LogChunk } from './schema';
 export const SOFT_BUDGET_BYTES = 3_500_000;
 /** Never compact the most recent months. */
 export const KEEP_RAW_MONTHS = 3;
+/** IndexedDB log store: compact only above this many bytes (UTF-16 measure) … */
+export const IDB_BUDGET_BYTES = 50_000_000;
+/** … or when the origin's storage estimate reports more than this share of its quota used. */
+export const IDB_MAX_QUOTA_SHARE = 0.5;
+
+/** Shape of `navigator.storage.estimate()`. */
+export interface StorageEstimateLike {
+  usage?: number;
+  quota?: number;
+}
+
+/** Budget for log months kept in IndexedDB. Raw history is kept long-term. */
+export function idbOverBudget(idbBytes: number, estimate?: StorageEstimateLike | null): boolean {
+  if (idbBytes > IDB_BUDGET_BYTES) return true;
+  const { usage, quota } = estimate ?? {};
+  return typeof usage === 'number' && typeof quota === 'number' && quota > 0 && usage / quota > IDB_MAX_QUOTA_SHARE;
+}
+
+/** Per-store budget: a KV with its own log store says so; otherwise the localStorage soft budget applies. */
+export function logsOverBudget(kv: KV): boolean {
+  return kv.logsOverBudget ? kv.logsOverBudget() : kv.bytesUsed() >= SOFT_BUDGET_BYTES;
+}
 
 export interface SkillDayAgg {
   first: number;
@@ -76,9 +98,12 @@ export function compactMonth(kv: KV, pid: string, month: string): boolean {
 
 /**
  * Compact oldest raw months across all profiles until under budget.
- * `force` ignores the soft budget (used after a quota error).
+ * `force` ignores the soft budget (used after a quota error). A quota error
+ * can only come from localStorage, so when log months live in their own store
+ * forcing would destroy raw history without freeing any room: it is ignored.
  */
 export function compactIfNeeded(kv: KV, currentMonth: string, force = false): string[] {
+  if (kv.logsOverBudget) force = false;
   const done: string[] = [];
   const rawKeys = kv
     .keys(`bg:log:`)
@@ -89,7 +114,7 @@ export function compactIfNeeded(kv: KV, currentMonth: string, force = false): st
     .filter((x) => monthsBetween(x.month, currentMonth) >= KEEP_RAW_MONTHS)
     .sort((a, b) => a.month.localeCompare(b.month));
   for (const x of rawKeys) {
-    if (!force && kv.bytesUsed() < SOFT_BUDGET_BYTES) break;
+    if (!force && !logsOverBudget(kv)) break;
     if (compactMonth(kv, x.pid, x.month)) done.push(`${x.pid}:${x.month}`);
     force = false;
   }

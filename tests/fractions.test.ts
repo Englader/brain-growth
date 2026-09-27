@@ -13,6 +13,7 @@ import { h, render } from 'preact';
 import { describe, expect, it } from 'vitest';
 import { numberClips, voiceLine } from '../src/audio/voiceScript';
 import { gradeResponse, type Response } from '../src/core/items/grade';
+import { hintLadder, strategyId } from '../src/core/items/hints';
 import { decAddSubGen, decLineGen, percentOfGen } from '../src/core/items/generators/decimals';
 import { fracLineGen } from '../src/core/items/generators/fractions';
 import type { GeneratedItem, Item, LineSpec } from '../src/core/items/types';
@@ -280,6 +281,29 @@ describe('Band A pads', () => {
     expect(labels.length).toBe(11);
     expect(labels[0]).toBe('0,3');
     expect(labels[7]).toBe('0,37');
+  });
+});
+
+describe('hint ladder on fraction lines', () => {
+  it('tier 2 names the first hop the way the line writes it: 1/4, never 0,25', () => {
+    const it = find(fracLineGen, { mode: 'unit' } as never, (g) => g.line.den === 4 && g.line.max === 1 && key(g.answer.value) === '3/4');
+    const tier2 = hintLadder(it).find((r) => r.tier === 2)!;
+    expect(tier2.hop).toEqual({ from: 0, to: 0.25 });
+    expect(solutionText(tier2.say, 'mk', 'B')).toBe('Првиот скок оди од 0 до 1/4.');
+    expect(solutionText(tier2.say, 'en', 'B')).toBe('The first hop goes from 0 to 1/4.');
+  });
+
+  it('every fraction and decimal item kind has its own strategy prompt', () => {
+    const kinds: Array<[typeof fracLineGen | typeof decLineGen | typeof percentOfGen, Record<string, unknown>]> = [
+      [fracLineGen, { mode: 'unit' }], [fracLineGen, { mode: 'equiv' }], [fracLineGen, { mode: 'compare' }],
+      [decLineGen, { mode: 'tenths' }], [decLineGen, { mode: 'compare' }], [percentOfGen, {}],
+    ];
+    for (const [gen, cfg] of kinds) {
+      for (let s = 1; s <= 40; s++) {
+        const it = asItem((gen.generate as (l: number, r: ReturnType<typeof createRng>, c: unknown) => GeneratedItem)((s % 11) / 10, createRng(s), cfg));
+        expect(strategyId(it), `${gen.id} ${JSON.stringify(cfg)}`).toMatch(/^frac\./);
+      }
+    }
   });
 });
 
