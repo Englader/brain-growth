@@ -45,6 +45,8 @@ export interface ItemRecord {
   hops: number | null;
   /** Correct only under the other locale's separator reading. */
   alt: boolean;
+  /** Highest hint tier used (1–3). Absent: no tiered hint (then `hint` alone counts, as in records from before tiers). */
+  tier?: number;
 }
 
 export interface SessionOptions {

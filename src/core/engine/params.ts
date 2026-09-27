@@ -28,8 +28,10 @@ export const MODEL = {
   Q_DAY: 0.03,
   S2_MIN: 0.05,
   S2_MAX: 2.0,
-  /** Credit for a correct answer given after a hint. */
+  /** Credit for a correct answer given after a hint (records without a hint tier: legacy, and the single hint). */
   HINT_CREDIT: 0.5,
+  /** Credit lost per hint tier used: y = 1 − HINT_TIER_PENALTY·tier (tier 2 equals HINT_CREDIT). */
+  HINT_TIER_PENALTY: 0.25,
   /** Logits subtracted from ability when predicted recall R → 0 (applied as FORGET·(1−R)). */
   FORGET: 1.0,
   /** Observations made under a clock do not move ability (pressure artefacts); see DESIGN §1.7. */

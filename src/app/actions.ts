@@ -153,6 +153,8 @@ export interface SubmitMeta {
   hint: boolean;
   input: InputMethod;
   hops: number;
+  /** Highest hint tier used (1–3): credit y = 1 − 0.25·tier. Omit for none or the single untiered hint. */
+  hintTier?: number;
 }
 
 /** Extra outcome a mode hands to finishSession. */
@@ -256,6 +258,7 @@ export function recordAnswer(
     locale: p.locale,
     conv: getLocale(p.locale).numbers,
     input: meta.input,
+    ...(meta.hintTier ? { hintTier: meta.hintTier } : {}),
   });
   if (res.grade.invalid || !res.record) return { profile: p, session: s, res };
 

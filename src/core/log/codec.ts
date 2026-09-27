@@ -21,6 +21,8 @@ const ITEM_FIELDS_V1 = [
   'ts', 'sid', 'key', 'skill', 'gen', 'genV', 'seed', 'level', 'diff', 'p', 'mu', 's2',
   'correct', 'attempt', 'latency', 'hint', 'answer', 'expected', 'mis', 'mode', 'band',
   'locale', 'source', 'timed', 'input', 'hops', 'alt',
+  // Appended (no version bump): older records decode without a tier (no tiered hint).
+  'tier',
 ] as const;
 const SESSION_FIELDS_V1 = [
   'ts', 'sid', 'phase', 'mode', 'band', 'locale', 'opts', 'items', 'firstCorrect', 'durationMs', 'completed',
@@ -28,6 +30,8 @@ const SESSION_FIELDS_V1 = [
 const EVENT_FIELDS_V1 = ['ts', 'sid', 'name', 'data'] as const;
 
 const BOOL_FIELDS = new Set(['correct', 'hint', 'timed', 'alt', 'completed']);
+/** Optional appended fields: absent in memory when null on disk (older records, or nothing to record). */
+const OMIT_NULL = new Set(['tier']);
 
 interface TypeCodec {
   tag: string;
@@ -66,6 +70,7 @@ export function decodeRecord(arr: unknown): AnyRecord {
   let o: Record<string, unknown> = { type: c.type };
   fields.forEach((f, i) => {
     const v = arr[i + 2];
+    if (OMIT_NULL.has(f) && (v === null || v === undefined)) return;
     o[f] = BOOL_FIELDS.has(f) ? (v === null || v === undefined ? null : v === 1 || v === true) : v ?? null;
   });
   for (let v = version; v < c.version; v++) o = c.upgrade[v]!(o);

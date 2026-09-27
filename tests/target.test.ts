@@ -29,6 +29,13 @@ import {
 import { checkDealRepr, checkTargetRepr, readDealData } from '../src/core/target/check';
 import { makeDeal, toDealData, type TargetBand, type TargetDeal } from '../src/core/target/deal';
 import { solutionSteps, targetHint, targetHints } from '../src/core/target/hints';
+import { glickoElo } from '../src/core/engine/glicko';
+import { hintCredit } from '../src/core/engine/observe';
+import { replay } from '../src/core/engine/replay';
+import { SessionEngine, type PresentedItem } from '../src/core/engine/session';
+import { decodeRecord, encodeRecord } from '../src/core/log/codec';
+import type { ItemRecord } from '../src/core/log/types';
+import { GRAPH } from '../src/core/skills';
 
 const ALL: SolveOptions = {
   ops: TARGET_OPS,
@@ -531,5 +538,75 @@ describe('target hints', () => {
         }
       }
     }
+  });
+});
+
+// ── Engine seam: tiered hint credit (plan step 5's `hintTier`, used first by Target) ──
+describe('hint-tier credit', () => {
+  const EN = getLocale('en').numbers;
+
+  it('credits y = 1 − 0.25·tier; an untiered (legacy) hint stays at 0.5', () => {
+    expect(hintCredit(false)).toBe(1);
+    expect(hintCredit(true)).toBe(0.5);
+    expect(hintCredit(true, null)).toBe(0.5);
+    expect([1, 2, 3].map((tier) => hintCredit(true, tier))).toEqual([0.75, 0.5, 0.25]);
+    expect(hintCredit(false, 3)).toBe(0.25);
+  });
+
+  const rec: ItemRecord = {
+    type: 'item', ts: 1_790_000_000_000, sid: 's1', key: '3', skill: 'md.mult.facts', gen: 'makeIt', genV: 1, seed: 9,
+    level: 0.5, diff: 0, p: 0.8, mu: 0.1, s2: 0.6, correct: true, attempt: 1, latency: 5000, hint: true,
+    answer: '(6*4)', expected: '24', mis: null, mode: 'target', band: 'B', locale: 'mk', source: 'frontier',
+    timed: false, input: 'tap', hops: null, alt: false,
+  };
+
+  it('the log keeps the tier; records without one (and older ones) decode without it', () => {
+    const withTier = { ...rec, tier: 3 };
+    expect(decodeRecord(JSON.parse(JSON.stringify(encodeRecord(withTier))))).toEqual(withTier);
+    expect(decodeRecord(encodeRecord(rec))).toEqual(rec);
+    expect(decodeRecord(encodeRecord(rec).slice(0, -1))).toEqual(rec);
+  });
+
+  function liveSession(tierOf: (i: number) => number): { records: ItemRecord[]; engine: SessionEngine } {
+    let t = Date.UTC(2026, 8, 20, 15);
+    const engine = new SessionEngine(
+      { graph: GRAPH, model: glickoElo, now: () => (t += 4000) },
+      { skills: {}, placement: { done: true, state: null } },
+      {
+        sessionId: 's1', seed: 11, band: { id: 'B', targetP: 0.85, allowReading: false, maxReturns: 0 },
+        mode: { id: 'hop', requires: ['numberLine'] }, plannedItems: 8, stretch: false, timed: false,
+      },
+    );
+    const records: ItemRecord[] = [];
+    let p: PresentedItem | null;
+    for (let i = 0; (p = engine.next()); i++) {
+      const raw = String(toNumber(p.item.answer.value));
+      const tier = tierOf(i);
+      const r = engine.answer(p, { response: { kind: 'typed', raw }, latencyMs: 3000, hint: tier > 0, hintTier: tier, locale: 'en', conv: EN, input: 'typed' });
+      if (r.record) records.push(r.record);
+    }
+    return { records, engine };
+  }
+
+  it('live sessions and log replay apply the same tiered credit', () => {
+    const { records, engine } = liveSession((i) => i % 4);
+    expect(records.filter((r) => r.tier !== undefined).map((r) => r.tier)).toContain(3);
+    expect(records.filter((r) => r.tier === undefined).every((r) => !r.hint)).toBe(true);
+    const replayed = replay({ graph: GRAPH, model: glickoElo }, records.map((r) => decodeRecord(encodeRecord(r)) as ItemRecord));
+    for (const [id, st] of Object.entries(engine.snapshot.skills)) {
+      if (!st.n) continue;
+      expect(replayed[id]!.mu, id).toBeCloseTo(st.mu, 3);
+      expect(replayed[id]!.s2, id).toBeCloseTo(st.s2, 3);
+    }
+  });
+
+  it('a lower tier earns more credit than a higher one (the parity above is not vacuous)', () => {
+    const { records } = liveSession(() => 1);
+    const as = (tier: number) => replay({ graph: GRAPH, model: glickoElo }, records.map((r) => ({ ...r, tier })));
+    const t1 = as(1);
+    const t3 = as(3);
+    const ids = Object.keys(t1).filter((id) => t1[id]!.n);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) expect(t1[id]!.mu, id).toBeGreaterThan(t3[id]!.mu);
   });
 });

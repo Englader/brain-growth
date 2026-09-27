@@ -77,6 +77,8 @@ export interface AnswerInput {
   locale: LocaleId;
   conv: NumberConventions;
   input: InputMethod;
+  /** Highest hint tier used (1–3); credit y = 1 − 0.25·tier. Omit for none, or for the single untiered hint. */
+  hintTier?: number | null;
 }
 
 export interface AnswerResult {
@@ -286,13 +288,15 @@ export class SessionEngine {
     const skill = this.ctx.graph.get(presented.item.skillId);
     const first = presented.attempt === 1;
     const correct = grade.correct;
+    const tier = input.hintTier !== undefined && input.hintTier !== null && input.hintTier > 0 ? input.hintTier : null;
+    const hint = input.hint || tier !== null;
     let statusChange: AnswerResult['statusChange'] = null;
     let unlocked: SkillId[] = [];
     let placementFinished: AnswerResult['placementFinished'] = null;
     let memoryReview: AnswerResult['memoryReview'] = null;
 
     if (first) {
-      if (correct && !input.hint) this.firstCorrect++;
+      if (correct && !hint) this.firstCorrect++;
       this.ewma = (1 - SELECTION.EWMA_ALPHA) * this.ewma + SELECTION.EWMA_ALPHA * (correct ? 1 : 0);
       const unlockedBefore = this.unlockedSet();
       this.stateFor(skill, now);
@@ -300,7 +304,8 @@ export class SessionEngine {
       // Memory event + ability update + status (shared with log replay).
       const effect = applyFirstAttempt(this.ctx, this.states, skill.id, {
         correct,
-        hint: input.hint,
+        hint,
+        tier,
         difficulty: presented.difficulty,
         ts: now,
         timed: this.cfg.timed,
@@ -312,7 +317,7 @@ export class SessionEngine {
 
       // Placement posterior; finishing it rewrites priors for every skill.
       if (presented.source === 'placement' && this.placement.state) {
-        const ps = updatePlacement(this.placement.state, skill, presented.item.level, correct && !input.hint);
+        const ps = updatePlacement(this.placement.state, skill, presented.item.level, correct && !hint);
         this.placement = { ...this.placement, state: ps };
         if (ps.done) placementFinished = this.finishPlacement(now);
       }
@@ -342,7 +347,7 @@ export class SessionEngine {
       correct,
       attempt: presented.attempt,
       latency: Math.round(input.latencyMs),
-      hint: input.hint,
+      hint,
       answer: grade.given,
       expected: ratKey(presented.item.answer.value),
       mis: grade.misconception,
@@ -354,6 +359,7 @@ export class SessionEngine {
       input: input.input,
       hops: input.response.kind === 'landed' ? input.response.hops ?? null : input.response.kind === 'hops' ? input.response.count : null,
       alt: grade.altReading,
+      ...(tier !== null ? { tier } : {}),
     };
     return { ...base, record, statusChange, unlocked, willReturn, placementFinished, memoryReview };
   }

@@ -50,6 +50,7 @@ export function replay(ctx: Pick<EngineContext, 'graph' | 'model'>, records: rea
     states = applyFirstAttempt(ctx, states, r.skill, {
       correct: r.correct,
       hint: r.hint,
+      tier: r.tier ?? null,
       difficulty: r.diff,
       ts: r.ts,
       timed: r.timed,
