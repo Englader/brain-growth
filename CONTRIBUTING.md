@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 328 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 293 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow or clipped text
 E2E_ONLY=target npm run e2e   # one flow (or a comma list; full name 40-target also works)
@@ -78,7 +78,7 @@ E2E_PORT=4180 npm run e2e     # another port, so several worktrees can run e2e a
      ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
      speech: ['sq-MK', 'sq-AL', 'sq'], messages: flatten(sq), wordProblems: sqWP });
    ```
-4. **Voice.** Add the number-word composition rule to `numberClips()` in `src/audio/voiceScript.ts` (e.g. "njëzet e një"). Run `npm run gen:audio-script` for the recording list, then record the clips and list them in `src/audio/clips.ts`.
+4. **Voice.** Add the number-word composition rule to `numberClips()` in `src/audio/voiceScript.ts` (e.g. "njëzet e një"). Run `npm run gen:audio-script` for the recording list, then record the clips into `public/audio/<id>/` and run `npm run gen:clips` (the build also does it; see DESIGN §1.12).
 5. **Run `npm run check`.** Parity (keys, placeholders), ICU validity, word-bank slots and **font coverage** (every character must exist in the self-hosted fonts) tell you exactly what's missing. Then run `npm run e2e` with the new language to check nothing overflows. The language toggle lists every registered locale automatically.
 
 ## Parallel work conventions
@@ -185,7 +185,7 @@ Flow numbers:
 |---|---|
 | (core) | `10-core` |
 | (hooks) | `11-hooks` |
-| pilot | 15 |
+| pilot | `15-pilot` |
 | frac | 20 |
 | hint | 25 |
 | weekly | 30 |

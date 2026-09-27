@@ -48,7 +48,21 @@ export class Repo {
     const report = runMigrations(this.kv, this.now());
     this.readOnly = report.readOnly;
     this.migration = report;
+    // Record where log months live (optional field; no schema bump). Covers fresh installs,
+    // which have no meta yet when the storage layer relocates logs.
+    if (this.kv.logStore && !this.readOnly && this.meta().logStore !== this.kv.logStore) {
+      try {
+        this.saveMeta({ logStore: this.kv.logStore });
+      } catch {
+        // localStorage full: purely informational, recorded on a later boot.
+      }
+    }
     return report;
+  }
+
+  /** Resolves once every write so far is durable (a no-op for synchronous stores). */
+  flush(): Promise<void> {
+    return this.kv.flush?.() ?? Promise.resolve();
   }
 
   // ── writes go through here: quota errors trigger compaction, then retry ──
@@ -173,13 +187,14 @@ export class Repo {
   }
 
   // ── storage health ──
-  usage(): { bytes: number; byProfile: Record<string, number> } {
+  /** `bytes`: localStorage (the ~5 MB budget); `idbBytes`: the IndexedDB log store (0 when absent). */
+  usage(): { bytes: number; idbBytes: number; byProfile: Record<string, number> } {
     const byProfile: Record<string, number> = {};
     for (const k of this.kv.keys()) {
       const m = /^bg:(?:profile|log|rollup):([^:]+)/.exec(k);
       if (m) byProfile[m[1]!] = (byProfile[m[1]!] ?? 0) + 2 * (k.length + (this.kv.get(k)?.length ?? 0));
     }
-    return { bytes: this.kv.bytesUsed(), byProfile };
+    return { bytes: this.kv.bytesUsed(), idbBytes: this.kv.idbBytes?.() ?? 0, byProfile };
   }
 
   maintain(): string[] {
