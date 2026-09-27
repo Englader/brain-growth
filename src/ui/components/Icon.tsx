@@ -77,7 +77,11 @@ const PATHS = {
   key: 'M8 16a4 4 0 110-8 4 4 0 010 8zM12 12h9M18 12v3M21 12v2',
   // ── slot: workshop ──
   // ── slot: balance ──
+  // (Balance uses `scale` from the puzzle slot and `undo` from the target slot.)
   // ── slot: coord ──
+  axes: 'M3 12h18M19 10l2 2-2 2M12 21V3M10 5l2-2 2 2M16 7.5a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0',
+  arrowU: 'M12 19V6M6 11l6-6 6 6',
+  arrowD: 'M12 5v13M6 13l6 6 6-6',
   // ── slot: season ──
   egg: 'M12 3c-3.6 0-6.5 6-6.5 10.5a6.5 6.5 0 0013 0C18.5 9 15.6 3 12 3zM6 13l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5',
 } as const;

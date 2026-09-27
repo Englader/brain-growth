@@ -159,7 +159,11 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  // A scale with blocked moves and hints is scaffolded evidence, not a bare answer.
+  balance: 0.75,
   // ── slot: coord ──
+  // A snapped tap on a small lattice is easier to hit by chance than a typed number.
+  coord: 0.75,
   // ── slot: season ──
 };
 

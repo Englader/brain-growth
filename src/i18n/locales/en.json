@@ -639,8 +639,16 @@
     "workshop": {
     },
     "balance": {
+      "addX": "Add {n, plural, =1 {x} other {#x}} to both sides.",
+      "subX": "Subtract {n, plural, =1 {x} other {#x}} from both sides.",
+      "addK": "Add {n} to both sides.",
+      "subK": "Subtract {n} from both sides.",
+      "div": "Divide both sides by {n}.",
+      "result": "So x = {x}."
     },
     "coord": {
+      "across": "{dir, select, none {No steps across: stay on the y-axis.} left {From the origin, go {n, plural, one {# step} other {# steps}} left.} other {From the origin, go {n, plural, one {# step} other {# steps}} right.}}",
+      "upDown": "{dir, select, none {No steps up or down: stay on the x-axis.} down {Then go {n, plural, one {# step} other {# steps}} down.} other {Then go {n, plural, one {# step} other {# steps}} up.}}"
     }
   },
   "mis": {
@@ -811,8 +819,48 @@
     "workshop": {
     },
     "balance": {
+      "sign": {
+        "name": "Right size, wrong sign",
+        "tip": "Check the sign: balloons count as minus and pull the pan up."
+      },
+      "keptSign": {
+        "name": "Moved a term across without changing its sign",
+        "tip": "Undo it on both sides: to remove a plus, subtract; to remove a minus, add."
+      },
+      "oneSide": {
+        "name": "Changed one side only",
+        "tip": "Whatever you do to one pan, do to the other pan too."
+      },
+      "noDivide": {
+        "name": "Stopped before dividing",
+        "tip": "With several x on one side, divide both sides by how many x there are."
+      },
+      "subCoef": {
+        "name": "Subtracted instead of dividing",
+        "tip": "3x means 3 times x: undo it by dividing by 3, not by subtracting 3."
+      },
+      "mulCoef": {
+        "name": "Multiplied instead of dividing",
+        "tip": "3x = 12 asks which number times 3 makes 12: divide, do not multiply."
+      },
+      "divPartial": {
+        "name": "Divided only part of a side",
+        "tip": "Divide every part of both sides: the weights too, not only the x-boxes."
+      }
     },
     "coord": {
+      "swapped": {
+        "name": "Swapped x and y",
+        "tip": "x comes first and goes across; y comes second and goes up or down."
+      },
+      "sign": {
+        "name": "Went the wrong way on an axis",
+        "tip": "Minus x is left of 0; minus y is below 0."
+      },
+      "offByOne": {
+        "name": "One step off",
+        "tip": "Start counting at 0, not at 1."
+      }
     }
   },
   "cos": {
@@ -1134,8 +1182,22 @@
     "workshop": {
     },
     "balance": {
+      "recovered": {
+        "name": "Steady Hands",
+        "desc": "The scale tipped, you tried again, and found x.",
+        "hint": "Solve a Balance equation after the scale refuses a move.",
+        "name@C": "Rebalanced",
+        "desc@C": "Solved an equation after a refused move."
+      }
     },
     "coord": {
+      "quadrants": {
+        "name": "Four Quadrants",
+        "desc": "Put points in all four quadrants.",
+        "hint": "Plot or read points left of 0 and below 0 too.",
+        "name@C": "All Quadrants",
+        "desc@C": "Worked in all four quadrants of the plane."
+      }
     },
     "season": {
       "newYear": {
@@ -1552,8 +1614,99 @@
   "workshop": {
   },
   "balance": {
+    "title": "Balance",
+    "title@C": "Balance scale",
+    "desc": "Keep the scale level and find x.",
+    "desc@C": "Solve equations on a balance scale.",
+    "flag": "Balance: equations on a scale",
+    "locked": "Opens once you are ready for equations.",
+    "locked@C": "Unlocks with one-step equations.",
+    "prompt": "Do the same to both pans until x is alone.",
+    "prompt@C": "Keep both sides equal until x stands alone.",
+    "bondPrompt": "Find the missing number: {eq}",
+    "bondPrompt@C": "Find the unknown number: {eq}",
+    "isolated": "x is alone! How much is x?",
+    "isolated@C": "x is isolated. What is x?",
+    "var": "x",
+    "xEquals": "x =",
+    "scaleLabel": "Scale. Left pan: {left}. Right pan: {right}.",
+    "takeOne": "Take this off one pan only",
+    "op": {
+      "add": "Add to both pans",
+      "sub": "Take away from both pans",
+      "div": "Divide both pans"
+    },
+    "apply": "{move} on both pans",
+    "apply@C": "{move} on both sides",
+    "undo": "Undo",
+    "showMe": "Show me",
+    "showMe@C": "Show solution",
+    "moves": "Your moves",
+    "check": "Check",
+    "youTyped": "You typed {given}. x is {answer}.",
+    "youTyped@C": "Your answer: {given}. Correct: x = {answer}.",
+    "shown": "Here is one way to balance it:",
+    "shown@C": "One way to solve it:",
+    "move": {
+      "addX": "Add {n, plural, =1 {x} other {#x}} to both pans.",
+      "subX": "Take {n, plural, =1 {x} other {#x}} off both pans.",
+      "addK": "Add {n} to both pans.",
+      "subK": "Take {n} off both pans.",
+      "div": "Divide both pans by {n}."
+    },
+    "hint": {
+      "x": "Get all the x-boxes onto one pan.",
+      "k": "Clear the weights from the pan with the x-boxes.",
+      "div": "Split both pans into equal groups.",
+      "then": {
+        "x": "Then gather the x-boxes on one pan.",
+        "k": "Then clear the weights next to x.",
+        "div": "Then split both pans into equal groups."
+      }
+    },
+    "blocked": {
+      "unbalanced": "Whoa, the scale tips! Do the same to both pans.",
+      "unbalanced@C": "That unbalances the scale. Apply it to both sides.",
+      "nonInteger": "That does not split into equal groups.",
+      "noop": "That does not change anything.",
+      "negative": "There is not that much on the pan.",
+      "invalid": "That move is not possible."
+    }
   },
   "coord": {
+    "title": "Coordinates",
+    "title@C": "Coordinate plane",
+    "desc": "Put points on a grid and read where they are.",
+    "desc@C": "Plot and read points.",
+    "flag": "Coordinate plane",
+    "locked": "Opens after negative numbers on the number line.",
+    "locked@C": "Unlocks with negative numbers.",
+    "plot": "Put a dot at {point}.",
+    "plot@C": "Plot the point {point}.",
+    "read": "Where is the dot? Type x, then y.",
+    "read@C": "Read the coordinates of the point.",
+    "x": "x",
+    "y": "y",
+    "xField": "x, across",
+    "xField@C": "x (abscissa)",
+    "yField": "y, up or down",
+    "yField@C": "y (ordinate)",
+    "plane": "Coordinate plane",
+    "tapPlane": "Tap the grid to put the dot.",
+    "left": "Move left",
+    "right": "Move right",
+    "up": "Move up",
+    "down": "Move down",
+    "confirm": "Check",
+    "next": "Next",
+    "youPut": "You put the dot at {given}. The point is {answer}.",
+    "youPut@C": "Your point: {given}. Correct point: {answer}.",
+    "youRead": "You typed {given}. The dot is at {answer}.",
+    "youRead@C": "Your answer: {given}. Correct: {answer}.",
+    "hint": {
+      "plot": "Start at 0. Go across for x, then up or down for y.",
+      "read": "From 0, count across to the dot for x, then up or down for y."
+    }
   },
   "season": {
     "flag": "Seasonal touches: New Year and Easter decorations, seasonal cosmetics as surprise gifts, a festive weekly theme and a festive greeting.",

@@ -27,6 +27,7 @@ import { fracLineGen } from './fractions';
 // ── slot: puzzle ──
 // ── slot: workshop ──
 // ── slot: balance ──
+import { eqBondGen } from './eqBond';
 // ── slot: coord ──
 // ── slot: season ──
 
@@ -58,6 +59,8 @@ const BUILTIN = [
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  // Hop serves al.eq.onestep as a missing number (no walls), so this one is eager.
+  eqBondGen,
   // ── slot: coord ──
   // ── slot: season ──
 ];
@@ -83,7 +86,9 @@ const ON_DEMAND: OnDemandGenerators[] = [
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  { declared: [{ id: 'equation', capabilities: ['build'] }], load: () => import('./equation').then((m) => [m.equationGen]) },
   // ── slot: coord ──
+  { declared: [{ id: 'coord', capabilities: ['build'] }], load: () => import('./coord').then((m) => [m.coordGen]) },
   // ── slot: season ──
 ];
 

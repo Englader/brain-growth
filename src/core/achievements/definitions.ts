@@ -74,7 +74,9 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'puzzle.estimator', category: 'exploration', bands: ['B', 'C'], icon: 'ruler', on: ON_ITEM, when: { metric: 'puzzle.estimatesSolved', gte: 10 } },
   // ── slot: workshop ──
   // ── slot: balance ──
+  { id: 'balance.recovered', category: 'resilience', bands: ['B', 'C'], icon: 'scale', on: ON_ITEM, when: { metric: 'balance.recovered', gte: 1 } },
   // ── slot: coord ──
+  { id: 'coord.quadrants', category: 'exploration', bands: ['B', 'C'], icon: 'axes', on: ON_ITEM, when: { metric: 'coord.quadrants', gte: 4 } },
   // ── slot: season ──
   // "Played during …" (plan step 10): secret discoveries, earned by any session in the season, any year.
   { id: 'season.newYear', category: 'discovery', bands: 'all', secret: true, icon: 'snow', on: ON_SESSION, when: { metric: 'season.played', params: { season: 'newYear' }, gte: 1 } },

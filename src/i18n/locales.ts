@@ -11,6 +11,7 @@
  * empty and `loaded` false. Node callers (tests, scripts) run loadAllLocales().
  */
 import type { LocaleId } from '../core/types';
+import { POINT_NOTATIONS, type PointNotation } from '../core/coord/notation';
 import type { NumberConventions } from './numbers';
 
 export interface WordProblemBank {
@@ -35,6 +36,8 @@ export interface LocaleConfig {
   /** Short label on the always-visible language toggle. */
   short: string;
   numbers: NumberConventions;
+  /** How a point is written, "(3, −2)" or "(3; −2)" (src/core/coord/notation.ts); default by locale id. */
+  point?: PointNotation;
   ops: OperatorGlyphs;
   /** Speech-synthesis languages to accept, in preference order. Never a different language. */
   speech: readonly string[];
@@ -127,6 +130,7 @@ registerLocale({
   short: 'EN',
   numbers: { bcp47: 'en-US', decimal: '.', group: ',', minimumGroupingDigits: 1, minus: '−', percent: '%' },
   ops: { '+': '+', '-': '−', '*': '×', '/': '÷', '=': '=' },
+  point: POINT_NOTATIONS.en,
   speech: ['en-US', 'en-GB', 'en-AU', 'en-IE', 'en'],
   load: () => Promise.all([import('./locales/en.json'), import('./wordproblems/en.json')]),
 });
@@ -144,6 +148,8 @@ registerLocale({
   numbers: { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−', percent: '\u00A0%' },
   // Macedonian schooling writes multiplication as · and division as :
   ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
+  // "(3, −2)" as in the МОН одделение 6 textbook; "(1,5; −2)" once a decimal comma appears.
+  point: POINT_NOTATIONS.mk,
   speech: ['mk-MK', 'mk'],
   load: () => Promise.all([import('./locales/mk.json'), import('./wordproblems/mk.json')]),
 });

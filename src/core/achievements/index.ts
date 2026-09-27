@@ -12,7 +12,9 @@ import './metrics/target';
 import './metrics/puzzle';
 // ── slot: workshop ──
 // ── slot: balance ──
+import './metrics/balance';
 // ── slot: coord ──
+import './metrics/coord';
 // ── slot: season ──
 import './metrics/season';
 
