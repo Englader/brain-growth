@@ -5,26 +5,15 @@
 .tnum {
   font-variant-numeric: tabular-nums;
 }
+/* The stacked fraction itself is the shared Frac (ui/components/frac.css); here only its size and sign. */
 .tfrac {
   display: inline-flex;
   align-items: center;
   gap: 0.06em;
   vertical-align: middle;
 }
-.tfrac-stack {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+.tfrac .stacked {
   font-size: 0.62em;
-  line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-}
-.tfrac-n {
-  border-bottom: 0.13em solid currentColor;
-  padding: 0 0.18em 0.04em;
-}
-.tfrac-d {
-  padding: 0.04em 0.18em 0;
 }
 .texpr {
   display: inline-flex;

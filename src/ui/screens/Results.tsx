@@ -86,7 +86,7 @@ export function Results(): JSX.Element | null {
   const bandA = band.id === 'A';
   const again = (): void => {
     const mode = getMode(r.modeId);
-    if (mode) launchMode(mode, r.opts.stretch ? { stretch: true } : {}, true);
+    if (mode) launchMode(mode, { ...(r.opts.stretch ? { stretch: true } : {}), ...(r.opts.theme ? { theme: r.opts.theme } : {}) }, true);
     else navigate('/', true);
   };
   const achIcon = (id: string): string => ACHIEVEMENTS.find((a) => a.id === id)?.icon ?? 'star';

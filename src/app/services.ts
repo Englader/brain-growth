@@ -3,21 +3,10 @@ import { Speaker } from '../audio/speech';
 import { isEnabled } from '../core/flags';
 import { freshSeed } from '../core/rng';
 import type { SkillId } from '../core/types';
-import { LocalStorageKV, MemoryKV, type KV } from '../data/kv';
+import { isQuotaError } from '../data/kv';
 import { Repo } from '../data/repo';
-import { getState } from './store';
-
-function makeKV(): KV {
-  try {
-    const probe = '__bg_probe__';
-    window.localStorage.setItem(probe, '1');
-    window.localStorage.removeItem(probe);
-    return new LocalStorageKV();
-  } catch {
-    // Private mode or storage blocked: play still works, nothing persists.
-    return new MemoryKV();
-  }
-}
+import { createStorage, openLocalKV, type StorageHandle } from '../data/storage';
+import { getState, setState } from './store';
 
 /**
  * Test-only overrides. They stay at their defaults unless the URL carries
@@ -32,7 +21,32 @@ export const testOverrides: { clockOffsetMs: number; seed: number | null; only: 
 /** The app clock. Everything that stores or compares time goes through this. */
 export const now = (): number => Date.now() + testOverrides.clockOffsetMs;
 
-export const repo = new Repo(makeKV(), () => now());
+/**
+ * The repository. It starts on today's localStorage path (MemoryKV if storage
+ * is blocked: play works, nothing persists); initStorage(), awaited in main.tsx
+ * before boot(), swaps in the IndexedDB-backed store (DESIGN A-8). `export let`
+ * is a live binding, so every importer sees the swap.
+ */
+export let repo = new Repo(openLocalKV().kv, () => now());
+
+/** What initStorage() chose: mode, single-writer lock, persistence. Null until it ran (or if it failed). */
+export let storage: StorageHandle | null = null;
+
+/** Relocate log months to IndexedDB, hydrate the mirror and take the writer lock. Never rejects. */
+export async function initStorage(): Promise<void> {
+  try {
+    const s = await createStorage({
+      // Log writes are persisted in the background; a full disk shows the same notice as a full localStorage.
+      onPersistError: (e) => {
+        if (isQuotaError(e)) setState({ storageFull: true });
+      },
+    });
+    storage = s;
+    repo = new Repo(s.kv, () => now());
+  } catch {
+    // Keep the localStorage repository: exactly the pre-IndexedDB behaviour.
+  }
+}
 
 let seedCount = 0;
 /** Seed for a new session's engine and reward rng: random, or a fixed sequence under `?e2e&seed=<n>`. */

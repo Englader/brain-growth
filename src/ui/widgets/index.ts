@@ -9,6 +9,7 @@
 // ── slot: pilot ──
 // ── slot: storage ──
 // ── slot: weekly ──
+import './WeeklyCard';
 // ── slot: target ──
 // ── slot: dice ──
 // ── slot: puzzle ──

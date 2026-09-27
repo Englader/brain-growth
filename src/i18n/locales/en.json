@@ -183,8 +183,16 @@
     "sessionDone": "Great playing today!",
     "trophy": "You found a trophy!",
     "frac": {
+      "hopTo": "Hop to {n} out of {d} parts!",
+      "outOf": "out of",
+      "parts": "parts",
+      "bigger": "Land on the bigger number!",
+      "smaller": "Land on the smaller number!",
+      "flag": "Hop to the flag!"
     },
     "weekly": {
+      "intro": "This is this week's game! Play it to light up the stones.",
+      "done": "All the stones are lit! There's a gift for you."
     },
     "target": {
       "makeTen": "Make ten! Tap the cards.",
@@ -199,6 +207,8 @@
     "workshop": {
     },
     "season": {
+      "newYear": "Hi! Happy New Year! Let's play!",
+      "easter": "Hi! Happy holidays! Let's play!"
     }
   },
   "results": {
@@ -570,6 +580,34 @@
     "addNeg": "Adding a negative is taking away: {a} + (−{b}) = {a} − {b}.",
     "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}.",
     "frac": {
+      "unitSplit": "One whole, from 0 to 1, is split into {d} equal parts.",
+      "unitHops": "{n}/{d} is {n, plural, one {# hop} other {# hops}} of 1/{d} from 0.",
+      "equivDen": "The denominator {b} becomes {bn}: {b} {op} {m} = {bn}.",
+      "equiv": "{a}/{b} = {an}/{bn}: multiply the numerator and the denominator by {m}.",
+      "commonDen": "Use the common denominator {l}: it is a multiple of both {b} and {d}.",
+      "common": "With denominator {l}: {a}/{b} = {a2}/{l} and {c}/{d} = {c2}/{l}.",
+      "sameDen": "Same denominator {d}: the one with more parts is bigger.",
+      "sameNum": "Same numerator {n}: the more parts a whole is cut into, the smaller each part.",
+      "bigger": "{n1}/{d1} is bigger than {n2}/{d2}.",
+      "smaller": "{n1}/{d1} is smaller than {n2}/{d2}.",
+      "tenthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one tenth.",
+      "hundredthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one hundredth.",
+      "tenthsHops": "From {lo}, {n, plural, one {# hop of one tenth reaches} other {# hops of one tenth reach}} {x}.",
+      "hundredthsHops": "From {lo}, {n, plural, one {# hop of one hundredth reaches} other {# hops of one hundredth reach}} {x}.",
+      "decPlaces": "Compare the tenths first, then the hundredths.",
+      "decTenths": "{a} is {an, plural, one {# tenth} other {# tenths}} and {b} is {bn, plural, one {# tenth} other {# tenths}}.",
+      "decHundredths": "{a} is {an, plural, one {# hundredth} other {# hundredths}} and {b} is {bn, plural, one {# hundredth} other {# hundredths}}.",
+      "decBigger": "{a} is bigger than {b}.",
+      "decSmaller": "{a} is smaller than {b}.",
+      "decSplit2": "Split it up: {b} = {p1} + {p2}.",
+      "decSplit3": "Split it up: {b} = {p1} + {p2} + {p3}.",
+      "pctTen": "{p}% of {of} is {ten}: that is one hop.",
+      "pctHalf": "50% is one half: {of} {op} 2 = {r}.",
+      "pctQuarter": "25% is one quarter: {of} {op} 4 = {r}.",
+      "pctThreeQuarters": "75% is three quarters: {of} {op} 4 = {q}, and three of those make {r}.",
+      "pctHops": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10%: {r}.",
+      "pctFive": "5% is half of 10%: half of {ten} is {r}.",
+      "pctHopsHalf": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10% and half a hop: {r}."
     },
     "target": {
     },
@@ -680,6 +718,54 @@
       "tip": "From a negative number, adding moves you right, toward 0."
     },
     "frac": {
+      "biggerDen": {
+        "name": "Thought a bigger denominator means a bigger fraction",
+        "tip": "A bigger denominator means smaller parts: 1/8 is less than 1/4."
+      },
+      "countedTicks": {
+        "name": "Counted the tick marks instead of the parts",
+        "tip": "Count the hops between the ticks, not the ticks themselves."
+      },
+      "addSame": {
+        "name": "Added the same number to the numerator and the denominator",
+        "tip": "Multiply the numerator and the denominator by the same number; adding changes the fraction."
+      },
+      "numeratorOnly": {
+        "name": "Looked only at the numerator",
+        "tip": "The denominator matters too: it tells you how big each part is."
+      },
+      "wholeLine": {
+        "name": "Split the whole line instead of one whole",
+        "tip": "One whole is the space from 0 to 1. Split that, not the whole line."
+      },
+      "dec": {
+        "longerIsLarger": {
+          "name": "Thought more digits means a bigger number",
+          "tip": "Compare the tenths first: 0.5 = 0.50, which is more than 0.45."
+        },
+        "shorterIsLarger": {
+          "name": "Thought fewer digits means a bigger number",
+          "tip": "Give both the same number of decimals: 0.3 = 0.30, which is less than 0.45."
+        },
+        "misaligned": {
+          "name": "Lined up the last digits instead of the decimal points",
+          "tip": "Line up the decimal points: tenths under tenths, hundredths under hundredths."
+        },
+        "tenthsAsHundredths": {
+          "name": "Mixed up tenths and hundredths",
+          "tip": "The first digit after the point is tenths, the second is hundredths. Ten tenths make one whole."
+        }
+      },
+      "pct": {
+        "asNumber": {
+          "name": "Gave the percent itself as the answer",
+          "tip": "A percent is a part of 100. Find 10% first, then build up."
+        },
+        "dividedBy": {
+          "name": "Divided by the percent",
+          "tip": "Percent means out of 100: 10% of 80 is 80 ÷ 10 = 8."
+        }
+      }
     },
     "target": {
       "reusedCard": {
@@ -734,8 +820,40 @@
     "title.analyst": "Analyst",
     "title.architect": "Architect",
     "weekly": {
+      "counting.pad": "Dotty pads",
+      "bonds.pad": "Two-part pads",
+      "bridgeTen.pad": "Bridge pads",
+      "doubles.pad": "Mirror pads",
+      "tens.pad": "Striped pads",
+      "numberLine.pad": "Ruler pads",
+      "mixed.pad": "Rainbow pads",
+      "bridgeTen.color": "River",
+      "doubles.color": "Spring green",
+      "tens.color": "Pumpkin",
+      "bridgeHundred.color": "Raspberry",
+      "tables.color": "Night blue",
+      "bigNumbers.color": "Pine",
+      "numberLine.color": "Sky",
+      "belowZero.color": "Deep sea",
+      "mixed.color": "Fuchsia",
+      "bridgeHundred.theme": "Apricot",
+      "tables.theme": "Lavender",
+      "bigNumbers.theme": "Flamingo",
+      "numberLine.theme": "Lime",
+      "belowZero.theme": "Glacier",
+      "mixed.theme": "Orchid"
     },
     "season": {
+      "newYear.hat": "Winter hat",
+      "newYear.pad": "Snowy pad",
+      "newYear.color": "Festive red",
+      "newYear.theme": "Frost",
+      "newYear.title": "Polar Explorer",
+      "easter.hat": "Flower crown",
+      "easter.pad": "Painted-egg pad",
+      "easter.color": "Sunny yellow",
+      "easter.theme": "Meadow",
+      "easter.title": "Spring Explorer"
     }
   },
   "ach": {
@@ -974,6 +1092,14 @@
     "coord": {
     },
     "season": {
+      "newYear": {
+        "name": "Winter Wonder",
+        "desc": "You played during the New Year holidays."
+      },
+      "easter": {
+        "name": "Spring Blossom",
+        "desc": "You played during the Easter holidays."
+      }
     }
   },
   "clip": {
@@ -1024,6 +1150,16 @@
     }
   },
   "frac": {
+    "locate": "Where is this fraction?",
+    "locateDec": "Where is this decimal?",
+    "biggerFrac": "Which fraction is bigger? Land on it.",
+    "smallerFrac": "Which fraction is smaller? Land on it.",
+    "biggerDec": "Which number is bigger? Land on it.",
+    "smallerDec": "Which number is smaller? Land on it.",
+    "read": "Which number is at the flag? Type it.",
+    "equiv": "Which number goes in the numerator?",
+    "percent": "How much is that? Type the number.",
+    "pctOf": "{pct} of {of}"
   },
   "hint": {
     "nextHop": "Show me the first hop",
@@ -1074,14 +1210,131 @@
       "addNeg": "Adding a negative number is the same as taking away the positive number.",
       "addNeg@C": "Adding a negative number means subtracting its opposite.",
       "intMove": "On the number line, adding takes you to the right and taking away to the left.",
-      "generic": "Picture it on the number line: where do you start, and which way do you hop?"
+      "generic": "Picture it on the number line: where do you start, and which way do you hop?",
+      "frac": {
+        "unit": "The denominator says how many equal parts the whole from zero to one has; the numerator says how many parts to hop.",
+        "unit@C": "The denominator is the number of equal parts in one whole; the numerator is how many of them to count.",
+        "equiv": "Write the fraction with the new denominator: multiply the numerator and the denominator by the same number.",
+        "sameNum": "Same numerator: the more parts the whole is cut into, the smaller each part.",
+        "sameDen": "Same denominator: compare the numerators. More parts of the same size is more.",
+        "commonDen": "Give both fractions the same denominator, then compare the numerators.",
+        "tenths": "Each small part is one tenth: count the parts from the start of the line.",
+        "hundredths": "Each small part is one hundredth: count the parts from the start of the line.",
+        "decCompare": "Compare the whole numbers first, then the tenths, then the hundredths.",
+        "decParts": "Split the second number into wholes, tenths and hundredths, then hop one part at a time.",
+        "pct": "Find ten percent first: it is one tenth of the whole. Then build the rest from it."
+      }
     }
   },
   "pilot": {
+    "title": "Pilot readout",
+    "help": "The two-week pilot measures, computed from the play log on this device. Compare them week by week rather than judging by one number.",
+    "exits": "Exits after a mistake",
+    "exitsOf": "{n} of {total, plural, one {# early exit} other {# early exits}}",
+    "exitsNone": "No early exits",
+    "hints": "Hint use",
+    "hintsOf": "{n} of {total, plural, one {# problem} other {# problems}}",
+    "hintsNone": "No Band B or C problems",
+    "feedback": "Time on feedback",
+    "feedbackOf": "median of {n, plural, one {# mistake} other {# mistakes}}",
+    "feedbackNone": "No mistakes yet",
+    "freeChoice": "Play after the quest",
+    "freeChoiceOf": "of that day's problems",
+    "freeChoiceNone": "No quest completed",
+    "session": "last 30 days",
+    "calTitle": "Largest calibration gaps",
+    "calNone": "Shown after 15 first tries on a skill.",
+    "misTitle": "Most frequent mistake patterns",
+    "strategy": {
+      "title": "Strategy",
+      "help": "Strategy (Band A): how often an answer used the hop buttons (counting on) rather than a direct tap on the number, and the median time of correct answers in the earlier half, then the later half. Fewer hops and faster answers mean a fact is moving from counting to memory.",
+      "split": "Hop buttons {hops}% · direct taps {taps}%",
+      "counting": "Counting on",
+      "mixed": "Mixed",
+      "retrieval": "Knows it by heart"
+    },
+    "clips": {
+      "missing": "Recording checklist: {n, plural, one {# clip} other {# clips}} to go",
+      "done": "Every clip is recorded.",
+      "how": "Record each clip as an MP3 with the name shown and put it in {dir}. Then run npm run gen:clips (npm run build does it too)."
+    }
   },
   "storage": {
+    "otherTab": "Hopa is already open in another browser tab or window, so nothing is saved here. Close Hopa there, then reload this page.",
+    "idbUsed": "Answer history: {kb} KB in the browser's database, with room for years of play.",
+    "localOnly": "The browser's database is not available, so the answer history stays in the storage above; when it fills up, the oldest months are summarised.",
+    "historyHidden": "Older answer history could not be opened this time. Nothing is lost: reload the page. A backup made now would not include it.",
+    "persisted": "Protected: the browser will not clear this data to free up space.",
+    "notPersisted": "The browser may clear this data if the device runs low on space.",
+    "keepSafe": "Keep data safe",
+    "keepSafeDenied": "The browser has not allowed it yet. Adding Hopa to the Home Screen and regular backups also keep the data safe."
   },
   "weekly": {
+    "title": "This week's challenge",
+    "title@C": "Weekly challenge",
+    "play": "Play this week's challenge",
+    "play@C": "Play",
+    "how": "Every game with 3 problems from this week's theme lights a stone.",
+    "how@C": "A session with at least 3 theme problems counts.",
+    "progress": "{done} of {target} stones lit",
+    "progress@C": "{done}/{target} sessions",
+    "complete": "All the stones are lit — the week's gift is yours!",
+    "complete@C": "Set complete. Reward unlocked.",
+    "stone": "A stone lit up on this week's challenge: {done} of {target}",
+    "stone@C": "Weekly challenge: {done}/{target} sessions",
+    "reward": "This week's challenge is complete — there's a gift for you!",
+    "reward@C": "Weekly challenge complete: new reward unlocked.",
+    "flag": "Weekly themed challenge: a 5-session set with a surprise cosmetic; sessions started from its card practise the theme's skills more often.",
+    "adult": {
+      "freeChoice": "Play after the weekly challenge was complete: {pct}% of that week's problems",
+      "freeChoiceNone": "No weekly challenge completed yet."
+    },
+    "theme": {
+      "counting": {
+        "name": "Counting week",
+        "desc": "Count the dots and know small numbers at a glance."
+      },
+      "bonds": {
+        "name": "Make-ten week",
+        "desc": "Numbers that fit together to make 5 and 10."
+      },
+      "bridgeTen": {
+        "name": "Bridge week: crossing ten",
+        "desc": "Adding and taking away across ten."
+      },
+      "doubles": {
+        "name": "Doubles week",
+        "desc": "Doubles, equal groups and times 2, 5 and 10."
+      },
+      "tens": {
+        "name": "Tens week",
+        "desc": "Tens and ones, all the way to 100."
+      },
+      "bridgeHundred": {
+        "name": "Bridge week: crossing a hundred",
+        "desc": "Adding and subtracting across hundreds."
+      },
+      "tables": {
+        "name": "Times-table week",
+        "desc": "Multiplication and division facts."
+      },
+      "bigNumbers": {
+        "name": "Big-numbers week",
+        "desc": "Multiplying by tens, hundreds and bigger numbers."
+      },
+      "numberLine": {
+        "name": "Number-line week",
+        "desc": "Find where every number lives on the line."
+      },
+      "belowZero": {
+        "name": "Below-zero week",
+        "desc": "Negative numbers: adding and subtracting below zero."
+      },
+      "mixed": {
+        "name": "Mixed week",
+        "desc": "A little of everything you are learning."
+      }
+    }
   },
   "target": {
     "title": "Make it",
@@ -1141,5 +1394,18 @@
   "coord": {
   },
   "season": {
+    "flag": "Seasonal touches: New Year and Easter decorations, seasonal cosmetics as surprise gifts, a festive weekly theme and a festive greeting.",
+    "newYear": {
+      "name": "New Year",
+      "week": "New Year week",
+      "weekDesc": "Snowflakes and sparkles: every kind of problem counts this week.",
+      "weekDesc@C": "Festive week: every skill counts."
+    },
+    "easter": {
+      "name": "Easter",
+      "week": "Painted-egg week",
+      "weekDesc": "Painted eggs and spring flowers: every kind of problem counts this week.",
+      "weekDesc@C": "Spring week: every skill counts."
+    }
   }
 }

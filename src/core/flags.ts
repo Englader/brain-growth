@@ -34,6 +34,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  { id: 'weekly', scope: 'profile', default: true, labelKey: 'weekly.flag', description: 'Weekly themed challenge: a 5-session set with a cosmetic set piece; themed sessions boost theme skills.' },
   // ── slot: target ──
   { id: 'mode.target', scope: 'profile', default: true, description: 'Make it: combine dealt cards with the operations to hit a target number (all bands; evidence weight 0.5).', labelKey: 'target.flag' },
   // ── slot: dice ──
@@ -42,6 +43,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  { id: 'season', scope: 'profile', default: true, labelKey: 'season.flag', description: 'Seasonal touches (New Year, Orthodox Easter): decoration, seasonal cosmetics in the drop pool, the seasonal weekly theme, a seasonal greeting.' },
 ];
 
 const byId = new Map(FLAGS.map((f) => [f.id, f]));

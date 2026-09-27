@@ -1,8 +1,8 @@
 # Hopa · Хопа
 
-An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, a three-step hint ladder helps a stuck child without giving the answer away, and mistakes replay as worked hops. In **Make it**, children combine dealt cards to hit a target number, then see the other ways.
+An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**: whole numbers, integers, fractions, decimals and percent. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, a three-step hint ladder helps a stuck child without giving the answer away, and mistakes replay as worked hops. In **Make it**, children combine dealt cards to hit a target number, then see the other ways.
 
-It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device, with backup export and import.
+It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device (the answer history in IndexedDB, so years of it fit), with backup export and import.
 
 - **Play:** https://englader.github.io/brain-growth/ (live after the first push to `main`; see below)
 - **Design document** (assumptions, design, data model, slice, build order, roadmap): [DESIGN.md](DESIGN.md)
@@ -24,6 +24,8 @@ npm run build    # → dist/ (not committed; CI builds and deploys)
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 
-The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, backups, per-child feature flags and which speech voices each device has.
+The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, hint use, time on feedback, Band A counting vs recall), backups, storage use with a "keep data safe" button, per-child feature flags and which speech voices each device has.
+
+**Adding voice recordings:** save each clip named in [the recording script](design/audio-recording-script.md) as `public/audio/<locale>/<clip-id>.mp3`, run `npm run gen:clips` (the build also does it) and commit the files with the regenerated manifest; Grown-ups → Voices lists what is still missing.
 
 Fonts: Nunito and Inter (SIL Open Font License), self-hosted.

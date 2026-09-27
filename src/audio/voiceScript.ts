@@ -38,10 +38,18 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.trophy': ['voice.trophy'],
   // Feature voice lines (keys `voice.<feature>.*`), each under its own anchor:
   // ── slot: frac ──
+  // "Hop to 3 out of 4 parts": grammatical with plain number words in both languages
+  // (mk "дел" is masculine, so "еден од два дела" needs no feminine numerals).
+  'voice.frac.hopTo': ['cmd.hopTo', '{n}', 'voice.frac.outOf', '{d}', 'voice.frac.parts'],
+  'voice.frac.bigger': ['voice.frac.bigger'],
+  'voice.frac.smaller': ['voice.frac.smaller'],
+  'voice.frac.flag': ['voice.frac.flag'],
   // ── slot: hint ──
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  'voice.weekly.intro': ['voice.weekly.intro'],
+  'voice.weekly.done': ['voice.weekly.done'],
   // ── slot: target ──
   'voice.target.makeTen': ['voice.target.makeTen'],
   'voice.target.make': ['voice.target.makeWord', '{n}'],
@@ -52,6 +60,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  'voice.season.newYear': ['voice.season.newYear'],
+  'voice.season.easter': ['voice.season.easter'],
 };
 
 /** Per-locale overrides where word order differs (none needed for en/mk yet). */

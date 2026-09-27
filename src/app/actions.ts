@@ -23,6 +23,7 @@ import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../c
 import { EVENTS } from '../core/log/types';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
 import { questsForDay } from '../core/quests';
+import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
 import { createRng } from '../core/rng';
@@ -35,8 +36,10 @@ import { defaultPlannedItems, getMode } from '../modes/registry';
 import type { ModeDef } from '../modes/types';
 import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
-import { nextSeed, now, repo, testOverrides } from './services';
+import { nextSeed, now, repo, storage, testOverrides } from './services';
+import { seasonalDropDate } from './seasonActions';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
+import { pinWeeklyFor, settleWeekly, weeklyBoostFor } from './weeklyActions';
 
 export { evalCtx, recentLog } from './persist';
 
@@ -47,11 +50,15 @@ export function toast(msg: string): void {
 
 // ── boot & profiles ────────────────────────────────────────────────────────
 export function boot(): void {
-  repo.init();
+  // Single writer (Web Locks): while another tab has Hopa open, this one only reads.
+  // It neither migrates nor writes (its log mirror would clobber the writer's), and shows a notice.
+  const otherTab = storage?.writer.status === 'busy';
+  if (otherTab) repo.readOnly = true;
+  else repo.init();
   repo.maintain();
   const meta = repo.meta();
   const profiles = repo.listProfiles();
-  setState({ meta, profiles, readOnly: repo.readOnly, booted: true });
+  setState({ meta, profiles, readOnly: repo.readOnly, otherTab, booted: true });
   const active = profiles.find((p) => p.id === meta.activeProfileId);
   if (active) openProfile(active);
 }
@@ -69,6 +76,7 @@ export function openProfile(p: Profile): void {
   if (questsOn(next) && next.quests?.day !== today) {
     next = { ...next, quests: { day: today, ids: questsForDay(p.id, today, p.band), done: [], rewarded: false } };
   }
+  next = pinWeeklyFor(next, t);
   setState({ profile: next });
   appendLog(p.id, recs);
   next = unlockAchievements(next, 'open', null).profile;
@@ -186,6 +194,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
   if ((p.flags['debug.shortSessions'] ?? deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
   const timed = !!mode.timed && !o.noClock;
+  const boost = weeklyBoostFor(p, o.theme);
   const engine = new SessionEngine(
     { graph: GRAPH, model: glickoElo, now },
     { skills: p.skills, placement: mode.placement ? p.placement : { ...p.placement, state: null } },
@@ -204,6 +213,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
       stretch: !!o.stretch,
       timed,
       ...(only ? { only } : {}),
+      ...(boost ? { boost } : {}),
     },
   );
   const masteryStart: Record<string, number> = {};
@@ -231,7 +241,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   };
   const rec: SessionRecord = {
     type: 'session', ts: t, sid, phase: 'start', mode: modeId, band: p.band, locale: p.locale,
-    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null,
+    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null, lastCorrect: null, exitIndex: null,
   };
   appendLog(p.id, [rec]);
   return session;
@@ -278,7 +288,7 @@ export function recordAnswer(
   let rewards = p.rewards;
   const gifts = [...s.gifts];
   if (first) {
-    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const roll = rollDrop(p.rewards.itemsSinceDrop, [...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, now()));
     rewards = {
       itemsSinceDrop: roll.itemsSinceDrop,
       pending: roll.dropped ? [...p.rewards.pending, roll.dropped.id] : p.rewards.pending,
@@ -329,7 +339,8 @@ export function recordAnswer(
 }
 
 /**
- * Close `session` for `profile`: end record, session count, sprint personal
+ * Close `session` for `profile`: end record (including how it ended: whether
+ * the last answer was right and, if left early, the exit point), session count, sprint personal
  * best, achievements, quest reward. Saves the profile and returns the result
  * for the results screen (the caller decides where it goes).
  */
@@ -340,6 +351,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const rec: SessionRecord = {
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
     items: s.firstAttempts, firstCorrect: s.firstCorrect, durationMs: t - s.startedAt, completed,
+    lastCorrect: lastAnswerCorrect(recentLog(p.id), s.id), exitIndex: exitIndex(completed, s.engine.stats.firstPresented),
   };
   appendLog(p.id, [rec]);
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };
@@ -361,7 +373,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const gifts = [...s.gifts];
   const quests = p.quests;
   if (quests && !quests.rewarded && quests.ids.length && quests.done.length === quests.ids.length) {
-    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng);
+    const c = pickCosmetic([...p.cosmetics.owned, ...p.rewards.pending], p.band, s.rng, seasonalDropDate(p, t));
     p = {
       ...p,
       quests: { ...quests, rewarded: true },
@@ -370,6 +382,10 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     if (c) gifts.push(c.id);
     appendLog(p.id, [event(EVENTS.QUEST_DONE, { ids: quests.ids }, s.id)]);
   }
+  const weekly = settleWeekly(p, s.id, t, s.rng);
+  p = weekly.profile;
+  gifts.push(...weekly.gifts);
+  const extras = [...(extra.extras ?? []), ...weekly.extras];
   const final = p;
   const skills = s.skillsSeen
     .filter((id) => final.skills[id])
@@ -388,7 +404,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     placed: s.placed,
     skills,
     sprint: sprintResult,
-    ...(extra.extras?.length ? { extras: extra.extras } : {}),
+    ...(extras.length ? { extras } : {}),
   };
   return { profile: saveProfile(p), result };
 }
@@ -546,6 +562,8 @@ export function exportBackup(): { name: string; text: string } {
 export function importBackup(text: string): ReturnType<typeof repo.importBackup> {
   const r = repo.importBackup(text);
   if (r.ok) {
+    // Commit the imported log months to IndexedDB now rather than on the next idle flush.
+    void repo.flush().catch(() => undefined);
     forgetLog();
     const profiles = repo.listProfiles();
     const active = getState().profile;

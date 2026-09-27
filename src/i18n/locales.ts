@@ -70,7 +70,7 @@ registerLocale({
   bcp47: 'en-US',
   nativeName: 'English',
   short: 'EN',
-  numbers: { bcp47: 'en-US', decimal: '.', group: ',', minimumGroupingDigits: 1, minus: '−' },
+  numbers: { bcp47: 'en-US', decimal: '.', group: ',', minimumGroupingDigits: 1, minus: '−', percent: '%' },
   ops: { '+': '+', '-': '−', '*': '×', '/': '÷', '=': '=' },
   speech: ['en-US', 'en-GB', 'en-AU', 'en-IE', 'en'],
   messages: flatten(en as Nested),
@@ -85,7 +85,9 @@ registerLocale({
   // Space grouping (not '.') keeps "1.234" from ever looking like a decimal to a child.
   // No-break space rather than the typographically nicer U+202F: neither self-hosted
   // font has U+202F (caught by tests/i18n.test.ts), and thin U+2009 can wrap mid-number.
-  numbers: { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−' },
+  // Percent: Macedonian orthography separates the sign from the number; a no-break
+  // space ("25 %") so the sign never wraps onto its own line (DESIGN §1.12).
+  numbers: { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−', percent: '\u00A0%' },
   // Macedonian schooling writes multiplication as · and division as :
   ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
   speech: ['mk-MK', 'mk'],

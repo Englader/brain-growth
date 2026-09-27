@@ -13,6 +13,7 @@ import './metrics/target';
 // ── slot: balance ──
 // ── slot: coord ──
 // ── slot: season ──
+import './metrics/season';
 
 export { ACHIEVEMENTS } from './definitions';
 export { evaluateAchievements, validateAchievements, evalCondition, appliesToBand } from './evaluator';

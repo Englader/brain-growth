@@ -1,0 +1,57 @@
+/* Pilot support in the grown-ups dashboard (Pilot.tsx). Adult theme tokens only. */
+
+.pilot-card h3 {
+  margin: 18px 0 8px;
+}
+.pilot-card .tiles {
+  margin-top: 12px;
+}
+.pilot-card .tile {
+  background: var(--surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pilot-card .tile-value {
+  font-size: 1.35em;
+}
+.pilot-card .tile-sub {
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.skill-stats .pilot-strategy {
+  grid-column: 1 / -1;
+}
+.pilot-strategy small {
+  display: block;
+  font-size: 0.85em;
+}
+.pilot-strategy .nowrap {
+  white-space: nowrap;
+}
+.pilot-strategy svg {
+  vertical-align: -2px;
+}
+
+.pilot-clips summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-weight: 600;
+}
+.pilot-cliplist {
+  margin: 8px 0 0;
+  padding-left: 2.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9em;
+}
+.pilot-cliplist code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.95em;
+  overflow-wrap: anywhere;
+}
+.pilot-cliplist span {
+  color: var(--muted);
+}

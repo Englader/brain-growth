@@ -8,13 +8,13 @@ import { Expr, Num } from '../src/modes/target/Num';
 import { OtherWays } from '../src/modes/target/OtherWays';
 
 describe('Target rendering', () => {
-  it('draws a non-integer as a stacked fraction with the locale minus, never a decimal', () => {
+  it('draws a non-integer with the shared stacked fraction and the locale minus, never a decimal', () => {
     const root = document.createElement('div');
     render(<Num v={rat(-3, 4)} locale="mk" />, root);
     expect(root.querySelector('.tfrac')?.getAttribute('aria-label')).toBe('−3/4');
     expect(root.querySelector('.tfrac-sign')?.textContent).toBe('−');
-    expect(root.querySelector('.tfrac-n')?.textContent).toBe('3');
-    expect(root.querySelector('.tfrac-d')?.textContent).toBe('4');
+    expect(root.querySelector('.tfrac .stacked-n')?.textContent).toBe('3');
+    expect(root.querySelector('.tfrac .stacked-d')?.textContent).toBe('4');
     render(<Num v={rat(24)} locale="mk" />, root);
     expect(root.textContent).toBe('24');
     expect(root.querySelector('.tfrac')).toBeNull();

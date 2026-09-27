@@ -13,22 +13,27 @@ import { randomLearner } from '../sim/learner';
 const mean = (xs: number[]): number => xs.reduce((a, b) => a + b, 0) / xs.length;
 
 describe('cold-start placement (≤ 8 items, inside the first ordinary session)', () => {
-  it('places children within one grade of their true position', () => {
+  it('places children within one grade of their true position (grades 0.3–6.5)', () => {
     const rng = createRng(2024);
     const errs: number[] = [];
+    const upper: number[] = [];
     const wrong: number[] = [];
     const used: number[] = [];
-    for (let i = 0; i < 150; i++) {
-      const learner = randomLearner(rng, GRAPH, [0.3, 4.2]);
+    for (let i = 0; i < 200; i++) {
+      const learner = randomLearner(rng, GRAPH, [0.3, 6.5]);
       const age = Math.round(learner.params.g + 5 + rng.normal() * 0.8);
       const r = runSession(learner, newSnapshot(age), new SimClock(), rng, { items: 10, targetP: 0.85, seed: i + 7 });
       expect(r.placementDone).not.toBeNull();
       errs.push(Math.abs(r.placementDone!.g - learner.params.g));
+      if (learner.params.g >= 4) upper.push(errs[errs.length - 1]!);
       wrong.push(r.placementWrong);
       used.push(r.records.filter((x) => x.source === 'placement').length);
     }
     expect(Math.max(...used)).toBeLessThanOrEqual(8);
     expect(mean(errs)).toBeLessThan(0.6);
+    // Fraction and decimal skills let placement resolve grade 4–6.5 positions (DESIGN §4 step 3).
+    expect(upper.length).toBeGreaterThan(50);
+    expect(mean(upper)).toBeLessThan(0.7);
     expect(errs.filter((e) => e <= 1).length / errs.length).toBeGreaterThan(0.85);
     // It must not feel like a test: most placement items are answered correctly.
     expect(mean(wrong) / mean(used)).toBeLessThan(0.36);
