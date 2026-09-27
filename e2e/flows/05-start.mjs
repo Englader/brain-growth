@@ -10,7 +10,7 @@
  *  - a teen in year 8 (Number Trail has nothing there: the card offers year 7), and the adult's
  *    "Years tried".
  */
-import { playSession, seed, state } from '../lib.mjs';
+import { openAdult, playSession, seed, state } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -137,8 +137,7 @@ export default async function start(t) {
   await t.shot('home-C-year7');
 
   // ── Grown-ups: years tried ──
-  await t.goto('/adult');
-  await page.waitForSelector('.adult');
+  await openAdult(t);
   await page.locator('.adult select').first().selectOption({ label: 'Марко' });
   await page.waitForSelector('.years-tried li');
   assert((await page.locator('.years-tried').innerText()).includes('5. одделение'), 'years tried lists year 5');

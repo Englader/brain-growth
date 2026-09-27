@@ -2,9 +2,15 @@
  * Core flow (the slice): create a Band A child and play (a wrong answer →
  * errorless step), results with gifts, trophies; a Band B child (wrong →
  * worked explanation), family board, wardrobe, mid-item switch to English;
- * Sprint; a Band C child; every adult tab. 31 screenshots.
+ * Sprint; a Band C child (the Pro style previewed on the new-player form,
+ * accent tiles to choose from, in mk and en); every adult tab, through the
+ * parent-PIN gate. 33 screenshots.
  */
-import { createPlayer, playSession, waitNext } from '../lib.mjs';
+import { createPlayer, openAdult, playSession, waitNext } from '../lib.mjs';
+
+function assert(cond, msg) {
+  if (!cond) throw new Error(`assertion failed: ${msg}`);
+}
 
 export default async function core(t) {
   const { page } = t;
@@ -83,15 +89,36 @@ export default async function core(t) {
   await t.goto('/settings');
   await page.getByRole('button', { name: 'Смени играч' }).click();
   await page.locator('.add-player').click();
-  await createPlayer(t, 'Стефан', 13);
+  // The Pro style: the form previews the dark theme, and "Pick a colour" offers the Pro avatar (the
+  // initial on an accent) in four accents, the chosen one ringed and applied to the whole form.
+  await page.fill('.create input[type=text]', 'Стефан');
+  await page.getByRole('button', { name: '13', exact: true }).click();
+  const create = page.locator('.screen.create');
+  assert((await create.getAttribute('data-theme')) === 'slate', 'age 13 picks the Pro style');
+  assert((await create.evaluate((el) => getComputedStyle(el).backgroundColor)) === 'rgb(11, 18, 32)', 'the Pro form is dark');
+  const tiles = page.locator('.create .swatch');
+  assert((await tiles.count()) === 4, `four accents to choose from (${await tiles.count()})`);
+  assert((await page.locator('.create .swatch .monogram').allTextContents()).every((s) => s === 'С'), 'each accent shows the player tile');
+  await tiles.nth(1).click();
+  assert((await tiles.nth(1).getAttribute('aria-pressed')) === 'true', 'the chosen accent is pressed');
+  assert((await tiles.nth(1).evaluate((el) => getComputedStyle(el).borderTopColor)) === 'rgb(229, 233, 240)', 'the chosen accent is ringed');
+  assert((await create.evaluate((el) => el.style.getPropertyValue('--accent'))) === '#34d399', 'the form takes the chosen accent');
+  await t.shot('create-C-pro');
+  await page.locator('.create .chip', { hasText: 'English' }).click();
+  await page.waitForSelector('.create .swatch[aria-label="Emerald"]');
+  await t.shot('create-C-pro-en');
+  await page.locator('.create .chip', { hasText: 'Македонски' }).click();
+  await page.waitForSelector('.create .swatch[aria-label="Смарагд"]');
+  await page.locator('.create .btn.primary.big').click();
+  await page.waitForSelector('.home');
+  assert((await page.locator('.app').evaluate((el) => el.style.getPropertyValue('--accent'))) === '#34d399', 'the Pro home wears the accent chosen');
   await t.shot('home-C');
   await page.locator('.mode-hop .btn.primary.big').click();
   await playSession(t, 'C', { wrongAt: 2 });
   await t.shot('results-C');
 
   // ── Adult dashboard ───────────────────────────────────────────────────
-  await t.goto('/adult');
-  await page.waitForSelector('.adult');
+  await openAdult(t);
   await page.locator('.adult select').first().selectOption({ label: 'Марко' });
   await t.shot('adult-overview');
   for (const [tab, name] of [['Вештини', 'adult-skills'], ['Калибрација', 'adult-calibration'], ['Грешки', 'adult-errors'], ['Податоци', 'adult-data'], ['Функции', 'adult-features'], ['Гласови', 'adult-voices']]) {

@@ -3,7 +3,7 @@
  * help, a hint (by ladder level) and "show me", for a period; the weekly
  * share with help; the skills, puzzles and games where help was used most;
  * and the recent questions answered with help, rebuilt from the log in the
- * grown-up's language. Parents only (the adult view sits behind the hold
+ * grown-up's language. Parents only (the adult view sits behind the parent PIN
  * gate): children never see these numbers, and nothing here judges.
  */
 import type { JSX } from 'preact';

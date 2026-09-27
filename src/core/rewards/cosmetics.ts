@@ -53,11 +53,12 @@ export const COSMETICS: readonly CosmeticDef[] = [
   { id: 'pad.sunset', slot: 'pad', bands: AB, rarity: 2, value: '#fdba74' },
   { id: 'pad.sky', slot: 'pad', bands: AB, rarity: 2, value: '#93c5fd' },
   { id: 'pad.star', slot: 'pad', bands: AB, rarity: 3, value: '#fde047' },
-  // Band C: themes (accent) and titles
+  // Band C: themes (accent) and titles. Four accents to pick from at creation, as Bands A/B get four
+  // frog colours; the rest drop.
   { id: 'theme.indigo', slot: 'theme', bands: C, rarity: 1, value: '#818cf8', starter: true },
-  { id: 'theme.emerald', slot: 'theme', bands: C, rarity: 1, value: '#34d399' },
-  { id: 'theme.amber', slot: 'theme', bands: C, rarity: 2, value: '#fbbf24' },
-  { id: 'theme.crimson', slot: 'theme', bands: C, rarity: 2, value: '#f87171' },
+  { id: 'theme.emerald', slot: 'theme', bands: C, rarity: 1, value: '#34d399', starter: true },
+  { id: 'theme.amber', slot: 'theme', bands: C, rarity: 2, value: '#fbbf24', starter: true },
+  { id: 'theme.crimson', slot: 'theme', bands: C, rarity: 2, value: '#f87171', starter: true },
   { id: 'theme.cyan', slot: 'theme', bands: C, rarity: 3, value: '#22d3ee' },
   { id: 'title.estimator', slot: 'title', bands: C, rarity: 1, value: '' },
   { id: 'title.navigator', slot: 'title', bands: C, rarity: 1, value: '' },

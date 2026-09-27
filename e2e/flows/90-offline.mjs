@@ -8,7 +8,7 @@
  *    (a lazy screen), Target (a lazy screen and lazy generators) and the
  *    grown-ups' view (a lazy chunk that brings every language).
  */
-import { seed, showMode, waitNext } from '../lib.mjs';
+import { passPinGate, seed, showMode, waitNext } from '../lib.mjs';
 
 export const serviceWorkers = 'allow';
 
@@ -74,11 +74,11 @@ export default async function offline(t) {
   await page.locator('.target-play .icon-btn').first().click();
   await page.waitForSelector('.home');
 
-  // The grown-ups' view: a lazy chunk that loads every language.
+  // The grown-ups' view: a lazy chunk that loads every language, behind the parent-PIN gate (its own chunk).
   await page.evaluate(() => {
     location.hash = '#/adult';
   });
-  await page.waitForSelector('.adult');
+  await passPinGate(t);
   await t.shot('adult-offline');
   await context.setOffline(false);
 }

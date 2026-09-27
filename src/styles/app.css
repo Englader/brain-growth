@@ -8,8 +8,10 @@
  */
 
 /* ── Tokens ─────────────────────────────────────────────────────────────── */
-.app,
-.screen[data-theme] {
+/* :where() gives the base tokens zero specificity. As `.app, .screen[data-theme]` they outranked the theme
+   blocks below on a screen carrying its own data-theme, so the new-player form never showed the style it
+   previews (Pro stayed light, its accent swatch a lone square on white). */
+:where(.app, .screen[data-theme]) {
   --font: 'Nunito', system-ui, sans-serif;
   --fs: 17px;
   --radius: 18px;
@@ -521,32 +523,19 @@ ul.plain {
   max-width: calc(100% - 32px);
   z-index: 50;
 }
-.hold-btn {
-  position: relative;
-  overflow: hidden;
-  align-self: center;
-  display: inline-flex;
+/* "Grown-ups" (picker, Settings): opens the parent-PIN gate (DESIGN A-30). */
+.grownups {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+}
+.grownups-btn {
   border: 2px solid var(--line);
-  background: var(--surface);
   border-radius: 999px;
-  padding: 10px 18px;
+  box-shadow: none;
   min-height: 48px;
   font-weight: 700;
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-}
-.hold-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--primary);
-  opacity: 0.25;
-  transform-origin: left;
-  transform: scaleX(var(--hold, 0));
 }
 
 /* ── Profile picker & create ────────────────────────────────────────────── */
@@ -597,6 +586,8 @@ ul.plain {
   flex-shrink: 0;
 }
 .swatches .swatch {
+  display: grid;
+  place-items: center;
   border: 3px solid transparent;
   border-radius: 20px;
   background: var(--surface);
@@ -607,6 +598,23 @@ ul.plain {
 }
 .swatch.on {
   border-color: var(--primary);
+}
+/* Pro: the tile and the ring share the accent, so the ring is drawn in ink to stand out. */
+[data-theme='slate'] .swatches .swatch {
+  background: var(--surface-2);
+}
+[data-theme='slate'] .swatch.on {
+  border-color: var(--ink);
+}
+/* The new-player form previews the style chosen (Create.tsx): Little explorer and Pro paint their own
+   page, edge to edge, in their own type. */
+.screen.create:not([data-theme='lagoon']) {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--fs);
+  box-shadow: 0 0 0 100vmax var(--bg);
+  clip-path: inset(0 -100vmax);
 }
 .swatch-fill {
   display: block;

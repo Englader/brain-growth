@@ -1,0 +1,76 @@
+/* Parent PIN (DESIGN A-30): the gate in front of Grown-ups and its card in Data. Adult theme (Inter, flat). */
+.pin-gate .pin-body {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+.pin-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+}
+.pin-question {
+  margin: 0;
+  text-align: center;
+  font-size: 1.7em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pin-answer {
+  box-shadow: none;
+  border: 1px solid var(--line);
+}
+.pin-msg {
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+}
+.pin-honest {
+  font-size: 0.9em;
+}
+.pin-link {
+  align-self: center;
+}
+.pin-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 6px 0;
+}
+.pin-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+}
+.pin-dot.on {
+  background: var(--ink);
+}
+/* The numpad was drawn for the children's themes (shadows on a tinted page); give its keys edges here. */
+.pin-gate .key,
+.pin-card .key {
+  box-shadow: none;
+  border: 1px solid var(--line);
+  font-size: 1.4em;
+}
+.pin-gate .key-alt,
+.pin-card .key-alt {
+  background: var(--surface-2);
+}
+.pin-gate .key-submit,
+.pin-card .key-submit {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-ink);
+  font-size: 1.1em;
+}
+.pin-card .pin-step {
+  max-width: 400px;
+}

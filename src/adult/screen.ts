@@ -1,8 +1,9 @@
 /**
  * The grown-ups' dashboard is its own chunk (modes/lazy.tsx): most visits
- * never open it. Holding the "Grown-ups" button starts the fetch, so it is in
- * by the time the 2-second hold ends. The dashboard lists both languages (the
- * recording checklist, the voice report), so every locale bundle comes with it.
+ * never open it. The parent-PIN gate in front of it (ui/pin/PinGate.tsx)
+ * starts the fetch, so it is in by the time the PIN is typed. The dashboard
+ * lists both languages (the recording checklist, the voice report), so every
+ * locale bundle comes with it.
  */
 import { loadAllLocales } from '../i18n/locales';
 import { lazyScreen } from '../modes/lazy';

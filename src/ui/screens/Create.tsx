@@ -1,7 +1,10 @@
 /**
  * New player. Age picks the default band; the band can be overridden (a
  * strong 7-year-old can take the Adventurer style). The adult fills this in
- * with or for the child.
+ * with or for the child. The form previews the style chosen (its theme on the
+ * screen), and the colour choice shows the avatar the child will get: a frog
+ * in Bands A/B, the name's initial on an accent colour in Band C, where the
+ * colour also becomes the accent of the whole screen.
  */
 import type { JSX } from 'preact';
 import { useState } from 'preact/hooks';
@@ -16,6 +19,7 @@ import { numberText } from '../../i18n/render';
 import { TopBar } from '../components/common';
 import { Frog } from '../components/Frog';
 import { useT } from '../hooks';
+import { Monogram } from './Profiles';
 
 export function Create(): JSX.Element {
   const t = useT();
@@ -29,6 +33,7 @@ export function Create(): JSX.Element {
   const effBand: BandId = band ?? (age ? defaultBandForAge(age) : 'B');
   const starters = starterCosmetics(effBand, effBand === 'C' ? 'theme' : 'color');
   const chosen = avatar && starters.some((s) => s.id === avatar) ? avatar : starters[0]?.id ?? 'color.green';
+  const accent = effBand === 'C' ? starters.find((s) => s.id === chosen)?.value : undefined;
   const ready = name.trim().length > 0 && age !== null;
 
   const onRestore = async (e: Event): Promise<void> => {
@@ -40,7 +45,11 @@ export function Create(): JSX.Element {
   };
 
   return (
-    <div class="screen create" data-theme={effBand === 'A' ? 'meadow' : effBand === 'C' ? 'slate' : 'lagoon'}>
+    <div
+      class="screen create"
+      data-theme={effBand === 'A' ? 'meadow' : effBand === 'C' ? 'slate' : 'lagoon'}
+      style={accent ? ({ '--accent': accent } as JSX.CSSProperties) : undefined}
+    >
       <TopBar title={t('create.title')} onBack={meta?.profileIds.length ? () => navigate('/') : undefined} />
       <div class="stack">
         <label class="field">
@@ -103,7 +112,7 @@ export function Create(): JSX.Element {
                 aria-label={t.dyn(`cos.${c.id}`)}
                 onClick={() => setAvatar(c.id)}
               >
-                {effBand === 'C' ? <span class="swatch-fill" style={{ background: c.value }} /> : <Frog color={c.value} size={52} />}
+                {effBand === 'C' ? <Monogram name={name} color={c.value} size={52} /> : <Frog color={c.value} size={52} />}
               </button>
             ))}
           </div>

@@ -8,7 +8,7 @@
  * Hop products written with the Macedonian ·), switches period, and renders
  * the list in English too.
  */
-import { answer, forceSkill, hopa, recentLog, seed, showMode, waitNext } from '../lib.mjs';
+import { answer, forceSkill, hopa, openAdult, recentLog, seed, showMode, waitNext } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -123,8 +123,7 @@ export default async function help(t) {
   assert(pzEvent && pzEvent.data.solved && pzEvent.data.hints === 1, 'puzzle solved with one hint');
 
   // ── Grown-ups → Help ──
-  await t.goto('/adult', { now: '2026-10-05T18:00:00' });
-  await page.waitForSelector('.adult');
+  await openAdult(t, { now: '2026-10-05T18:00:00' });
   await page.locator('.adult select').first().selectOption({ label: 'Марко' });
   await page.getByRole('tab', { name: 'Помош' }).click();
   await page.waitForSelector('.help-tab .help-kinds');

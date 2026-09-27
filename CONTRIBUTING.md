@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 867 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 892 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
@@ -193,7 +193,7 @@ New modes and features are enabled by default once their e2e flow passes (DESIGN
 
 Service workers are blocked, so every flow runs against the network, unless the flow module exports `serviceWorkers = 'allow'` (as `90-offline` does).
 
-Helpers in `e2e/lib.mjs`: `seed`, `forceSkill`, `recentLog`, `hopa` (call any hook), `state`, `waitNext`, `answer`, `playSession`, `createPlayer`, `showMode` (the card of a mode whose content is in another school year, A-29).
+Helpers in `e2e/lib.mjs`: `seed`, `forceSkill`, `recentLog`, `hopa` (call any hook), `state`, `waitNext`, `answer`, `playSession`, `createPlayer`, `showMode` (the card of a mode whose content is in another school year, A-29), and for the Grown-ups area, which sits behind the parent PIN (A-30): `openAdult(t, params?)` (opens `#/adult`; the first time it answers the grown-ups' question and sets `PIN`, afterwards it enters it), `passPinGate` (the same on a gate already showing), `tapKeys`, `submitPad` and `answerGate`. A `t.goto` to the URL already open is only a fragment navigation, not a reload: use `page.reload()` to test what survives one.
 
 A fresh context starts on the new-player form, and with players on "Who's playing?" (A-29). The child who plays is remembered per tab (`sessionStorage`), so `t.goto` and a reload in the same page stay on that child, and `seed` opens the child's home directly, as before.
 
@@ -226,6 +226,7 @@ Flow numbers:
 | coord | 74 |
 | season | 80 |
 | help (Grown-ups → Help) | `85-help` |
+| parent PIN (the Grown-ups gate, DESIGN A-30) | `86-pin` |
 | offline (service worker, lazy chunks) | `90-offline` |
 
 New screens get a 360 px Macedonian screenshot, and you look at it.

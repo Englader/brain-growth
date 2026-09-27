@@ -9,6 +9,7 @@
  *   t.goto(path, params) page.goto(t.url(path, params)) and wait for the app to boot
  *
  * The app side of the hooks is src/app/testHooks.ts (window.__hopa, only with ?e2e).
+ * The Grown-ups area sits behind the parent PIN: open it with `openAdult(t)` (it sets the PIN the first time).
  */
 
 /** Call a window.__hopa hook in the page: hopa(t, 'seed', {...}). Arguments and result must be JSON-serialisable. */
@@ -153,4 +154,53 @@ export async function createPlayer(t, name, age) {
   await page.getByRole('button', { name: String(age), exact: true }).click();
   await page.locator('.create .btn.primary.big').click();
   await page.waitForSelector('.home');
+}
+
+// ── Grown-ups: the parent-PIN gate (DESIGN A-30) ─────────────────────────────
+
+/** The parent PIN the flows set and use. */
+export const PIN = '4827';
+
+/** Tap digits on the on-screen numpad (the one showing; the gate has its own). */
+export async function tapKeys(t, digits) {
+  for (const d of String(digits)) await t.page.locator('.numpad .key', { hasText: new RegExp(`^${d}$`) }).first().click();
+}
+
+/** Tap the numpad's submit key (Отвори, Провери, Продолжи, Зачувај). */
+export function submitPad(t) {
+  return t.page.locator('.numpad .key-submit').click();
+}
+
+/** Answer the grown-ups' question on the gate ("Колку е 37 · 24?"): read it, multiply, tap, check. */
+export async function answerGate(t, { wrong = false } = {}) {
+  const q = await t.page.locator('.pin-question').textContent();
+  const [a, b] = q.match(/\d+/g).map(Number);
+  await tapKeys(t, a * b + (wrong ? 1 : 0));
+  await submitPad(t);
+}
+
+/**
+ * On the PIN gate (showing or loading): the first time, answer the question and set `pin` twice;
+ * after that, enter it. Ends in the Grown-ups area.
+ */
+export async function passPinGate(t, pin = PIN) {
+  const { page } = t;
+  const cls = await (await page.waitForSelector('.pin-gate, .screen.adult')).getAttribute('class');
+  if (!cls.includes('pin-gate')) return;
+  if (cls.includes('setup')) {
+    await answerGate(t);
+    await page.waitForSelector('.pin-gate[data-step=create]');
+    await tapKeys(t, pin);
+    await submitPad(t);
+    await page.waitForSelector('.pin-gate[data-step=confirm]');
+  }
+  await tapKeys(t, pin);
+  await submitPad(t);
+  await page.waitForSelector('.screen.adult');
+}
+
+/** Open the Grown-ups area: #/adult (with URL `params`), then through the PIN gate (it replaced the 2-second hold). */
+export async function openAdult(t, params = {}, pin = PIN) {
+  await t.goto('/adult', params);
+  await passPinGate(t, pin);
 }

@@ -23,6 +23,8 @@ export interface NumpadProps {
   labels: { backspace: string; negative: string };
   disabled?: boolean;
   maxLength?: number;
+  /** A code (the parent PIN), not a number: a leading 0 is kept rather than replaced by the next digit. */
+  code?: boolean;
 }
 
 export function Numpad(props: NumpadProps): JSX.Element {
@@ -49,7 +51,7 @@ export function Numpad(props: NumpadProps): JSX.Element {
     else if (k === 'neg') next = v.startsWith('−') ? v.slice(1) : `−${v}`;
     else if (k === 'dec') {
       if (!/[.,]/.test(v)) next = `${v || '0'}${p.decimal}`;
-    } else if (v.replace(/[−.,]/g, '').length < (p.maxLength ?? 9)) next = v === '0' ? k : v + k;
+    } else if (v.replace(/[−.,]/g, '').length < (p.maxLength ?? 9)) next = v === '0' && !p.code ? k : v + k;
     if (next === v) return;
     live.current = next;
     p.onChange(next);

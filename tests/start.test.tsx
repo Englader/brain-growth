@@ -71,7 +71,7 @@ describe('who is playing', () => {
     expect(cards.map((c) => c.querySelector('.player-name')!.textContent)).toEqual(['Ана', 'Марко']);
     expect(cards.map((c) => c.querySelector('.player-year')!.textContent)).toEqual(['1. одделение', '4. одделение']);
     expect(root.querySelector('.add-player')!.textContent).toContain('Нов играч');
-    expect(root.querySelector('.picker .hold-btn')).not.toBeNull();
+    expect(root.querySelector('.picker .grownups-btn')!.textContent).toContain('За возрасни');
 
     click(cards[0]);
     expect(getState().profile?.id).toBe(ana.id);
