@@ -249,3 +249,12 @@ registerMetric({
   kind: 'effort',
   compute: (c) => (sessionEnds(c).some((r) => r.opts.quick && r.completed && dayKey(r.ts) === c.today) ? 1 : 0),
 });
+
+// ── daily quest equivalence (DESIGN A-29) ─────────────────────────────────
+// Days with a completed daily quest: a quest's own `quest_done`, or today's challenges completed
+// (logged as `quest_done` with via 'challenges'), so an achievement over quests stays reachable.
+registerMetric({
+  id: 'quests.completed',
+  kind: 'effort',
+  compute: (c) => new Set(events(c, EVENTS.QUEST_DONE).map((r) => dayKey(r.ts))).size,
+});

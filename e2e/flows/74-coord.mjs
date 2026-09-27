@@ -4,7 +4,7 @@
  * swaps x and y on purpose to see the misconception tip, and leaves for the
  * results. Points in the text follow the Macedonian notation "(3, −2)".
  */
-import { forceSkill, recentLog, seed } from '../lib.mjs';
+import { forceSkill, recentLog, seed, showMode } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -51,6 +51,7 @@ export default async function coord(t) {
   await page.waitForSelector('.create');
 
   const pid = await seed(t, { name: 'Лука', age: 13, g: 8.4 });
+  await showMode(t, 'coord'); // geo.coord is in year 7 (A-29)
   assert(await page.locator('.mode-coord .btn:not([disabled])').count(), 'Coordinates is ready for a placed Band C child');
   await forceSkill(t, 'geo.coord');
   await page.locator('.mode-coord .btn').click();
@@ -109,6 +110,7 @@ export default async function coord(t) {
   // Band B once geo.coord is unlocked: the same mode in the light theme, English this time.
   await seed(t, { name: 'Петар', age: 10, g: 9, locale: 'en' });
   assert((await page.locator('.home-b').count()) === 1, 'Band B home');
+  await showMode(t, 'coord');
   assert(await page.locator('.mode-coord .btn:not([disabled])').count(), 'Coordinates is ready for a Band B child who unlocked it');
   await forceSkill(t, 'geo.coord');
   await page.locator('.mode-coord .btn').click();

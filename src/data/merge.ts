@@ -4,6 +4,7 @@
  * progress: streak days are a set union, counters take the max, first-unlock
  * timestamps take the min).
  */
+import { mergeChallenges } from '../core/challenges';
 import type { SkillState } from '../core/engine/model';
 import type { Profile } from '../core/profile';
 import { mergeStreaks } from '../core/streaks';
@@ -57,6 +58,9 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
     },
     stats,
     sprint: { best: bestOf(a.sprint.best, b.sprint.best), history },
+    // Year bar (A-29): the later-updated copy's choice, else the other's; today's challenges: later day, ticks unioned.
+    year: base.year ?? (base === a ? b.year : a.year) ?? null,
+    challenges: mergeChallenges(a.challenges ?? null, b.challenges ?? null),
     // Feature merge rules (idempotent and monotone), each under its own anchor:
     // ── slot: frac ──
     // ── slot: hint ──

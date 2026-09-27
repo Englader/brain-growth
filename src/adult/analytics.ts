@@ -76,6 +76,21 @@ export function overview(profile: Profile, log: readonly LogRecord[], now: numbe
   };
 }
 
+/**
+ * Years tried (DESIGN A-29): sessions played in a school year chosen on the
+ * home's year bar, per year (end records with at least one item or puzzle).
+ * Sessions without a year (the weekly challenge, Dice Race, older records)
+ * are not counted.
+ */
+export function yearsTried(log: readonly LogRecord[]): Array<{ year: number; sessions: number }> {
+  const byYear = new Map<number, number>();
+  for (const r of log) {
+    if (r.type !== 'session' || r.phase !== 'end' || typeof r.year !== 'number' || !(r.items ?? 0)) continue;
+    byYear.set(r.year, (byYear.get(r.year) ?? 0) + 1);
+  }
+  return [...byYear.entries()].sort((a, b) => a[0] - b[0]).map(([year, sessions]) => ({ year, sessions }));
+}
+
 export interface SkillRow {
   id: SkillId;
   status: string;

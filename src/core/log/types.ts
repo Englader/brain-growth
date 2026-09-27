@@ -63,6 +63,14 @@ export interface SessionOptions {
   only?: SkillId[];
   /** Weekly theme id when started from the weekly card: its skills get the scheduler boost (src/core/weekly.ts). */
   theme?: string;
+  /** School year chosen on the home's year bar (DESIGN A-29): the session serves only that year's skills. */
+  year?: number;
+  /** Today's challenge this session was started from (src/core/challenges.ts): ticked when the session completes. */
+  challenge?: string;
+  /** First presentations for this session, instead of the mode's default (today's challenges are short). */
+  items?: number;
+  /** Narrow the year's skills: 'fracdec' serves only fraction and decimal skills. */
+  focus?: 'fracdec';
 }
 
 export interface SessionRecord {
@@ -87,6 +95,12 @@ export interface SessionRecord {
    */
   lastCorrect?: boolean | null;
   exitIndex?: number | null;
+  /**
+   * School year the session was played in (DESIGN A-29), on start and end
+   * records; null when none was chosen (the weekly challenge, Dice Race,
+   * records written before the year bar). Appended to the field list.
+   */
+  year?: number | null;
 }
 
 export interface EventRecord {

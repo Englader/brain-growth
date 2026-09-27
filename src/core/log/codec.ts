@@ -27,6 +27,8 @@ const ITEM_FIELDS_V1 = [
 const SESSION_FIELDS_V1 = [
   'ts', 'sid', 'phase', 'mode', 'band', 'locale', 'opts', 'items', 'firstCorrect', 'durationMs', 'completed',
   'lastCorrect', 'exitIndex',
+  // Appended (no version bump): the school year browsed (DESIGN A-29); older records decode with year = null.
+  'year',
 ] as const;
 const EVENT_FIELDS_V1 = ['ts', 'sid', 'name', 'data'] as const;
 

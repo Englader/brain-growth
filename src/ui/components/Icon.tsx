@@ -56,6 +56,8 @@ const PATHS = {
   backspace: 'M21 5H8l-6 7 6 7h13zM12 9l6 6M18 9l-6 6',
   user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
   question: 'M9 9a3 3 0 115 2c-1 .8-2 1.4-2 3M12 18h.01',
+  // Today's challenges (DESIGN A-29): a disc cut in half for the fraction/decimal practice.
+  fraction: 'M12 21a9 9 0 100-18 9 9 0 000 18zM12 3v18M12 8h4.5M12 12h6M12 16h4.5',
   // Feature icons (24×24 stroke paths), each under its own anchor:
   // ── slot: frac ──
   // ── slot: hint ──

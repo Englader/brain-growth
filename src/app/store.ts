@@ -73,6 +73,8 @@ export interface AppState {
   locales: readonly LocaleId[];
   /** A language switch waiting for its bundle (the toggle shows it as busy); null when none. */
   localePending: LocaleId | null;
+  /** Options of the last launchMode (year, challenge): intro screens and standalone modes start their sessions with them. */
+  launchOpts: SessionOptions | null;
 }
 
 type Listener = (s: AppState) => void;
@@ -93,6 +95,7 @@ let state: AppState = {
   otherTab: false,
   locales: [],
   localePending: null,
+  launchOpts: null,
 };
 
 const listeners = new Set<Listener>();

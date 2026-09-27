@@ -24,7 +24,7 @@ import { TopBar } from '../ui/components/common';
 import { Icon } from '../ui/components/Icon';
 import { useT } from '../ui/hooks';
 import { StorageDetails, StorageWarning } from '../ui/storage/StorageDetails';
-import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors } from './analytics';
+import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors, yearsTried } from './analytics';
 import { BarChart, Reliability, StepLines } from './charts';
 import { MissingClips, PilotReadout, StrategyStat } from './Pilot';
 
@@ -101,6 +101,7 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const o = useMemo(() => overview(p, recentLog(p.id), now()), [p]);
   const weeklyFree = useMemo(() => weeklyFreeChoice(recentLog(p.id)), [p]);
+  const years = useMemo(() => yearsTried(recentLog(p.id)), [p]);
   const fmtDay = (d: string): string => formatDate(new Date(`${d}T12:00:00`), getLocale(t.locale), 'dayMonth');
   return (
     <div class="stack">
@@ -112,9 +113,22 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
       </div>
       <p class="muted">
         {p.placement.done && p.placement.g !== undefined
-          ? t('adult.overview.placement', { grade: t('grade.label', { g: String(Math.floor(p.placement.g)) }), sd: Math.round((p.placement.sd ?? 0) * 10) / 10 })
+          ? t('adult.overview.placement', { grade: t('year.label', { n: String(Math.floor(p.placement.g)) }), sd: Math.round((p.placement.sd ?? 0) * 10) / 10 })
           : t('adult.overview.placementPending')}
       </p>
+      <section class="card years-tried">
+        <h2>{t('year.adult.title')}</h2>
+        {years.length ? (
+          <ul class="plain">
+            {years.map((y) => (
+              <li>{t('year.adult.row', { year: t('year.label', { n: String(y.year) }), n: y.sessions })}</li>
+            ))}
+          </ul>
+        ) : (
+          <p class="muted">{t('year.adult.none')}</p>
+        )}
+        <p class="muted">{t('year.adult.help')}</p>
+      </section>
       <section class="card">
         <h2>{t('adult.overview.sessions')}</h2>
         <BarChart

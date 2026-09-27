@@ -23,6 +23,17 @@ export async function seed(t, input) {
   return pid;
 }
 
+/**
+ * Bring a mode's card onto the Band B/C home. The home follows the school year on its bar (DESIGN A-29):
+ * a mode with nothing in that year sits in "In other school years", and its chip moves the bar to the
+ * nearest year that has some. No-op when the card is already there.
+ */
+export async function showMode(t, id) {
+  const chip = t.page.locator(`.elsewhere .yb-elsewhere.mode-${id}`);
+  if (await chip.count()) await chip.click();
+  await t.page.waitForSelector(`.mode-card.mode-${id}`);
+}
+
 /** Every session started from now on serves only these skill ids (null clears). */
 export function forceSkill(t, ids) {
   return hopa(t, 'forceSkill', ids);

@@ -1,0 +1,380 @@
+/*
+ * Start flow and school years (DESIGN A-29): "Who's playing?", the
+ * switch-player button on every home, the year bar and today's challenges.
+ * Every control is at least 44 px; nothing has a fixed width that holds text.
+ */
+
+/* ── "Who's playing?" ─────────────────────────────────────────────────── */
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.player-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  text-align: left;
+}
+.player-card > svg,
+.player-card > .monogram {
+  flex-shrink: 0;
+}
+.player-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-card .player-name {
+  font-size: 1.2em;
+  overflow-wrap: anywhere;
+}
+.player-year {
+  font-weight: 700;
+  font-size: 0.92em;
+}
+.player-go {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--go);
+  color: #fff;
+  flex-shrink: 0;
+}
+.add-player {
+  width: 100%;
+  border: 2px dashed var(--line);
+  box-shadow: none;
+  background: transparent;
+  color: var(--primary);
+}
+
+/* ── Switch player (top of every home) ───────────────────────────────── */
+.who-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  max-width: 100%;
+  padding: 4px 12px 4px 4px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--ink);
+  min-width: 0;
+}
+.who-btn > svg:last-child {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.who-btn > .monogram,
+.who-btn > svg:first-child {
+  flex-shrink: 0;
+}
+.who-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.home-a .who-btn {
+  min-height: 64px;
+}
+.home-c .who-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.home-c .who-block .who-btn {
+  align-self: flex-start;
+}
+.greeting-line {
+  margin: 0;
+  font-size: 1.15em;
+}
+
+/* ── Year bar ─────────────────────────────────────────────────────────── */
+.year-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.yb-side {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 52px;
+  padding: 4px 8px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+.yb-side.yb-empty {
+  border-color: transparent;
+  background: transparent;
+  cursor: default;
+}
+.yb-num {
+  font-size: 1.25em;
+  line-height: 1;
+}
+.yb-side .yb-word {
+  display: none;
+  font-size: 0.8em;
+  font-weight: 700;
+}
+@media (min-width: 440px) {
+  .yb-side .yb-word {
+    display: inline;
+  }
+}
+.yb-own-dot {
+  color: var(--accent);
+}
+.yb-current {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-ink);
+  text-align: center;
+}
+.yb-label {
+  font-size: 1.1em;
+  overflow-wrap: anywhere;
+}
+.yb-own {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8em;
+  font-weight: 700;
+  opacity: 0.92;
+}
+.year-bar-a .yb-side {
+  min-width: 72px;
+  min-height: 72px;
+}
+.year-bar-a .yb-num {
+  font-size: 1.6em;
+}
+.yb-big {
+  font-size: 2em;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* Modes with nothing in the year browsed: chips that move the bar to the nearest year with some. */
+.elsewhere {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.elsewhere h2 {
+  margin: 0;
+}
+.elsewhere .chip {
+  max-width: 100%;
+  text-align: left;
+}
+.elsewhere .chip > svg {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+/* ── Today's challenges ───────────────────────────────────────────────── */
+.today-b {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.today-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.today-head h2 {
+  margin: 0;
+}
+.today-count {
+  font-weight: 800;
+  color: var(--muted);
+}
+.today-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.today-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 10px;
+  border: 2px solid var(--line);
+  border-radius: calc(var(--radius) - 4px);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.today-row:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.today-row.done {
+  border-color: var(--good);
+}
+.today-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.today-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.today-name {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.today-text small {
+  overflow-wrap: anywhere;
+}
+.today-state {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.today-row.done .today-state {
+  background: var(--good);
+  color: #fff;
+}
+.today-row.open:not(.done) .today-state {
+  background: var(--go);
+  color: #fff;
+}
+
+/* Band A: one panel of big picture tiles, a tick on the done ones, a gift at the end; no text. */
+.today-a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.today-tiles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.today-say {
+  flex-shrink: 0;
+  color: var(--primary);
+}
+.today-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 3px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.today-tile.done {
+  border-color: var(--good);
+}
+.today-tick {
+  position: absolute;
+  right: -6px;
+  top: -6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--good);
+  color: #fff;
+}
+.today-gift {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 44px;
+  color: var(--muted);
+}
+.today-gift.open {
+  color: var(--good);
+}
+
+/* The puzzle shelf names the school year it follows (src/modes/puzzle/Shelf.tsx). */
+.pz-year {
+  margin: 0;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+/* Band A: the spoken welcome sits by the frog (the top row holds the switch-player button). */
+.home-a .pet-stage {
+  position: relative;
+}
+.pet-say {
+  position: absolute;
+  top: 0;
+  right: 0;
+}

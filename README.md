@@ -4,12 +4,21 @@ An adaptive, bilingual (English / Македонски) maths game for ages 5–
 
 Two children on one device can also play **Dice Race**: they pass the device, and every roll of the dice is one of their own problems.
 
+Each child's home has a **year bar** (‹ 4. одделение | 5. одделение | 6. одделение ›): it starts on the child's own school year, and paging up or down plays that year's skills and puzzles instead. **Today's challenges** is a short set for the year shown (a practice, a puzzle and one or two more) that changes every day, with a small surprise gift once a set is done.
+
 It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device (the answer history in IndexedDB, so years of it fit), with backup export and import.
 
 - **Play:** https://englader.github.io/brain-growth/ (live after the first push to `main`; see below)
 - **Design document** (assumptions, design, data model, slice, build order, roadmap): [DESIGN.md](DESIGN.md)
 - **Skill graph** (100 skills, generated): [design/skill-graph.md](design/skill-graph.md)
 - **How to add a mode, skill, achievement or language:** [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## Two children on one computer
+
+- **Each child taps their own card.** Opening Hopa always starts on "Who's playing?" (Кој игра?), with one card per child and "+ New player" below. The first time, with nobody yet, it opens the new-player form instead.
+- **Switch with the button at the top.** Every child's home starts with their avatar and name; tapping it goes back to "Who's playing?". Reloading the page while a child plays keeps that child; closing the tab and opening Hopa again asks who is playing.
+- **Keep using the same browser.** Each child's progress is stored separately, but only in this browser on this computer. Another browser, a private window, or a second tab open at the same time will not share it (a second tab only reads).
+- **Back up from the Grown-ups area.** Hold "Grown-ups" for 2 seconds, open Data and export a backup now and then; importing it on another device merges it with what is there.
 
 ## Deploy
 

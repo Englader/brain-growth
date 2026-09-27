@@ -7,7 +7,7 @@
  * leaves for the results. The log must hold the transcripts the checker
  * accepted.
  */
-import { forceSkill, recentLog, seed } from '../lib.mjs';
+import { forceSkill, recentLog, seed, showMode } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -128,6 +128,7 @@ export default async function balance(t) {
   await page.locator('.results .btn.big').first().click();
   await page.waitForSelector('.home');
   await forceSkill(t, 'al.eq.onestep');
+  await showMode(t, 'hop'); // year 8 has nothing on the number line: its chip moves the bar to year 7
   await page.locator('.mode-hop .btn.primary.big').click();
   await page.waitForSelector('.play.phase-input .prompt-text');
   await t.shot('hop-eqbond');
@@ -139,6 +140,7 @@ export default async function balance(t) {
   await seed(t, { name: 'Мила', age: 10, g: 9 });
   assert((await page.locator('.home-b').count()) === 1, 'Band B home');
   await forceSkill(t, 'al.eq.onestep');
+  await showMode(t, 'balance');
   await page.locator('.mode-balance .btn').click();
   await waitInput(t, 'none');
   await t.shot('scale-B');

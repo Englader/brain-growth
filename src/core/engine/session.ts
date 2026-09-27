@@ -59,6 +59,8 @@ export interface SessionConfig {
   only?: readonly SkillId[];
   /** Weekly theme boost for the scheduler (a session started from the weekly card). */
   boost?: Eligibility['boost'];
+  /** School year browsed (DESIGN A-29): the scheduler serves only that year's skills. Placement ignores it. */
+  year?: number;
 }
 
 export interface PresentedItem {
@@ -156,6 +158,7 @@ export class SessionEngine {
       reviewFloor: this.cfg.band.reviewFloor ?? 0,
       ...(this.cfg.mode.filter ? { filter: this.cfg.mode.filter } : {}),
       ...(this.cfg.boost ? { boost: this.cfg.boost } : {}),
+      ...(this.cfg.year !== undefined ? { year: this.cfg.year } : {}),
     };
   }
 

@@ -1,40 +1,58 @@
 /**
  * Home, forked by band. Same data and actions; three presentations:
  *  A (5–7): icon-only, huge targets, spoken greeting, the frog front and centre.
- *  B (8–11): pet, streak, daily quest, modes, collection.
+ *  B (8–11): pet, streak, today's challenges, modes, collection.
  *  C (12–14): dark dashboard of stats, mastery by topic, objectives.
+ * Every home starts with the child's switch-player button and the year bar
+ * (DESIGN A-29): the modes and today's challenges follow the year chosen.
  */
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { evalCtx, launchMode, petTap, signOut, toast } from '../../app/actions';
+import { launchMode, petTap, toast } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { seasonNow } from '../../app/seasonActions';
 import { now, speaker } from '../../app/services';
 import { useStore } from '../../app/store';
+import { chooseYear, modeReadyInYear, modeYearSkills, nearestYearFor, selectedYear, yearsFor } from '../../app/yearActions';
 import { play as sfx, unlockAudio } from '../../audio/sfx';
 import { glickoElo } from '../../core/engine/glicko';
 import { isDue } from '../../core/engine/memory';
 import { wildcardForWeek } from '../../core/league';
 import type { Profile } from '../../core/profile';
-import { questProgress } from '../../core/quests';
 import { seasonGreetingKey } from '../../core/seasons';
 import { GRAPH } from '../../core/skills';
 import { streakView } from '../../core/streaks';
 import { dayKey, weekKey } from '../../core/time';
 import type { BandId, Strand } from '../../core/types';
 import { percentText } from '../../i18n/render';
-import { isReady, modesFor } from '../../modes/registry';
+import { modesFor } from '../../modes/registry';
 import type { ModeDef } from '../../modes/types';
 import { HomeWidgets } from '../homeWidgets';
 import { LangToggle } from '../components/common';
 import { Frog } from '../components/Frog';
 import { Icon } from '../components/Icon';
 import { lookFor, useT } from '../hooks';
-import { Avatar } from './Profiles';
+import { TodayCard } from '../years/TodayCard';
+import { WhoButton } from '../years/WhoButton';
+import { YearBar, yearLabel } from '../years/YearBar';
 
-function launch(mode: ModeDef, stretch = false, quick = false): void {
+function launch(mode: ModeDef, year: number, stretch = false, quick = false): void {
   unlockAudio();
-  launchMode(mode, { ...(stretch ? { stretch: true } : {}), ...(quick ? { quick: true } : {}) });
+  // Engine sessions serve the year's skills; puzzles follow it too. Dice Race is each child's own trail.
+  const yearOpt = mode.id === 'dice' ? {} : { year };
+  launchMode(mode, { ...yearOpt, ...(stretch ? { stretch: true } : {}), ...(quick ? { quick: true } : {}) });
+}
+
+/** The year on this child's bar and the years it pages through (A-29). */
+function useYear(p: Profile): { year: number; years: number[] } {
+  // Device flags decide which modes (and so which years) are visible.
+  useStore((s) => s.meta);
+  return { year: selectedYear(p), years: yearsFor(p) };
+}
+
+/** Whether a mode has anything for this child in `year` (standalone modes always; Number Trail before placement). */
+function hasYearContent(mode: ModeDef, p: Profile, year: number): boolean {
+  return mode.engine === false || (!!mode.placement && !p.placement.done) || modeYearSkills(mode, p, year).length > 0;
 }
 
 function unseen(p: Profile): number {
@@ -77,35 +95,6 @@ function StreakLine({ p }: { p: Profile }): JSX.Element {
   );
 }
 
-function QuestCard({ p }: { p: Profile }): JSX.Element | null {
-  const t = useT();
-  if (!p.quests || p.quests.day !== dayKey(now()) || !(p.flags['quests.daily'] ?? true)) return null;
-  const ctx = evalCtx(p, null);
-  const all = p.quests.ids.length > 0 && p.quests.ids.every((id) => questProgress(id, ctx).done);
-  return (
-    <section class="card quests">
-      <h2>{t('quests.title')}</h2>
-      <ul>
-        {p.quests.ids.map((id) => {
-          const q = questProgress(id, ctx);
-          return (
-            <li class={q.done ? 'done' : ''}>
-              <span class="check">{q.done ? <Icon name="check" size={18} /> : null}</span>
-              <span class="q-text">{t.dyn(id, { target: q.target })}</span>
-              {q.target > 1 && !q.done && (
-                <span class="q-prog">
-                  {q.value}/{q.target}
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {all && <p class="note">{t('quests.allDone')}</p>}
-    </section>
-  );
-}
-
 function NavRow({ p, band }: { p: Profile; band: BandId }): JSX.Element {
   const t = useT();
   const meta = useStore((s) => s.meta);
@@ -114,7 +103,8 @@ function NavRow({ p, band }: { p: Profile; band: BandId }): JSX.Element {
     { icon: 'trophy', label: t('home.trophies'), go: () => navigate('/trophies'), badge: unseen(p) },
     { icon: band === 'C' ? 'sun' : 'hanger', label: t('home.wardrobe'), go: () => navigate('/wardrobe'), badge: p.rewards.pending.length },
     ...(league && band !== 'A' ? [{ icon: 'people' as const, label: t('home.family'), go: () => navigate('/family') }] : []),
-    { icon: band === 'A' ? 'user' : 'gear', label: band === 'A' ? t('home.switch') : t('home.settings'), go: () => (band === 'A' ? signOut() : navigate('/settings')) },
+    // Band A switches player from its avatar at the top (A-29); B/C also keep Settings (with its own switch entry).
+    ...(band !== 'A' ? [{ icon: 'gear' as const, label: t('home.settings'), go: () => navigate('/settings') }] : []),
   ];
   return (
     <nav class="nav-row">
@@ -142,9 +132,10 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
   const look = lookFor(p);
   const [bounce, setBounce] = useState(false);
   const modes = useModes(p);
+  const { year, years } = useYear(p);
   const hop = modes.find((m) => m.id === 'hop')!;
-  // Other modes offered to pre-readers: big icon tiles, only once they can be started (no locked states in A).
-  const tray = modes.filter((m) => m.homeA && m.id !== 'hop' && isReady(m, p));
+  // Other modes offered to pre-readers: big icon tiles, only once they can be started in this year (no locked states in A).
+  const tray = modes.filter((m) => m.homeA && m.id !== 'hop' && modeReadyInYear(m, p, year));
   // In season the spoken welcome is the season's greeting (voice.season.*).
   const season = seasonNow(p, now());
   const welcome = season ? seasonGreetingKey(season) : 'voice.welcome';
@@ -162,26 +153,30 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
   return (
     <div class="screen home home-a">
       <header class="topbar">
-        <button type="button" class="icon-btn big" aria-label={t('common.speaker')} onClick={() => speaker.say(welcome, {}, p.locale)}>
-          <Icon name="speaker" size={30} />
-        </button>
+        <WhoButton p={p} size={48} />
         <span class="grow" />
         <LangToggle />
       </header>
+      <YearBar p={p} year={year} years={years} onChange={chooseYear} />
       <div class={`pet-stage${bounce ? ' bounce' : ''}`}>
         <Frog color={look.color} hat={look.hat} size={170} mood="happy" onClick={tapFrog} label={p.settings.petName ?? t('settings.petDefault')} />
+        {/* The spoken welcome sits by the frog; the top row holds the switch-player button (A-29). */}
+        <button type="button" class="icon-btn big pet-say" aria-label={t('common.speaker')} onClick={() => speaker.say(welcome, {}, p.locale)}>
+          <Icon name="speaker" size={30} />
+        </button>
       </div>
       <StreakStones p={p} />
-      <button type="button" class="btn go huge" aria-label={t('common.play')} onClick={() => launch(hop)}>
+      <button type="button" class="btn go huge" aria-label={t('common.play')} disabled={!modeReadyInYear(hop, p, year)} onClick={() => launch(hop, year)}>
         <Icon name="play" size={64} solid />
       </button>
-      <button type="button" class="btn quick" aria-label={t('home.quick')} onClick={() => launch(hop, false, true)}>
+      <button type="button" class="btn quick" aria-label={t('home.quick')} disabled={!modeReadyInYear(hop, p, year)} onClick={() => launch(hop, year, false, true)}>
         <Icon name="bolt" size={34} solid />
       </button>
+      <TodayCard p={p} year={year} />
       {tray.length > 0 && (
         <div class="mode-tray">
           {tray.map((m) => (
-            <button type="button" class={`btn mode-tile mode-${m.id}`} aria-label={t(m.titleKey)} onClick={() => launch(m)}>
+            <button type="button" class={`btn mode-tile mode-${m.id}`} aria-label={t(m.titleKey)} onClick={() => launch(m, year)}>
               <Icon name={m.icon} size={40} />
             </button>
           ))}
@@ -194,9 +189,11 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
 }
 
 // ── Band B ────────────────────────────────────────────────────────────────
-function ModeCard({ p, mode, stretch, setStretch }: { p: Profile; mode: ModeDef; stretch: boolean; setStretch: (v: boolean) => void }): JSX.Element {
+function ModeCard({ p, mode, year, stretch, setStretch }: { p: Profile; mode: ModeDef; year: number; stretch: boolean; setStretch: (v: boolean) => void }): JSX.Element {
   const t = useT();
-  const ready = isReady(mode, p);
+  const ready = modeReadyInYear(mode, p, year);
+  // A mode with nothing in any year yet (Sprint before a fact is Solid) keeps its own "not yet" line.
+  const desc = ready ? t(mode.descKey) : t(mode.notReadyKey ?? mode.descKey);
   return (
     <section class={`card mode-card mode-${mode.id}`}>
       <div class="mode-head">
@@ -205,29 +202,59 @@ function ModeCard({ p, mode, stretch, setStretch }: { p: Profile; mode: ModeDef;
         </span>
         <div>
           <h2>{t(mode.titleKey)}</h2>
-          <p class="muted">{ready ? t(mode.descKey) : t(mode.notReadyKey ?? mode.descKey)}</p>
+          <p class="muted">{desc}</p>
         </div>
       </div>
       {mode.id === 'hop' && (
         <>
-          <button type="button" class="btn primary big" onClick={() => launch(mode, stretch)}>
+          <button type="button" class="btn primary big" onClick={() => launch(mode, year, stretch)}>
             <Icon name="play" solid /> {t('common.play')}
           </button>
           <div class="row wrap">
             <button type="button" class={`chip${stretch ? ' on' : ''}`} aria-pressed={stretch} onClick={() => setStretch(!stretch)}>
               <Icon name="mountain" size={18} /> {stretch ? t('home.stretchOn') : t('home.stretch')}
             </button>
-            <button type="button" class="chip" onClick={() => launch(mode, false, true)}>
+            <button type="button" class="chip" onClick={() => launch(mode, year, false, true)}>
               <Icon name="bolt" size={18} /> {t('home.quick')}
             </button>
           </div>
         </>
       )}
       {mode.id !== 'hop' && (
-        <button type="button" class="btn" disabled={!ready} onClick={() => launch(mode)}>
+        <button type="button" class="btn" disabled={!ready} onClick={() => launch(mode, year)}>
           <Icon name={mode.icon} /> {t(mode.titleKey)}
         </button>
       )}
+    </section>
+  );
+}
+
+/** Mode cards for the year, and the modes whose content is in other years (with the nearest one). */
+function splitModes(modes: ModeDef[], p: Profile, year: number): { cards: ModeDef[]; elsewhere: Array<{ mode: ModeDef; year: number }> } {
+  const cards: ModeDef[] = [];
+  const elsewhere: Array<{ mode: ModeDef; year: number }> = [];
+  for (const m of modes) {
+    const other = hasYearContent(m, p, year) ? null : nearestYearFor(m, p, year);
+    if (other === null) cards.push(m);
+    else elsewhere.push({ mode: m, year: other });
+  }
+  return { cards, elsewhere };
+}
+
+/** Modes with nothing in the year browsed: one compact card, each chip moves the bar to the nearest year that has some (A-29). */
+function Elsewhere({ list }: { list: Array<{ mode: ModeDef; year: number }> }): JSX.Element | null {
+  const t = useT();
+  if (!list.length) return null;
+  return (
+    <section class="card elsewhere">
+      <h2>{t('year.elsewhere')}</h2>
+      <div class="chips">
+        {list.map(({ mode, year }) => (
+          <button type="button" class={`chip yb-elsewhere mode-${mode.id}`} data-mode={mode.id} onClick={() => chooseYear(year)}>
+            <Icon name={mode.icon} size={18} /> {t('year.modeIn', { mode: t(mode.titleKey), year: yearLabel(t, year) })}
+          </button>
+        ))}
+      </div>
     </section>
   );
 }
@@ -236,15 +263,20 @@ function HomeB({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const look = lookFor(p);
   const modes = useModes(p);
+  const { year, years } = useYear(p);
+  const split = splitModes(modes, p, year);
   const [stretch, setStretch] = useState(false);
   const [says] = useState(() => 1 + Math.floor(Math.random() * 3));
   const due = Object.values(p.skills).filter((s) => isDue(s, now())).length;
   return (
     <div class="screen home home-b">
       <header class="topbar">
-        <h1 class="greeting">{t('home.greeting', { name: p.name })}</h1>
+        <WhoButton p={p} />
+        <span class="grow" />
         <LangToggle />
       </header>
+      <h1 class="greeting greeting-line">{t('home.greeting', { name: p.name })}</h1>
+      <YearBar p={p} year={year} years={years} onChange={chooseYear} />
       <section class="pet-row">
         <Frog
           color={look.color}
@@ -261,12 +293,13 @@ function HomeB({ p }: { p: Profile }): JSX.Element {
         <div class="bubble">{p.placement.done ? t(`home.petSays${says}` as 'home.petSays1') : t('home.firstTime')}</div>
       </section>
       <StreakLine p={p} />
-      {modes.map((m) => (
-        <ModeCard p={p} mode={m} stretch={stretch} setStretch={setStretch} />
+      <TodayCard p={p} year={year} />
+      {split.cards.map((m) => (
+        <ModeCard p={p} mode={m} year={year} stretch={stretch} setStretch={setStretch} />
       ))}
+      <Elsewhere list={split.elsewhere} />
       {due > 0 && <p class="muted center">{t('home.reviewDue', { n: due })}</p>}
       <HomeWidgets p={p} />
-      <QuestCard p={p} />
       <NavRow p={p} band="B" />
     </div>
   );
@@ -276,6 +309,8 @@ function HomeB({ p }: { p: Profile }): JSX.Element {
 function HomeC({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const modes = useModes(p);
+  const { year, years } = useYear(p);
+  const split = splitModes(modes, p, year);
   const [stretch, setStretch] = useState(false);
   const t0 = now();
   const states = Object.values(p.skills);
@@ -295,13 +330,14 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
   return (
     <div class="screen home home-c">
       <header class="topbar">
-        <Avatar p={p} size={40} />
-        <div class="who">
-          <h1 class="greeting">{t('home.greeting', { name: p.name })}</h1>
+        <div class="who-block">
+          <WhoButton p={p} size={36} />
           {title && <span class="muted">{t.dyn(`cos.${title}`)}</span>}
         </div>
         <LangToggle />
       </header>
+      <h1 class="greeting greeting-line">{t('home.greeting', { name: p.name })}</h1>
+      <YearBar p={p} year={year} years={years} onChange={chooseYear} />
       {!p.placement.done && <p class="muted">{t('home.firstTime')}</p>}
       <div class="tiles">
         <div class="tile">
@@ -318,9 +354,11 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
           <div class="tile-sub muted">{v.doneToday ? t('streak.doneToday') : t('streak.notYet')}</div>
         </div>
       </div>
-      {modes.map((m) => (
-        <ModeCard p={p} mode={m} stretch={stretch} setStretch={setStretch} />
+      <TodayCard p={p} year={year} />
+      {split.cards.map((m) => (
+        <ModeCard p={p} mode={m} year={year} stretch={stretch} setStretch={setStretch} />
       ))}
+      <Elsewhere list={split.elsewhere} />
       <section class="card">
         <h2>{t('home.byStrand')}</h2>
         <ul class="meters">
@@ -347,7 +385,6 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
         </ul>
       </section>
       <HomeWidgets p={p} />
-      <QuestCard p={p} />
       <p class="muted center">
         {t('family.wildcard')}: {t.dyn(`family.wild.${wild}`)}
       </p>

@@ -4,7 +4,7 @@
  * sessions (?seed=), reading the log back; plus a reload in the middle of a
  * session (stale /play/ URL) returning home.
  */
-import { forceSkill, playSession, recentLog, seed, state } from '../lib.mjs';
+import { forceSkill, playSession, recentLog, seed, showMode, state } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -20,6 +20,7 @@ export default async function hooks(t) {
   const st = await page.evaluate(() => window.__hopa.getState().profile);
   assert(st.id === pid && st.band === 'B' && st.placement.done, 'seeded child is active, Band B, placed');
   assert(Object.keys(st.skills).length > 10, 'placement priors were replayed into skills');
+  await showMode(t, 'sprint'); // the year of his Solid facts (A-29)
   assert(await page.locator('.mode-sprint .btn:not([disabled])').count(), 'Sprint is ready for a placed child');
   await t.shot('home-B-seeded');
 

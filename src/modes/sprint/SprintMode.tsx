@@ -9,7 +9,10 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import { endSession, recentLog, startSession, updateSettings } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { now } from '../../app/services';
-import { useStore } from '../../app/store';
+import { getState, useStore } from '../../app/store';
+import { selectedYear } from '../../app/yearActions';
+import type { SessionOptions } from '../../core/log/types';
+import type { Profile } from '../../core/profile';
 import type { AnswerResult, PresentedItem } from '../../core/engine/session';
 import type { SprintRun } from '../../core/profile';
 import { GRAPH } from '../../core/skills';
@@ -21,6 +24,13 @@ import { PlayView } from '../hop/PlayView';
 import { parFor, penaltyMs, shadowProgress, SPRINT_ITEMS } from './timing';
 
 const fluencySkills = (): Set<string> => new Set(GRAPH.playableSkills().filter((s) => s.tags.includes('fluency')).map((s) => s.id));
+
+/** The school year (and today's challenge) the card or challenge opened this intro with; the bar's year after a reload (A-29). */
+function yearOpts(p: Profile): SessionOptions {
+  const lo = getState().launchOpts;
+  const year = lo?.year ?? selectedYear(p);
+  return { year, ...(lo?.challenge === 'sprint' ? { challenge: lo.challenge } : {}) };
+}
 
 export function SprintIntro(): JSX.Element {
   const t = useT();
@@ -63,7 +73,7 @@ export function SprintIntro(): JSX.Element {
             <small class="muted"> — {t('settings.noClockHelp')}</small>
           </span>
         </label>
-        <button type="button" class="btn primary big" onClick={() => startSession('sprint', { noClock })}>
+        <button type="button" class="btn primary big" onClick={() => startSession('sprint', { ...yearOpts(profile), noClock })}>
           <Icon name="bolt" /> {t('sprint.start')}
         </button>
       </div>
