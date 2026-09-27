@@ -57,6 +57,8 @@ export interface SessionConfig {
   timed: boolean;
   /** Serve only these skills (round-robin), skipping scheduling and placement. Test hook (SessionOptions.only). */
   only?: readonly SkillId[];
+  /** Weekly theme boost for the scheduler (a session started from the weekly card). */
+  boost?: Eligibility['boost'];
 }
 
 export interface PresentedItem {
@@ -148,6 +150,7 @@ export class SessionEngine {
       allowReading: this.cfg.band.allowReading,
       reviewFloor: this.cfg.band.reviewFloor ?? 0,
       ...(this.cfg.mode.filter ? { filter: this.cfg.mode.filter } : {}),
+      ...(this.cfg.boost ? { boost: this.cfg.boost } : {}),
     };
   }
 

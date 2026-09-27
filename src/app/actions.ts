@@ -36,6 +36,7 @@ import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAc
 import { navigate } from './router';
 import { nextSeed, now, repo, testOverrides } from './services';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
+import { pinWeeklyFor, settleWeekly, weeklyBoostFor } from './weeklyActions';
 
 export { evalCtx, recentLog } from './persist';
 
@@ -68,6 +69,7 @@ export function openProfile(p: Profile): void {
   if (questsOn(next) && next.quests?.day !== today) {
     next = { ...next, quests: { day: today, ids: questsForDay(p.id, today, p.band), done: [], rewarded: false } };
   }
+  next = pinWeeklyFor(next, t);
   setState({ profile: next });
   appendLog(p.id, recs);
   next = unlockAchievements(next, 'open', null).profile;
@@ -183,6 +185,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
   if ((p.flags['debug.shortSessions'] ?? deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
   const timed = !!mode.timed && !o.noClock;
+  const boost = weeklyBoostFor(p, o.theme);
   const engine = new SessionEngine(
     { graph: GRAPH, model: glickoElo, now },
     { skills: p.skills, placement: mode.placement ? p.placement : { ...p.placement, state: null } },
@@ -201,6 +204,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
       stretch: !!o.stretch,
       timed,
       ...(only ? { only } : {}),
+      ...(boost ? { boost } : {}),
     },
   );
   const masteryStart: Record<string, number> = {};
@@ -366,6 +370,10 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     if (c) gifts.push(c.id);
     appendLog(p.id, [event(EVENTS.QUEST_DONE, { ids: quests.ids }, s.id)]);
   }
+  const weekly = settleWeekly(p, s.id, t, s.rng);
+  p = weekly.profile;
+  gifts.push(...weekly.gifts);
+  const extras = [...(extra.extras ?? []), ...weekly.extras];
   const final = p;
   const skills = s.skillsSeen
     .filter((id) => final.skills[id])
@@ -384,7 +392,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     placed: s.placed,
     skills,
     sprint: sprintResult,
-    ...(extra.extras?.length ? { extras: extra.extras } : {}),
+    ...(extras.length ? { extras } : {}),
   };
   return { profile: saveProfile(p), result };
 }

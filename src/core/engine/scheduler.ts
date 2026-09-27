@@ -10,6 +10,12 @@
  * three times in a row; at most two never-seen skills per session; the first
  * item of a session is a known skill (a success to start on, and it doubles
  * as retrieval practice).
+ *
+ * A themed weekly session (Eligibility.boost) multiplies the frontier and
+ * review weights of the theme's skills, and after the warm-up draws a share
+ * of its items straight from those theme candidates (still never the same
+ * skill three times in a row). Maintenance is never boosted. Sessions
+ * without a boost consume the RNG exactly as before.
  */
 import type { Capability } from '../items/types';
 import type { Rng } from '../rng';
@@ -17,6 +23,7 @@ import type { SkillGraph } from '../skills/graph';
 import type { GeneratorBinding, SkillDef } from '../skills/types';
 import type { SkillId } from '../types';
 import { getGenerator } from '../items/generators/registry';
+import { boostedWeight, type ThemeBoost } from '../weekly';
 import { isDue, retrievability } from './memory';
 import type { LearnerModel, SkillState } from './model';
 import { SELECTION } from './params';
@@ -30,6 +37,8 @@ export interface Eligibility {
   reviewFloor?: number;
   /** Extra per-mode filter (e.g. timed mode: fluency skills at proficiency). */
   filter?: (skill: SkillDef, state: SkillState | undefined) => boolean;
+  /** Weekly theme boost: frontier and review weights of these skills ×factor; maintenance untouched. */
+  boost?: ThemeBoost;
 }
 
 export function compatibleBindings(skill: SkillDef, elig: Eligibility): GeneratorBinding[] {
@@ -98,6 +107,11 @@ export function classify(input: ScheduleInput): { frontier: Cand[]; review: Cand
     const g0 = Math.min(...(learning.length ? learning : frontier).map((c) => c.skill.grade));
     for (const c of frontier) c.weight *= Math.exp(-SELECTION.GRADE_DECAY * Math.max(0, c.skill.grade - g0));
   }
+  const { boost } = eligibility;
+  if (boost) {
+    for (const c of frontier) c.weight = boostedWeight(boost, c.skill.id, 'frontier', c.weight);
+    for (const c of review) c.weight = boostedWeight(boost, c.skill.id, 'review', c.weight);
+  }
   return { frontier, review, maintain };
 }
 
@@ -122,6 +136,19 @@ export function chooseSkill(input: ScheduleInput): ScheduledSkill | null {
     const known = [...buckets.review, ...buckets.maintain];
     const s = pickFrom(known);
     if (s) return { skillId: s.id, source: 'warmup' };
+  }
+
+  // Themed draw (weekly challenge): part of the session comes from the theme's frontier/review skills.
+  const boost = input.eligibility.boost;
+  if (boost && boost.share > 0 && rng.chance(boost.share)) {
+    const themed: Array<[ItemSource, Cand]> = [
+      ...buckets.frontier.map((c): [ItemSource, Cand] => ['frontier', c]),
+      ...buckets.review.map((c): [ItemSource, Cand] => ['review', c]),
+    ].filter(([, c]) => boost.skills.has(c.skill.id) && !(c.skill.id === last && c.skill.id === prev));
+    if (themed.length) {
+      const [source, c] = themed[rng.weighted(themed.map(([, x]) => x.weight * (x.skill.id === last ? 0.3 : 1)))]!;
+      return { skillId: c.skill.id, source };
+    }
   }
 
   const mix = buckets.review.length ? SELECTION.MIX_WITH_REVIEW : SELECTION.MIX_NO_REVIEW;

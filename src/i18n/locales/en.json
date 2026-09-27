@@ -185,6 +185,8 @@
     "frac": {
     },
     "weekly": {
+      "intro": "This is this week's game! Play it to light up the stones.",
+      "done": "All the stones are lit! There's a gift for you."
     },
     "target": {
     },
@@ -714,6 +716,28 @@
     "title.analyst": "Analyst",
     "title.architect": "Architect",
     "weekly": {
+      "counting.pad": "Dotty pads",
+      "bonds.pad": "Two-part pads",
+      "bridgeTen.pad": "Bridge pads",
+      "doubles.pad": "Mirror pads",
+      "tens.pad": "Striped pads",
+      "numberLine.pad": "Ruler pads",
+      "mixed.pad": "Rainbow pads",
+      "bridgeTen.color": "River",
+      "doubles.color": "Spring green",
+      "tens.color": "Pumpkin",
+      "bridgeHundred.color": "Raspberry",
+      "tables.color": "Night blue",
+      "bigNumbers.color": "Pine",
+      "numberLine.color": "Sky",
+      "belowZero.color": "Deep sea",
+      "mixed.color": "Fuchsia",
+      "bridgeHundred.theme": "Apricot",
+      "tables.theme": "Lavender",
+      "bigNumbers.theme": "Flamingo",
+      "numberLine.theme": "Lime",
+      "belowZero.theme": "Glacier",
+      "mixed.theme": "Orchid"
     },
     "season": {
     }
@@ -1005,6 +1029,71 @@
   "storage": {
   },
   "weekly": {
+    "title": "This week's challenge",
+    "title@C": "Weekly challenge",
+    "play": "Play this week's challenge",
+    "play@C": "Play",
+    "how": "Every game with 3 problems from this week's theme lights a stone.",
+    "how@C": "A session with at least 3 theme problems counts.",
+    "progress": "{done} of {target} stones lit",
+    "progress@C": "{done}/{target} sessions",
+    "complete": "All the stones are lit — the week's gift is yours!",
+    "complete@C": "Set complete. Reward unlocked.",
+    "stone": "A stone lit up on this week's challenge: {done} of {target}",
+    "stone@C": "Weekly challenge: {done}/{target} sessions",
+    "reward": "This week's challenge is complete — there's a gift for you!",
+    "reward@C": "Weekly challenge complete: new reward unlocked.",
+    "flag": "Weekly themed challenge: a 5-session set with a surprise cosmetic; sessions started from its card practise the theme's skills more often.",
+    "adult": {
+      "freeChoice": "Play after the weekly challenge was complete: {pct}% of that week's problems",
+      "freeChoiceNone": "No weekly challenge completed yet."
+    },
+    "theme": {
+      "counting": {
+        "name": "Counting week",
+        "desc": "Count the dots and know small numbers at a glance."
+      },
+      "bonds": {
+        "name": "Make-ten week",
+        "desc": "Numbers that fit together to make 5 and 10."
+      },
+      "bridgeTen": {
+        "name": "Bridge week: crossing ten",
+        "desc": "Adding and taking away across ten."
+      },
+      "doubles": {
+        "name": "Doubles week",
+        "desc": "Doubles, equal groups and times 2, 5 and 10."
+      },
+      "tens": {
+        "name": "Tens week",
+        "desc": "Tens and ones, all the way to 100."
+      },
+      "bridgeHundred": {
+        "name": "Bridge week: crossing a hundred",
+        "desc": "Adding and subtracting across hundreds."
+      },
+      "tables": {
+        "name": "Times-table week",
+        "desc": "Multiplication and division facts."
+      },
+      "bigNumbers": {
+        "name": "Big-numbers week",
+        "desc": "Multiplying by tens, hundreds and bigger numbers."
+      },
+      "numberLine": {
+        "name": "Number-line week",
+        "desc": "Find where every number lives on the line."
+      },
+      "belowZero": {
+        "name": "Below-zero week",
+        "desc": "Negative numbers: adding and subtracting below zero."
+      },
+      "mixed": {
+        "name": "Mixed week",
+        "desc": "A little of everything you are learning."
+      }
+    }
   },
   "target": {
   },

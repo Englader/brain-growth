@@ -42,6 +42,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  'voice.weekly.intro': ['voice.weekly.intro'],
+  'voice.weekly.done': ['voice.weekly.done'],
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──

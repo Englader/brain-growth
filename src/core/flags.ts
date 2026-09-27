@@ -34,6 +34,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  { id: 'weekly', scope: 'profile', default: true, labelKey: 'weekly.flag', description: 'Weekly themed challenge: a 5-session set with a cosmetic set piece; themed sessions boost theme skills.' },
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──

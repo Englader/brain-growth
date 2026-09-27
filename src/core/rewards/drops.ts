@@ -33,9 +33,13 @@ export function dropProbability(itemsSinceDrop: number, band: BandId): number {
 
 const RARITY_WEIGHT = { 1: 6, 2: 3, 3: 1 } as const;
 
-/** Weighted pick of an unowned cosmetic for the band (null when the collection is complete). */
+/**
+ * Weighted pick of an unowned cosmetic for the band (null when the collection
+ * is complete). Only the drop pool: weekly set pieces and seasonal items have
+ * their own sources and never drop at random.
+ */
 export function pickCosmetic(owned: readonly string[], band: BandId, rng: Rng): CosmeticDef | null {
-  const pool = COSMETICS.filter((c) => c.bands.includes(band) && !owned.includes(c.id));
+  const pool = COSMETICS.filter((c) => (c.source ?? 'drop') === 'drop' && c.bands.includes(band) && !owned.includes(c.id));
   if (!pool.length) return null;
   return pool[rng.weighted(pool.map((c) => RARITY_WEIGHT[c.rarity]))]!;
 }

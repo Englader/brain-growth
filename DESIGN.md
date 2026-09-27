@@ -36,7 +36,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 
 | # | Assumption / decision | Why | If wrong |
 |---|---|---|---|
-| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **89 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
+| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **96 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
 | A-6 | **Deploy = GitHub Actions.** Pages' source is set to "GitHub Actions" (your change). On every push to `main`, CI typechecks, tests, builds to `dist/`, runs the end-to-end check against that build, and only then publishes **the same `dist/`** with `actions/deploy-pages`. Build output is no longer committed. | Nobody runs a build step to deploy: merging is deploying. A red CI can never reach the site, and diffs no longer carry hashed bundle files. | To go back to "Deploy from a branch": set `outDir: 'docs'` in `vite.config.ts`, commit the build, and drop the `deploy` job. The build is byte-deterministic, so CI can check a committed copy is fresh. |
 | A-8 | **All progress lives in localStorage** (as required), namespaced `bg:`. The session log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item). When the namespace passes a 3.5 MB soft budget, raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not). | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month, so **two daily players keep ≈5 months of per-item history on-device**. Backups always contain everything still stored. | Raw item history is the substrate for every future improvement, so moving the log to **IndexedDB** behind the existing `KV` interface is scheduled in v1 (§4 step 11) before compaction would start. |
 | A-9 | **iOS Safari may evict localStorage after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
@@ -71,7 +71,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | A-22 | **Daily quests are on by default, but are flagged as a risk** and instrumented. The adult view shows the share of play *after* the quest completes (the free-choice measure from the overjustification literature). | You asked for quests. An announced task→reward pairing is the textbook overjustification set-up. The mitigations are in §1.9. | If free-choice play collapses toward 0, turn off `quests.daily` per child. |
 | A-23 | **Head-to-head shared state = URL-fragment "rival cards"** (option **a**), plus automatic same-device boards. | Reasoning in §1.10. | If you later accept a backend, §5 T-5 describes an end-to-end-encrypted sync that reuses the existing merge rules. |
 | A-24 | **The luck component in the slice is the league's weekly wildcard.** Every device picks the same category for the week by hashing the week id, with no server. The **Dice Race** mode (designed, §1.4) adds in-game luck. | The wildcard gives a weaker player a real chance in the only head-to-head that exists today. | Build Dice Race (§4 step 7). |
-| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the weekly themed challenge, the adaptive hint ladder. | Scope boundary of deliverable 3. | See §4 for order and effort. |
+| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the adaptive hint ladder. (The weekly themed challenge is built: §1.9.) | Scope boundary of deliverable 3. | See §4 for order and effort. |
 | A-26 | **Features ship ON by default.** The owner wants the complete product live, so new modes and features are enabled once their e2e flow passes. Flags remain as per-child switches in the adult view. Readiness gating still applies: a mode's card shows but stays locked until it can be played well (Sprint needs a Solid fluency skill; new modes need placement done), and the Band A home simply omits it until then. Sprint is the first mode switched on under this rule. | With n = 2 known children and an adult who can see and toggle every flag, "dark until proven" mostly hides finished work. The per-child switch keeps the escape hatch the flags were for. | If a feature turns out to hurt a child (e.g. timed play stresses them), switch its flag off for that child in Grown-ups → Features; to ship a future feature dark instead, set its `default: false`. |
 
 ---
@@ -294,7 +294,16 @@ Band C strings carry a competence tone: "Twenty Tamer" becomes "Times Tables: Co
 - Completing all yields an *unspecified* cosmetic gift.
 - Risk and mitigation: see A-22. The adult view shows free-choice play after quest completion.
 
-**Weekly challenge** (designed, §4 step 6): a themed 5-session set, e.g. "Bridge week: 10 items crossing a hundred". The payoff is a cosmetic *set piece* such as a background or pad set. It gives the week a shape without gating anything.
+**Weekly challenge** (built, §4 step 6; flag `weekly`, per child, on by default): a themed 5-session set, e.g. "Bridge week: crossing a hundred". The payoff is a cosmetic *set piece*. It gives the week a shape without gating anything. Code: `src/core/weekly.ts` (pure), `src/app/weeklyActions.ts`, `src/ui/widgets/WeeklyCard.tsx`.
+
+- **Themes.** 10 themes plus a "mixed" fallback, each on real playable skills: counting, make-ten, bridge over ten, doubles, tens, bridge over a hundred, times tables, big numbers, number line, below zero. Every device ranks the band's themes by a hash of (ISO week, theme id) and takes the first one with a skill *in play*, so siblings in the same band share the theme whenever it is open to both. Nothing in play → "mixed" (every skill counts, nothing boosted).
+- **In play** means what the boost can act on: the scheduler's review bucket, plus frontier skills within 1.5 grades of the child's earliest gap. Mastered, not-due skills (maintenance) never anchor a theme, so strong children can always finish; stretch skills far ahead never become half of every session.
+- **Pinned for the week.** The theme is chosen once (on app open after placement, or at the first session's end) and stored as `profile.weekly = { week, theme, rewarded }`, so progress never moves when skills unlock mid-week. It is re-picked only in a new week, or if an adult moves the child to a band the theme does not run in.
+- **Progress** is participation: a session counts when it was completed and had ≥ 3 first attempts on theme skills, right or wrong. Quick sparks count. Any session counts, not only ones started from the card.
+- **Themed sessions.** Starting from the card sets `SessionOptions.theme` (logged). The scheduler multiplies the theme skills' frontier and review weights by 3 (never maintenance) and, after the warm-up, draws half of the scheduled items straight from those theme candidates, still never the same skill three times in a row. The ×3 weight alone only moved the theme share from ~2% to ~5% (a B frontier holds about a dozen skills); with the draw it is 45–78% across simulated A/B/C learners (test: ≥ 40%). Sessions without a theme consume the RNG exactly as before.
+- **Reward:** once per week, into `pending`, with a results line and an `EVENTS.WEEKLY_DONE` record. Set pieces are patterned lily-pad sets for A (A sees pads on every item), pet colours for B, accent themes for C; `source: 'weekly'` keeps them out of drops and quest gifts. Themes recur, so a missed week is never final; if the child already owns that theme's piece, the gift is a surprise from the ordinary drop pool instead. Merge: the later week wins; within a week, "rewarded" wins.
+- **Where it shows.** A: a theme picture to tap, five stones and a gift, no text (a speaker button says what the stones are). B: a card with the theme, stones and "Play this week's challenge". C: one compact line. The adult Overview adds "play after the weekly challenge was complete" to the free-choice measure (A-22).
+- **Guardrails** (tested): no days-left counter, no reset message, no countdown or "last chance" wording in either language; weekly strings take only `{done}`, `{target}` and `{pct}`; the prize is announced only as a gift.
 
 **Cosmetics:**
 
@@ -437,7 +446,7 @@ src/
   app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
   styles/                  fonts.css app.css
-tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (236 tests)
+tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (328 tests)
 sim/                       simulated learners + harness + report (npm run sim)
 e2e/                       run.mjs harness, lib.mjs helpers, flows/NN-<name>.mjs (MK, 360px, screenshots; npm run e2e)
 scripts/                   gen-skill-doc, gen-audio-script, gen-icons, level-report
@@ -643,6 +652,7 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
 - **Sprint timed mode** (on by default, per-child flag; A-26).
+- **Weekly themed challenge** (on by default, per-child flag): pinned theme per ISO week, themed sessions, five stones, a set piece once per week (§1.9).
 - **Feature flags.**
 - **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, flags, voice report.
 - **Both locales**, fully wired.
@@ -652,10 +662,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Check | Result |
 |---|---|
-| `npm test` | **236 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
-| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). **35 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
+| `npm test` | **328 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets; weekly challenge (themes, pinning, progress, reward once and through a merge, set pieces never dropped, theme share ≥ 40% under the boost with warm-up and no-three-in-a-row intact, five themed sessions end to end through the app actions, no time wording); the pure Dice Race and seasonal-calendar cores |
+| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `30-weekly`: Band B card, a themed session that lights a stone (results line), the lit stone at home, the Band C line, the text-free Band A picture and stones (7 screenshots). **42 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
 | Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache |
-| Size | 89 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| Size | 96 KB JS + 6.5 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -689,7 +699,7 @@ Useful URL switches:
 
 - Macedonian voice clips are not recorded yet (A-14/A-15). Band A MK is silent until they are, unless the device has an mk voice.
 - Only the number-line mode exists, so Band C content is limited to integers.
-- The weekly themed challenge, hint ladder and puzzle track are designed, not built.
+- The hint ladder and puzzle track are designed, not built.
 - Placement accuracy is bounded by the playable graph: it cannot resolve grade 5–6 positions until fraction and decimal generators exist.
 
 ---
@@ -711,7 +721,7 @@ Useful URL switches:
 | 3 | **Fraction and decimal generators on the number line** (`f.unit`, `f.equiv`, `f.compare`, `d.tenths`, `d.compare`, `d.addsub`, `d.percent`), with rational tick labels | 4–5 days | Fills the B graph (grades 4–6); placement can then resolve B positions |
 | 4 | **Target mode** ("Make it"): solver, deal generator, multi-solution reveal; B first, then A (make 10) and C (brackets and powers) | 5 days | The second mode, maximum reasoning per minute, and it introduces the deal-luck element |
 | 5 | **Adaptive hint ladder** (strategy prompt → first hop → worked step; credit y = 1 − 0.25·tier) replacing the single hint | 2 days | B children will need scaffolds on multi-digit work |
-| 6 | **Weekly themed challenge** (5-session set, cosmetic set piece) | 2 days | Gives the week a shape |
+| 6 | ✅ **Done.** **Weekly themed challenge** (5-session set, cosmetic set piece; §1.9) | 2 days | Gives the week a shape |
 | 7 | **Dice Race pass-and-play** on one device, each child on their own adaptive items | 4 days | Real-time head-to-head with luck, zero shared state |
 | 8 | **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** | 8–10 days | The separate reasoning product |
 | 9 | **Workshop (fractions and area)**, then the "Balance" equation mode and a coordinate-plane mode for C | 10+ days | Needs direct-manipulation UI; this is where Band C content depth arrives |
