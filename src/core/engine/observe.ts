@@ -15,6 +15,8 @@ export interface FirstAttempt {
   difficulty: number;
   ts: number;
   timed: boolean;
+  /** Evidence weight of this observation (MODE_EVIDENCE of its mode); default 1. */
+  weight?: number;
 }
 
 export interface ObservationEffect {
@@ -39,8 +41,8 @@ export function applyFirstAttempt(
   const mem = memoryEvent(st, clean, now);
   st = mem.state;
 
-  // 2) ability update; timed observations do not move ability (DESIGN §1.7)
-  const weight = obs.timed ? MODEL.TIMED_WEIGHT : 1;
+  // 2) ability update; timed observations do not move ability (DESIGN §1.7); modes may weigh evidence
+  const weight = obs.timed ? MODEL.TIMED_WEIGHT : obs.weight ?? 1;
   if (weight > 0) {
     st = ctx.model.update(st, {
       y: obs.correct ? (obs.hint ? MODEL.HINT_CREDIT : 1) : 0,

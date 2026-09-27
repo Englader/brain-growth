@@ -768,6 +768,25 @@ ul.plain {
   font-size: 0.7em;
   color: var(--muted);
 }
+/* Band A: other modes as big icon tiles (registry: ModeDef.homeA). */
+.mode-tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+.mode-tile {
+  width: 88px;
+  min-height: 88px;
+  border-radius: 28px;
+  color: var(--primary);
+}
+/* Feature cards registered with registerHomeWidget. */
+.home-widgets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
 .dot-badge {
   position: absolute;
   top: -6px;

@@ -36,6 +36,10 @@ const items = (ctx: EvalContext): ItemRecord[] =>
 const sessionEnds = (ctx: EvalContext): SessionRecord[] =>
   memo(ctx, 'sessEnd', () => ctx.log.filter((r): r is SessionRecord => r.type === 'session' && r.phase === 'end'));
 
+/** Modes the child has opened a session in (session start records, so standalone modes without items count too). */
+const modesTried = (ctx: EvalContext): Set<string> =>
+  memo(ctx, 'modesTried', () => new Set(ctx.log.filter((r): r is SessionRecord => r.type === 'session' && r.phase === 'start').map((r) => r.mode)));
+
 const events = (ctx: EvalContext, name: string): LogRecord[] =>
   memo(ctx, `ev:${name}`, () => ctx.log.filter((r) => r.type === 'event' && r.name === name));
 
@@ -159,11 +163,11 @@ registerMetric({
   kind: 'exploration',
   compute: (c) => events(c, EVENTS.LOCALE_SWITCH).filter((e) => e.type === 'event' && e.data?.mid === true).length,
 });
-registerMetric({ id: 'modes.tried', kind: 'exploration', compute: (c) => new Set(items(c).map((r) => r.mode)).size });
+registerMetric({ id: 'modes.tried', kind: 'exploration', compute: (c) => modesTried(c).size });
 registerMetric({
   id: 'modes.triedAll',
   kind: 'exploration',
-  compute: (c) => (new Set(items(c).map((r) => r.mode)).size >= c.modesAvailable ? 1 : 0),
+  compute: (c) => (modesTried(c).size >= c.modesAvailable ? 1 : 0),
 });
 registerMetric({
   id: 'stretch.items',

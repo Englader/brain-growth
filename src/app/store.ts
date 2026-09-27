@@ -6,6 +6,7 @@ import { useEffect, useState } from 'preact/hooks';
 import type { SessionEngine, PresentedItem } from '../core/engine/session';
 import type { RivalCard } from '../core/league';
 import type { SessionOptions } from '../core/log/types';
+import type { MessageParams } from '../i18n/format';
 import type { Profile, SprintRun } from '../core/profile';
 import type { Rng } from '../core/rng';
 import type { ModeId, SkillId } from '../core/types';
@@ -13,6 +14,8 @@ import type { Meta } from '../data/schema';
 
 export interface ActiveSession {
   id: string;
+  /** The child this session belongs to (pass-and-play modes hold several). */
+  pid: string;
   modeId: ModeId;
   engine: SessionEngine;
   opts: SessionOptions;
@@ -47,6 +50,8 @@ export interface SessionResult {
   placed: boolean;
   skills: Array<{ id: SkillId; before: number; after: number }>;
   sprint: { run: SprintRun; previousBest: SprintRun | null; noClock: boolean } | null;
+  /** Mode-specific summary lines (message key + params), shown under the summary in Bands B/C. */
+  extras?: Array<{ key: string; params?: MessageParams }>;
 }
 
 export interface AppState {
@@ -102,10 +107,14 @@ export function subscribe(l: Listener): () => void {
 export function useStore<T>(select: (s: AppState) => T): T {
   const [value, setValue] = useState(() => select(state));
   useEffect(() => {
-    const unsub = subscribe((s) => {
+    const update = (s: AppState): void => {
       const next = select(s);
       setValue((prev) => (Object.is(prev, next) ? prev : next));
-    });
+    };
+    const unsub = subscribe(update);
+    // The store may have changed between the first render and this subscription
+    // (e.g. a redirect issued while rendering a stale /play/… URL after a reload).
+    update(state);
     return () => {
       unsub();
     };

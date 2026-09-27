@@ -54,6 +54,19 @@ export const COSMETICS: readonly CosmeticDef[] = [
   { id: 'title.strategist', slot: 'title', bands: C, rarity: 2, value: '' },
   { id: 'title.analyst', slot: 'title', bands: C, rarity: 2, value: '' },
   { id: 'title.architect', slot: 'title', bands: C, rarity: 3, value: '' },
+  // Feature cosmetics (ids `<feature>.*`, strings `cos.<feature>.*`), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 ];
 
 const byId = new Map(COSMETICS.map((c) => [c.id, c]));

@@ -96,6 +96,15 @@ describe('achievement evaluation against the log', () => {
     expect(got).toEqual(expect.arrayContaining(['explore.bilingual', 'explore.switchMid']));
   });
 
+  it('exploration: "tried every mode" counts session starts, so standalone modes without items count', () => {
+    const start = (sid: string, mode: string): SessionRecord => sess({ sid, mode, phase: 'start', items: null, firstCorrect: null, durationMs: null, completed: null });
+    const two = (log: LogRecord[]): EvalContext => ({ ...ctx(kid(), log), modesAvailable: 2 });
+    const hopOnly: LogRecord[] = [start('s1', 'hop'), it_({ sid: 's1' })];
+    expect(evaluateAchievements(ACHIEVEMENTS, two(hopOnly), 'session')).not.toContain('explore.allModes');
+    const withPuzzle: LogRecord[] = [...hopOnly, start('s2', 'puzzle'), sess({ sid: 's2', mode: 'puzzle', items: 0, firstCorrect: 0 })];
+    expect(evaluateAchievements(ACHIEVEMENTS, two(withPuzzle), 'session')).toContain('explore.allModes');
+  });
+
   it('mastery is read from the skill graph state, including crossing into the next band', () => {
     const p = kid();
     p.band = 'A';
@@ -215,11 +224,15 @@ describe('family league (handicapped by effort and growth, not ability)', () => 
 describe('feature flags', () => {
   it('precedence: url > profile > device > default', () => {
     setUrlOverrides('');
-    expect(isEnabled('mode.sprint', {}, {})).toBe(false);
-    expect(isEnabled('mode.sprint', { 'mode.sprint': true }, {})).toBe(true);
+    expect(isEnabled('mode.sprint', {}, {})).toBe(true); // features ship on (DESIGN A-26)
+    expect(isEnabled('mode.sprint', { 'mode.sprint': false }, {})).toBe(false);
+    expect(isEnabled('mode.sprint', {}, { 'mode.sprint': false })).toBe(false);
+    expect(isEnabled('mode.sprint', { 'mode.sprint': true }, { 'mode.sprint': false })).toBe(true);
     expect(isEnabled('league.family', {}, { 'league.family': false })).toBe(false);
     setUrlOverrides('?ff=-mode.sprint');
     expect(isEnabled('mode.sprint', { 'mode.sprint': true }, {})).toBe(false);
+    setUrlOverrides('?ff=debug.shortSessions');
+    expect(isEnabled('debug.shortSessions', {}, { 'debug.shortSessions': false })).toBe(true);
     setUrlOverrides('');
     expect(isEnabled('no.such.flag', {}, {})).toBe(false);
   });
