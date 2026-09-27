@@ -212,6 +212,9 @@ describe('Macedonian rendering', () => {
     expect(formatPercent(25, MK)).toBe(`25${NBSP}%`);
     expect(formatPercent(12.5, MK)).toBe(`12,5${NBSP}%`);
     expect(formatPercent(25, EN)).toBe('25%');
+    expect(tk('mk', 'frac.pctOf', { pct: 25, of: 80 })).toBe(`25${NBSP}% од 80`);
+    expect(tk('en', 'frac.pctOf', { pct: 25, of: 80 })).toBe('25% of 80');
+    // An already formatted value passes through unchanged.
     expect(tk('mk', 'frac.pctOf', { pct: formatPercent(25, MK), of: 80 })).toBe(`25${NBSP}% од 80`);
   });
 

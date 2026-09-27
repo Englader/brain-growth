@@ -10,6 +10,7 @@ import { recentLog, saveProfile } from '../src/app/persist';
 import { repo } from '../src/app/services';
 import { getState, setState } from '../src/app/store';
 import { glickoElo } from '../src/core/engine/glicko';
+import { setUrlOverrides } from '../src/core/flags';
 import { MODE_EVIDENCE, modeEvidence } from '../src/core/engine/params';
 import { replay } from '../src/core/engine/replay';
 import { SessionEngine, type PresentedItem } from '../src/core/engine/session';
@@ -190,6 +191,20 @@ describe('session actions for a profile that is not the active one', () => {
     expect(getState().profile?.id).toBe(ana.id);
     expect(getState().session).toBeNull();
     expect(getState().profiles.find((x) => x.id === marko.id)!.stats.items).toBe(3);
+  });
+
+  it('debug.shortSessions: ?ff= gives four-item sessions like the per-child and device switches; the URL wins', () => {
+    const p = kid('Лена', 9);
+    const planned = (q: Profile): number => startSessionFor(q, 'hop', { quick: false })!.engine.planned;
+    const normal = planned(p);
+    expect(normal).toBeGreaterThan(4);
+    setUrlOverrides('?ff=debug.shortSessions');
+    expect(planned(p)).toBe(4);
+    setUrlOverrides('');
+    expect(planned({ ...p, flags: { 'debug.shortSessions': true } })).toBe(4);
+    setUrlOverrides('?ff=-debug.shortSessions');
+    expect(planned({ ...p, flags: { 'debug.shortSessions': true } })).toBe(normal);
+    setUrlOverrides('');
   });
 
   it('only placement modes serve placement items; other modes keep the profile placement untouched', () => {

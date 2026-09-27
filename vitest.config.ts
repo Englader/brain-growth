@@ -6,6 +6,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     environment: 'node',
+    // Locale bundles are loaded on demand in the app; tests start with all of them loaded.
+    setupFiles: ['tests/setup.ts'],
     testTimeout: 30_000,
   },
 });

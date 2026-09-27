@@ -1,6 +1,10 @@
 /**
  * A tiny ICU-MessageFormat subset: {arg}, {n, plural, one {..} other {..}},
- * {g, select, f {..} other {..}}, and '#' inside plural branches.
+ * {g, select, f {..} other {..}}, '#' inside plural branches, and
+ * {pct, percent}: a number already in percent units written with the
+ * locale's percent convention ("25%" in English, "25 %" with a no-break
+ * space in Macedonian; DESIGN §1.12). Messages never write `{x}%` themselves
+ * (tests/i18n.test.ts), so every percentage goes through that convention.
  *
  * Why not i18next/FormatJS: those are 10-40 KB for features we do not use,
  * and Macedonian needs exactly two things from them — CLDR plural categories
@@ -12,6 +16,7 @@ type Node =
   | string
   | { t: 'arg'; name: string }
   | { t: 'hash' }
+  | { t: 'pct'; name: string }
   | { t: 'plural'; name: string; offset: number; options: Record<string, Node[]> }
   | { t: 'select'; name: string; options: Record<string, Node[]> };
 
@@ -20,6 +25,8 @@ export type MessageParams = Record<string, string | number | undefined>;
 export interface FormatEnv {
   pluralRules: Intl.PluralRules;
   formatNumber: (n: number) => string;
+  /** `{x, percent}`: the locale's percent format (numbers.formatPercent); default `${number}%`. */
+  formatPercent?: (n: number) => string;
 }
 
 class Parser {
@@ -94,6 +101,10 @@ class Parser {
     }
     this.expect(',');
     const kind = this.ident();
+    if (kind === 'percent') {
+      this.expect('}');
+      return { t: 'pct', name };
+    }
     if (kind !== 'plural' && kind !== 'select') throw this.err(`unknown format ${kind}`);
     this.expect(',');
     let offset = 0;
@@ -140,6 +151,13 @@ function render(nodes: Node[], params: MessageParams, env: FormatEnv, hashValue:
       out += v === undefined ? `{${node.name}}` : typeof v === 'number' ? env.formatNumber(v) : v;
     } else if (node.t === 'hash') {
       out += hashValue === null ? '#' : env.formatNumber(hashValue);
+    } else if (node.t === 'pct') {
+      // A number (or numeric string) in percent units; any other string is taken as already formatted.
+      const v = params[node.name];
+      const n = typeof v === 'number' ? v : v !== undefined && v.trim() !== '' ? Number(v) : NaN;
+      if (v === undefined) out += `{${node.name}}`;
+      else if (!Number.isFinite(n)) out += v;
+      else out += env.formatPercent ? env.formatPercent(n) : `${env.formatNumber(n)}%`;
     } else if (node.t === 'plural') {
       const raw = Number(params[node.name] ?? 0);
       const n = raw - node.offset;

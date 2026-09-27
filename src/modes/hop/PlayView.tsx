@@ -25,7 +25,7 @@ import type { InputMethod } from '../../core/log/types';
 import { parseKey, toNumber } from '../../core/rational';
 import { tk } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
-import { answerText, lineValueText, numberText, percentText, promptText, promptVoice, solutionText, spokenPrompt } from '../../i18n/render';
+import { answerText, lineValueText, numberText, promptText, promptVoice, solutionText, spokenPrompt } from '../../i18n/render';
 import { animateHops, unitHops, type HopFrame } from '../../ui/anim';
 import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
@@ -438,7 +438,7 @@ function PromptVisual({ item, locale, label, bandA }: { item: Item; locale: stri
     case 'compare':
       return <CompareView a={p.a} b={p.b} locale={locale} />;
     case 'percentOf':
-      return <PercentOf text={tk(locale, 'frac.pctOf', { pct: percentText(p.pct, locale), of: p.of })} />;
+      return <PercentOf text={tk(locale, 'frac.pctOf', { pct: p.pct, of: p.of })} />;
     case 'read':
       return null;
     case 'word':

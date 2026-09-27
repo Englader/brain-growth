@@ -4,11 +4,14 @@
  * one side-effect import under its slot below (CONTRIBUTING: "Parallel work
  * conventions"). Home screens, routes, the engine's skill filter, "tried
  * every mode" and flags all read the registry.
+ *
+ * Registrations are eager (cards, readiness and flags work at once); every
+ * mode screen except Hop's is a chunk loaded on first use (./lazy.tsx).
  */
 import { GRAPH } from '../core/skills';
 import { HopMode } from './hop/HopMode';
+import { lazyScreen } from './lazy';
 import { registerMode } from './registry';
-import { SprintIntro, SprintMode } from './sprint/SprintMode';
 import { SPRINT_ITEMS } from './sprint/timing';
 
 // Feature modes: one side-effect import (`import './<id>';`) directly under its own anchor. Never reorder.
@@ -53,6 +56,7 @@ registerMode({
   notReadyKey: 'home.sprintLocked',
   plannedItems: () => SPRINT_ITEMS,
   maxReturns: () => 0,
-  intro: SprintIntro,
-  Component: SprintMode,
+  // Its own chunk (./lazy): the intro and the race screen load when the card is opened.
+  intro: lazyScreen(() => import('./sprint/SprintMode').then((m) => m.SprintIntro)),
+  Component: lazyScreen(() => import('./sprint/SprintMode').then((m) => m.SprintMode), { placeholderClass: 'play lazy-screen' }),
 });

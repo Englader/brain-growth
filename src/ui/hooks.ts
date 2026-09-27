@@ -3,14 +3,23 @@ import { getBand } from '../bands/registry';
 import type { BandConfig } from '../bands/types';
 import { getCosmetic } from '../core/rewards/cosmetics';
 import type { Profile } from '../core/profile';
-import { makeT, type Translator } from '../i18n/i18n';
+import { makeT, speakingLocale, type Translator } from '../i18n/i18n';
 import { useStore } from '../app/store';
 import type { HopperLook } from './components/NumberLine';
 
-/** Translator bound to the active player's locale and band (tone variants). */
+/**
+ * Translator bound to the active player's locale and band (tone variants).
+ * Should that locale's bundle still be on its way (bundles load on demand,
+ * DESIGN §1.12), it stays on the language already shown, starts the load,
+ * and re-renders once the bundle is in (the store's `locales` changes).
+ */
 export function useT(): Translator {
-  const locale = useStore((s) => s.profile?.locale ?? s.meta?.uiLocale ?? guessLocale());
+  const wanted = useStore((s) => s.profile?.locale ?? s.meta?.uiLocale ?? guessLocale());
+  const loaded = useStore((s) => s.locales);
   const band = useStore((s) => s.profile?.band ?? 'B');
+  const locale = loaded.includes(wanted) ? wanted : speakingLocale(wanted) ?? wanted;
+  // makeT starts loading `wanted` when it is missing; the translator below speaks `locale` meanwhile.
+  if (locale !== wanted) makeT(wanted, band);
   return useMemo(() => makeT(String(locale), band), [locale, band]);
 }
 

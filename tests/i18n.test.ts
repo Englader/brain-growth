@@ -19,6 +19,7 @@ import { COSMETICS } from '../src/core/rewards/cosmetics';
 import { SKILLS } from '../src/core/skills';
 import { allGenerators } from '../src/core/items/generators';
 import { argumentNames, compile } from '../src/i18n/format';
+import { tk } from '../src/i18n/i18n';
 import { allLocales, getLocale } from '../src/i18n/locales';
 import { createRng } from '../src/core/rng';
 import { GRAPH } from '../src/core/skills';
@@ -59,6 +60,42 @@ describe('locale parity', () => {
     for (const s of SKILLS) for (const g of s.gens ?? []) {
       if (g.id === 'word') expect(en.wordProblems.templates[String(g.config?.template)], s.id).toBeDefined();
     }
+  });
+});
+
+describe('locale bundles (loaded on demand in the app)', () => {
+  it('are all in for these tests, so parity is never checked over an empty bundle', () => {
+    for (const loc of locales) {
+      expect(loc.loaded, loc.id).toBe(true);
+      expect(Object.keys(loc.messages).length, loc.id).toBeGreaterThan(500);
+      expect(Object.keys(loc.wordProblems.templates).length, loc.id).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('percentages use the locale percent format (DESIGN §1.12)', () => {
+  it('no string writes a sign after a placeholder: every percentage is {x, percent}', () => {
+    for (const loc of locales) {
+      const bad = Object.entries(loc.messages).filter(([, v]) => /\}[\s ]*%/.test(v));
+      expect(bad.map(([k, v]) => `${loc.id}:${k} ${v}`)).toEqual([]);
+      expect(Object.values(loc.messages).filter((v) => v.includes('}%'))).toEqual([]);
+    }
+  });
+
+  it('a literal percent follows the convention: "10%" in English, "10 %" with a no-break space in Macedonian', () => {
+    const odd = (loc: string, re: RegExp): string[] =>
+      Object.entries(getLocale(loc).messages)
+        .filter(([, v]) => v.replace(/\{\w+, percent\}/g, '').replace(re, '').includes('%'))
+        .map(([k, v]) => `${loc}:${k} ${v}`);
+    expect(odd('en', /\d%/g)).toEqual([]);
+    expect(odd('mk', /\d %/g)).toEqual([]);
+  });
+
+  it('{x, percent} renders through the locale config', () => {
+    expect(tk('en', 'results.accuracy', { pct: 25 })).toBe('First-try accuracy: 25%');
+    expect(tk('mk', 'results.accuracy', { pct: 25 })).toBe('Точност од прв обид: 25 %');
+    expect(tk('mk', 'adult.errors.expected', { e: 12.5, o: 40 })).toContain('12,5 %');
+    expect(tk('en', 'frac.pctOf', { pct: 75, of: 80 })).toBe('75% of 80');
   });
 });
 

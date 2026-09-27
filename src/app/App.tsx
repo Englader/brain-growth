@@ -1,6 +1,6 @@
 import type { JSX } from 'preact';
 import { useEffect } from 'preact/hooks';
-import { Adult } from '../adult/Adult';
+import { AdultScreen } from '../adult/screen';
 import { getBand } from '../bands/registry';
 import { getLocale } from '../i18n/locales';
 import { getMode, modesFor } from '../modes/registry';
@@ -29,7 +29,7 @@ function Screen(): JSX.Element | null {
   const meta = useStore((s) => s.meta);
 
   if (route.startsWith('/rival/')) return <RivalImport payload={route.slice(7)} />;
-  if (route === '/adult') return <Adult />;
+  if (route === '/adult') return <AdultScreen />;
   if (route === '/new' || (!profile && profiles.length === 0)) return <Create />;
   if (!profile) return <Profiles />;
   // Generic mode routes: /intro/<id> (the mode's pre-session screen) and /play/<id>.

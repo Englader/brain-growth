@@ -21,6 +21,7 @@ import type { Response } from '../core/items/grade';
 import { decodeRivalCard, encodeRivalCard, weeklyEffort, type RivalCard } from '../core/league';
 import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../core/log/types';
 import { EVENTS } from '../core/log/types';
+import { isEnabled } from '../core/flags';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
 import { questsForDay } from '../core/quests';
 import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
@@ -31,9 +32,12 @@ import { GRAPH } from '../core/skills';
 import { applyFreezes, currentStreak, MIN_ITEMS_FOR_DAY, recordActiveDay } from '../core/streaks';
 import { dayKey, weekKey } from '../core/time';
 import type { LocaleId, ModeId } from '../core/types';
+import { tk } from '../i18n/i18n';
 import { getLocale } from '../i18n/locales';
+import { preloadMode } from '../modes/lazy';
 import { defaultPlannedItems, getMode } from '../modes/registry';
 import type { ModeDef } from '../modes/types';
+import { whenLocaleReady } from './localeActions';
 import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
 import { nextSeed, now, repo, storage, testOverrides } from './services';
@@ -140,6 +144,11 @@ export function deleteProfile(pid: string): void {
  * switch is not counted as mid-session (their session is not the store's).
  */
 export function switchLocale(locale: LocaleId, pid?: string): void {
+  // Bundles load on demand: the switch applies once this language's messages are in (at once after the idle prefetch).
+  whenLocaleReady(locale, () => applyLocale(locale, pid), localeFailed);
+}
+
+function applyLocale(locale: LocaleId, pid?: string): void {
   const st = getState();
   const active = !pid || pid === st.profile?.id;
   const p = active ? st.profile : st.profiles.find((x) => x.id === pid) ?? repo.loadProfile(pid);
@@ -153,7 +162,13 @@ export function switchLocale(locale: LocaleId, pid?: string): void {
 }
 
 export function setUiLocale(locale: LocaleId): void {
-  setState({ meta: repo.saveMeta({ uiLocale: locale }) });
+  whenLocaleReady(locale, () => setState({ meta: repo.saveMeta({ uiLocale: locale }) }), localeFailed);
+}
+
+/** A language bundle could not be fetched (offline before the service worker cached it): say so; tapping again retries. */
+function localeFailed(): void {
+  const st = getState();
+  toast(tk(st.profile?.locale ?? st.meta?.uiLocale ?? 'en', 'lang.failed'));
 }
 
 // ── sessions (profile-parameterised) ───────────────────────────────────────
@@ -175,6 +190,15 @@ export interface FinishExtra {
 }
 
 /**
+ * Four-item sessions for testing (`debug.shortSessions`): the URL (`?ff=debug.shortSessions`)
+ * wins, then a per-child value (e2e seeds set it on the profile), then the device switch.
+ */
+function shortSessions(p: Profile, deviceFlags: Record<string, boolean>): boolean {
+  const id = 'debug.shortSessions';
+  return isEnabled(id, undefined, id in p.flags ? { ...deviceFlags, [id]: p.flags[id]! } : deviceFlags);
+}
+
+/**
  * Create a session for `profile` in `modeId` and log its start record. Pure
  * with respect to the store: the caller keeps the returned session (the store
  * for the active child, or its own state for pass-and-play). Placement items
@@ -192,7 +216,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   const only = opts.only ?? testOverrides.only ?? undefined;
   const o: SessionOptions = only ? { ...opts, only } : opts;
   let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
-  if ((p.flags['debug.shortSessions'] ?? deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
+  if (shortSessions(p, deviceFlags)) planned = Math.min(planned, 4);
   const timed = !!mode.timed && !o.noClock;
   const boost = weeklyBoostFor(p, o.theme);
   const engine = new SessionEngine(
@@ -425,6 +449,8 @@ export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
  * screen (/intro/<id>), else straight into a session.
  */
 export function launchMode(mode: ModeDef, opts: SessionOptions = {}, replace = false): void {
+  // Lazy screens (modes/lazy.tsx) start fetching now, so the chunk is usually in before the route renders.
+  preloadMode(mode);
   if (mode.launch) mode.launch(opts);
   else if (mode.intro) navigate(`/intro/${mode.id}`, replace);
   else startSession(mode.id, opts);

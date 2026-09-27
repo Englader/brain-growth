@@ -10,22 +10,28 @@ import { Icon } from './Icon';
 /** Always-visible language switch. Text labels, never flags (flags are countries, not languages). */
 export function LangToggle(): JSX.Element {
   const profile = useStore((s) => s.profile);
+  const pending = useStore((s) => s.localePending);
   const t = useT();
   const current = t.locale;
   return (
     <div class="lang" role="group">
-      {allLocales().map((l) => (
-        <button
-          type="button"
-          class={l.id === current ? 'on' : ''}
-          aria-pressed={l.id === current}
-          aria-label={t('lang.switchTo', { lang: l.nativeName })}
-          lang={l.bcp47}
-          onClick={() => (profile ? switchLocale(l.id) : setUiLocale(l.id))}
-        >
-          {l.short}
-        </button>
-      ))}
+      {allLocales().map((l) => {
+        // A language whose bundle is still on its way (a tap before the idle prefetch finished): busy, not yet pressed.
+        const busy = pending === l.id;
+        return (
+          <button
+            type="button"
+            class={l.id === current ? 'on' : busy ? 'busy' : ''}
+            aria-pressed={l.id === current}
+            aria-busy={busy || undefined}
+            aria-label={t(busy ? 'lang.loading' : 'lang.switchTo', { lang: l.nativeName })}
+            lang={l.bcp47}
+            onClick={() => (profile ? switchLocale(l.id) : setUiLocale(l.id))}
+          >
+            {l.short}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -48,7 +54,7 @@ export function TopBar({ title, onBack, right }: { title?: string; onBack?: () =
 }
 
 /** Press-and-hold button (adult gate). Not security — a speed bump for small hands. */
-export function HoldButton({ onDone, children, label, ms = 2000 }: { onDone: () => void; children: ComponentChildren; label: string; ms?: number }): JSX.Element {
+export function HoldButton({ onDone, onStart, children, label, ms = 2000 }: { onDone: () => void; onStart?: () => void; children: ComponentChildren; label: string; ms?: number }): JSX.Element {
   const [progress, setProgress] = useState(0);
   const raf = useRef(0);
   const start = useRef(0);
@@ -63,6 +69,7 @@ export function HoldButton({ onDone, children, label, ms = 2000 }: { onDone: () 
     raf.current = requestAnimationFrame(tick);
   };
   const down = (): void => {
+    onStart?.();
     start.current = performance.now();
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(tick);

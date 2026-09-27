@@ -18,11 +18,15 @@
     "play": "Play",
     "speaker": "Hear it again",
     "loading": "Loading…",
+    "loadFailed": "This part of the game could not be loaded just now. Check the connection and try again.",
+    "retry": "Try again",
     "new": "New!",
     "points": "{n, plural, one {# pt} other {# pts}}"
   },
   "lang": {
-    "switchTo": "Switch language to {lang}"
+    "switchTo": "Switch language to {lang}",
+    "loading": "{lang}: loading…",
+    "failed": "That language could not be loaded just now. Check the connection and try again."
   },
   "grade": {
     "label": "{g, select, 0 {Preschool} other {Grade {g}}}"
@@ -222,7 +226,7 @@
     "trophies": "New trophies",
     "trophies@C": "New achievements",
     "again": "Play again",
-    "accuracy": "First-try accuracy: {pct}%",
+    "accuracy": "First-try accuracy: {pct, percent}",
     "skills": "Skills trained",
     "placed": "Your trail is ready!",
     "placed@C": "Starting level set.",
@@ -344,7 +348,7 @@
       "mastery": "Skills solid and mastered over time",
       "masteredSeries": "Mastered",
       "proficientSeries": "Solid",
-      "freeChoice": "Play after the daily quest was complete: {pct}% of problems",
+      "freeChoice": "Play after the daily quest was complete: {pct, percent} of problems",
       "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, quests may be replacing interest — consider turning them off.",
       "noData": "No play recorded yet.",
       "freeChoiceNone": "No completed daily quests yet."
@@ -377,14 +381,14 @@
       "n": "n",
       "flagged": "Skills where the model is mis-calibrated",
       "none": "Nothing flagged yet (needs at least 15 first attempts on a skill).",
-      "biasRow": "{skill}: predicted {p}%, observed {o}% over {n} tries"
+      "biasRow": "{skill}: predicted {p, percent}, observed {o, percent} over {n} tries"
     },
     "errors": {
       "title": "Recurring mistake patterns",
       "none": "No recurring patterns yet.",
       "count": "{n, plural, one {# time} other {# times}}",
       "unusual": "Skills with unusual error rates",
-      "expected": "expected {e}% errors, observed {o}%",
+      "expected": "expected {e, percent} errors, observed {o, percent}",
       "noneUnusual": "No skill stands out."
     },
     "data": {
@@ -597,13 +601,13 @@
       "decSmaller": "{a} is smaller than {b}.",
       "decSplit2": "Split it up: {b} = {p1} + {p2}.",
       "decSplit3": "Split it up: {b} = {p1} + {p2} + {p3}.",
-      "pctTen": "{p}% of {of} is {ten}: that is one hop.",
+      "pctTen": "{p, percent} of {of} is {ten}: that is one hop.",
       "pctHalf": "50% is one half: {of} {op} 2 = {r}.",
       "pctQuarter": "25% is one quarter: {of} {op} 4 = {r}.",
       "pctThreeQuarters": "75% is three quarters: {of} {op} 4 = {q}, and three of those make {r}.",
-      "pctHops": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10%: {r}.",
+      "pctHops": "{pct, percent} is {n, plural, one {# hop} other {# hops}} of 10%: {r}.",
       "pctFive": "5% is half of 10%: half of {ten} is {r}.",
-      "pctHopsHalf": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10% and half a hop: {r}."
+      "pctHopsHalf": "{pct, percent} is {n, plural, one {# hop} other {# hops}} of 10% and half a hop: {r}."
     },
     "target": {
     },
@@ -1132,7 +1136,7 @@
     "read": "Which number is at the flag? Type it.",
     "equiv": "Which number goes in the numerator?",
     "percent": "How much is that? Type the number.",
-    "pctOf": "{pct} of {of}"
+    "pctOf": "{pct, percent} of {of}"
   },
   "hint": {
     "nextHop": "Show me the first hop",
@@ -1221,7 +1225,7 @@
     "strategy": {
       "title": "Strategy",
       "help": "Strategy (Band A): how often an answer used the hop buttons (counting on) rather than a direct tap on the number, and the median time of correct answers in the earlier half, then the later half. Fewer hops and faster answers mean a fact is moving from counting to memory.",
-      "split": "Hop buttons {hops}% · direct taps {taps}%",
+      "split": "Hop buttons {hops, percent} · direct taps {taps, percent}",
       "counting": "Counting on",
       "mixed": "Mixed",
       "retrieval": "Knows it by heart"
@@ -1259,7 +1263,7 @@
     "reward@C": "Weekly challenge complete: new reward unlocked.",
     "flag": "Weekly themed challenge: a 5-session set with a surprise cosmetic; sessions started from its card practise the theme's skills more often.",
     "adult": {
-      "freeChoice": "Play after the weekly challenge was complete: {pct}% of that week's problems",
+      "freeChoice": "Play after the weekly challenge was complete: {pct, percent} of that week's problems",
       "freeChoiceNone": "No weekly challenge completed yet."
     },
     "theme": {

@@ -18,7 +18,7 @@ import { GRAPH } from '../core/skills';
 import { BAND_IDS, type BandId } from '../core/types';
 import { weeklyFreeChoice } from '../core/weekly';
 import { allLocales, getLocale } from '../i18n/locales';
-import { numberText } from '../i18n/render';
+import { numberText, percentText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
 import { Icon } from '../ui/components/Icon';
 import { useT } from '../ui/hooks';
@@ -85,7 +85,7 @@ export function Adult(): JSX.Element {
   );
 }
 
-const pct = (v: number | null, locale: string): string => (v === null ? '—' : `${numberText(Math.round(v * 100), locale)}%`);
+const pct = (v: number | null, locale: string): string => (v === null ? '—' : percentText(Math.round(v * 100), locale));
 
 function Tile({ label, value }: { label: string; value: string }): JSX.Element {
   return (
