@@ -1,6 +1,6 @@
 # Hopa · Хопа
 
-An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, a three-step hint ladder helps a stuck child without giving the answer away, and mistakes replay as worked hops.
+An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, a three-step hint ladder helps a stuck child without giving the answer away, and mistakes replay as worked hops. In **Make it**, children combine dealt cards to hit a target number, then see the other ways.
 
 It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device, with backup export and import.
 
