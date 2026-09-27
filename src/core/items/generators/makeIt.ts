@@ -12,16 +12,16 @@
  * sessions never allow 'reading' generators, so a pre-reader only ever gets
  * makeTen deals, while Bands B/C may get either.
  *
- * The item's `answer.value` is the target (logged as `expected`); `solution`
- * holds the simplest way (hops for Band A, `sol.target.step` lines for B/C);
- * every distinct way travels in the prompt data for "other ways".
+ * The item's `answer.value` is the target (logged as `expected`). Every
+ * distinct way travels in the prompt data (`ways`, simplest first): the B/C
+ * board draws it and "other ways" lists it; Band A's `solution` holds the
+ * frog's hops for "show me".
  */
 import { tk } from '../../../i18n/i18n';
-import { isInteger, key, rat, toNumber, type Rational } from '../../rational';
+import { rat, toNumber } from '../../rational';
 import { checkDealRepr, readDealData, type TargetDealData } from '../../target/check';
 import { makeDeal, toDealData, type DealOptions, type TargetDeal } from '../../target/deal';
 import { leaves, parseRepr, toRepr } from '../../target/expr';
-import { solutionSteps } from '../../target/hints';
 import { registerChecker } from '../checkers';
 import { registerCustomPrompt } from '../customPrompts';
 import type { CustomPrompt, GeneratedItem, GeneratorDef, LineSpec, SolutionStep } from '../types';
@@ -33,9 +33,6 @@ export const TARGET_CHECKER = 'target.expr';
 export interface MakeItConfig extends DealOptions {
   band?: 'B' | 'C';
 }
-
-/** A step value as a solution param: a number when whole, else its exact key ("3/4", "-7/2"). */
-const param = (v: Rational): number | string => (isInteger(v) ? v.n : key(v));
 
 /** Round a ruler step up to 1, 2, 5, 10, 20, 25, 50, 100… so it has at most ~10 labels. */
 function niceStep(span: number): number {
@@ -60,24 +57,22 @@ export function targetLine(band: TargetDeal['band'], cards: readonly number[], t
   return { min: lo, max: hi, start: 0, major: step, minor, labelEvery: step, steps: [1], flag: target, answerMode: 'land' };
 }
 
+/**
+ * Band A: the frog's hops, card by card (dealt cards are all positive), which
+ * "show me" replays. Bands B/C carry no worked-step lines: the board draws
+ * the simplest way (and every other way) from the deal data, with locale
+ * glyphs and stacked fractions, and builds its own hint tiers from it.
+ */
 function solutionFor(deal: TargetDeal): SolutionStep[] {
   const best = deal.solutions[0];
-  if (!best) return [];
-  if (deal.band === 'A') {
-    // The frog hops card by card along the pads (dealt cards are all positive).
-    const out: SolutionStep[] = [];
-    let at = 0;
-    for (const v of leaves(best.expr)) {
-      out.push({ k: 'hop', from: at, to: at + v.n });
-      at += v.n;
-    }
-    return out;
+  if (!best || deal.band !== 'A') return [];
+  const out: SolutionStep[] = [];
+  let at = 0;
+  for (const v of leaves(best.expr)) {
+    out.push({ k: 'hop', from: at, to: at + v.n });
+    at += v.n;
   }
-  return solutionSteps(best.expr).map((s) => ({
-    k: 'say',
-    key: 'sol.target.step',
-    params: { a: param(s.a), op: s.op, b: param(s.b), r: param(s.r) },
-  }));
+  return out;
 }
 
 export function dealItem(deal: TargetDeal): GeneratedItem {
@@ -161,12 +156,12 @@ registerCustomPrompt(TARGET_PROMPT, {
     }
     const canons = new Set(d.ways.map((w) => checkDealRepr(p.data, w).canon));
     if (canons.size !== d.ways.length) problems.push('ways are not distinct');
-    const best = parseRepr(d.ways[0] ?? '');
-    if (d.band === 'A' && (d.target !== 10 || d.ops.join() !== '+' || d.cards.some((c) => c < 1 || c > 9))) problems.push('Band A deal is not make 10 with dot cards');
-    if (best && d.band !== 'A') {
-      const last = item.solution.filter((s): s is Extract<SolutionStep, { k: 'say' }> => s.k === 'say').pop();
-      if (!last || String(last.params.r) !== String(d.target)) problems.push('worked solution does not end on the target');
-    }
+    if (d.band === 'A') {
+      if (d.target !== 10 || d.ops.join() !== '+' || d.cards.some((c) => c < 1 || c > 9)) problems.push('Band A deal is not make 10 with dot cards');
+      const best = parseRepr(d.ways[0] ?? '');
+      const hops = item.solution.filter((s) => s.k === 'hop').length;
+      if (!best || hops !== leaves(best).length) problems.push('worked hops do not follow the simplest way');
+    } else if (item.solution.length) problems.push('Bands B/C carry the worked solution in the deal, not in steps');
     return problems;
   },
 });

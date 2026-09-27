@@ -45,8 +45,13 @@ export interface ItemRecord {
   hops: number | null;
   /** Correct only under the other locale's separator reading. */
   alt: boolean;
-  /** Highest hint tier used (1–3). Absent: no tiered hint (then `hint` alone counts, as in records from before tiers). */
-  tier?: number;
+  /**
+   * Highest hint-ladder tier used (0 none, 1 strategy, 2 first hop, 3 worked
+   * step). Null when unknown: records written before the ladder (they decode
+   * with null) or a hint from a mode without tiers. Such a record with
+   * `hint: true` counts as MODEL.LEGACY_HINT_TIER (engine/observe.hintTierOf).
+   */
+  tier?: number | null;
 }
 
 export interface SessionOptions {

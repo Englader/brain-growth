@@ -83,8 +83,8 @@ async function merge(t, steps) {
   }
 }
 
-/** The worked solution's merge steps (item.solution 'sol.target.step' params). */
-const solutionSteps = (d) => d.solution.filter((s) => s.k === 'say').map((s) => ({ a: String(s.params.a), op: s.params.op, b: String(s.params.b) }));
+/** Merge steps of the deal's simplest way (the item's solution, from its prompt data). */
+const solutionSteps = (d) => stepsOf(d.data.ways[0]);
 
 /** Text a reader would need on the Band A board: every letter outside the language toggle. */
 function lettersOnBoard(t) {

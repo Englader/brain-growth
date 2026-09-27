@@ -101,7 +101,7 @@ export function TargetA({ presented, data, locale, band, look, onNext }: TargetA
   const solve = (ids: number[]): void => {
     let e: TExpr = leaf(data.cards[ids[0]!]!);
     for (const i of ids.slice(1)) e = node('+', e, leaf(data.cards[i]!));
-    submitAnswer(presented, { kind: 'built', value: rat(data.target), repr: toRepr(e) }, { latencyMs: performance.now() - shownAt.current, hint: false, input: 'tap', hops: taps.current });
+    submitAnswer(presented, { kind: 'built', value: rat(data.target), repr: toRepr(e) }, { latencyMs: performance.now() - shownAt.current, hint: false, hintTier: 0, input: 'tap', hops: taps.current });
     setPhase('solved');
     praise();
     later(1500, onNext);
@@ -129,7 +129,7 @@ export function TargetA({ presented, data, locale, band, look, onNext }: TargetA
   const showMe = (): void => {
     if (phase !== 'play' || !way.length) return;
     unlockAudio();
-    submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, { latencyMs: performance.now() - shownAt.current, hint: false, input: 'tap', hops: taps.current });
+    submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, { latencyMs: performance.now() - shownAt.current, hint: false, hintTier: 0, input: 'tap', hops: taps.current });
     setPhase('show');
     setPicked([]);
     cancel.current();

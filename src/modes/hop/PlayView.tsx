@@ -32,6 +32,7 @@ import { PadsLine, RulerLine } from '../../ui/components/NumberLine';
 import { Numpad } from '../../ui/components/Numpad';
 import { Blocks, Dots, ExprView, Groups } from '../../ui/components/Prompts';
 import { lookFor, useT } from '../../ui/hooks';
+import { HintButton, HintText, useHintLadder } from './HintLadder';
 
 type Phase = 'input' | 'moving' | 'correct' | 'wrong' | 'errorless' | 'explain';
 
@@ -48,16 +49,6 @@ export interface PlayViewProps {
 }
 
 const clampTo = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
-
-function hintFor(item: Item): Extract<SolutionStep, { k: 'say' }> | null {
-  const answer = toNumber(item.answer.value);
-  return (
-    item.solution.find(
-      (s): s is Extract<SolutionStep, { k: 'say' }> =>
-        s.k === 'say' && !Object.values(s.params).some((v) => v === answer) && !s.key.startsWith('sol.count'),
-    ) ?? null
-  );
-}
 
 export function PlayView(props: PlayViewProps): JSX.Element | null {
   const profile = useStore((s) => s.profile)!;
@@ -77,7 +68,6 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
   const [trail, setTrail] = useState<Array<{ from: number; to: number }>>([]);
   const [ghost, setGhost] = useState<number | null>(null);
   const [invalid, setInvalid] = useState(false);
-  const [hintOn, setHintOn] = useState(false);
   const [praise, setPraise] = useState('');
   const shownAt = useRef(0);
   const logical = useRef(0);
@@ -129,7 +119,6 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     setTrail([]);
     setGhost(null);
     setInvalid(false);
-    setHintOn(false);
     shownAt.current = performance.now();
     props.onFeedback?.(false);
     props.onItemShown?.(p);
@@ -149,6 +138,15 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
   useEffect(() => {
     if (cur && band.audio === 'always' && phase === 'input') speakPrompt(cur);
   }, [locale]);
+
+  // Hint ladder: Bands B/C, typed answers, never in timed Sprint runs.
+  const hints = useHintLadder(cur, {
+    enabled: flag('hints') && band.id !== 'A' && !props.fastFeedback && cur?.item.answer.tolerance === undefined,
+    waiting: phase === 'input',
+    invalid,
+    activity: typed,
+    pid: profile.id,
+  });
 
   if (!cur || !session) return null;
   const item = cur.item;
@@ -232,7 +230,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     if (phase !== 'input') return;
     unlockAudio();
     const latency = performance.now() - shownAt.current;
-    const r = submitAnswer(cur, response, { latencyMs: latency, hint: hintOn, input, hops });
+    const r = submitAnswer(cur, response, { latencyMs: latency, hint: hints.tier > 0, hintTier: hints.tier, input, hops });
     if (r.grade.invalid) {
       setInvalid(true);
       sfx('soft');
@@ -284,7 +282,6 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
 
   const firstPresented = session.engine.stats.firstPresented;
   const planned = session.engine.planned;
-  const hint = flag('hints') && band.id !== 'A' ? hintFor(item) : null;
   const sayLines = item.solution.filter((s): s is Extract<SolutionStep, { k: 'say' }> => s.k === 'say');
   const shownLines = band.feedback === 'worked' ? sayLines : sayLines.slice(0, 4);
   const conv = getLocale(locale).numbers;
@@ -297,7 +294,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     look,
     ghost,
     glow: phase === 'errorless' || phase === 'explain' ? glowTarget : null,
-    trail,
+    trail: trail.length || phase !== 'input' ? trail : hints.trail,
     mood: (phase === 'correct' ? 'happy' : phase === 'wrong' || phase === 'errorless' ? 'think' : 'idle') as 'happy' | 'think' | 'idle',
   };
 
@@ -323,7 +320,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
         {cur.attempt > 1 && <span class="badge">{t('play.again')}</span>}
         <PromptVisual item={item} locale={locale} label={promptText(item, locale, profile.band)} bandA={band.id === 'A'} />
         {band.id !== 'A' && <p class="prompt-text">{promptText(item, locale, profile.band)}</p>}
-        {hintOn && hint && <p class="hint-text">{solutionText(hint, locale, profile.band)}</p>}
+        <HintText h={hints} locale={locale} band={profile.band} />
       </section>
 
       <section class="line-wrap">
@@ -395,11 +392,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
           </div>
         ) : (
           <>
-            {hint && !hintOn && phase === 'input' && (
-              <button type="button" class="btn ghost small hint-btn" onClick={() => setHintOn(true)}>
-                <Icon name="hint" size={18} /> {t('play.hint')}
-              </button>
-            )}
+            {phase === 'input' && <HintButton h={hints} t={t} />}
             <div class="typed" aria-live="polite" aria-label={t('play.typeNumber')}>
               {typed || <span class="placeholder">{t('play.typeNumber')}</span>}
             </div>

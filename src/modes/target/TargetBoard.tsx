@@ -167,7 +167,7 @@ export function TargetBoard({ presented, data, locale, band, look, onNext, onExt
       const res = submitAnswer(
         presented,
         { kind: 'built', value: evaluate(e), repr: toRepr(e) },
-        { latencyMs: performance.now() - shownAt.current, hint: tier > 0, input: 'tap', hops: 0, ...(tier ? { hintTier: tier } : {}) },
+        { latencyMs: performance.now() - shownAt.current, hint: tier > 0, hintTier: tier, input: 'tap', hops: 0 },
       );
       if (!res.grade.correct) return; // The checker disagrees with the board: never expected; keep playing.
       const n = 1 + Math.floor(Math.random() * 4);
@@ -264,9 +264,11 @@ export function TargetBoard({ presented, data, locale, band, look, onNext, onExt
     submitAnswer(
       presented,
       { kind: 'built', value: null, repr: '', data: { reveal: 1 } },
-      { latencyMs: performance.now() - shownAt.current, hint: tier > 0, input: 'tap', hops: 0, ...(tier ? { hintTier: tier } : {}) },
+      { latencyMs: performance.now() - shownAt.current, hint: tier > 0, hintTier: tier, input: 'tap', hops: 0 },
     );
     setMsg(null);
+    setSel(null);
+    setOp(null);
     setShown(best);
     setPhase('revealed');
     moveTo(data.target);

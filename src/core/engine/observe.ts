@@ -12,29 +12,34 @@ import { isUnlocked } from './scheduler';
 export interface FirstAttempt {
   correct: boolean;
   hint: boolean;
+  /** Highest hint tier used (0 = none, 1–3); null/absent = unknown (legacy record): see hintTierOf. */
+  hintTier?: number | null;
   difficulty: number;
   ts: number;
   timed: boolean;
   /** Evidence weight of this observation (MODE_EVIDENCE of its mode); default 1. */
   weight?: number;
-  /** Highest hint tier used (1–3); null/absent = none, or a record from before tiers (then `hint` alone decides). */
-  tier?: number | null;
-}
-
-/**
- * Outcome credit y of a correct first attempt: 1 unaided, 1 − 0.25·tier with
- * a tiered hint, and HINT_CREDIT (0.5, i.e. tier 2) for a hint without a tier
- * (legacy records), so replaying old logs is unchanged.
- */
-export function hintCredit(hint: boolean, tier?: number | null): number {
-  if (tier !== null && tier !== undefined && tier > 0) return Math.max(0, 1 - MODEL.HINT_TIER_PENALTY * tier);
-  return hint ? MODEL.HINT_CREDIT : 1;
 }
 
 export interface ObservationEffect {
   states: Record<SkillId, SkillState>;
   statusChange: { skillId: SkillId; from: SkillStatus; to: SkillStatus } | null;
   memoryReview: { R: number; correct: boolean } | null;
+}
+
+/**
+ * The hint tier an observation counts at: its recorded tier when it has one;
+ * otherwise (a record from before the ladder, or a mode that reports only
+ * `hint`) LEGACY_HINT_TIER if a hint was used, else 0.
+ */
+export function hintTierOf(hint: boolean, tier: number | null | undefined): number {
+  if (typeof tier === 'number' && Number.isFinite(tier)) return Math.max(0, Math.min(3, Math.round(tier)));
+  return hint ? MODEL.LEGACY_HINT_TIER : 0;
+}
+
+/** Outcome credit of a correct answer after hint tier `tier`: y = 1 − 0.25·tier (tier 0 → 1). */
+export function hintCredit(tier: number): number {
+  return Math.max(0, 1 - MODEL.HINT_TIER_PENALTY * tier);
 }
 
 export function applyFirstAttempt(
@@ -47,8 +52,8 @@ export function applyFirstAttempt(
   const now = obs.ts;
   let st = states[skillId] ?? ctx.model.init(skill, now);
   const fromStatus = ctx.model.status(st, skill, isUnlocked(ctx.graph, skillId, states), now);
-  const hinted = obs.hint || (obs.tier ?? 0) > 0;
-  const clean = obs.correct && !hinted;
+  const tier = hintTierOf(obs.hint, obs.hintTier);
+  const clean = obs.correct && tier === 0;
 
   // 1) spaced-retrieval memory event (only if spaced enough from the previous one)
   const mem = memoryEvent(st, clean, now);
@@ -58,7 +63,7 @@ export function applyFirstAttempt(
   const weight = obs.timed ? MODEL.TIMED_WEIGHT : obs.weight ?? 1;
   if (weight > 0) {
     st = ctx.model.update(st, {
-      y: obs.correct ? hintCredit(obs.hint, obs.tier) : 0,
+      y: obs.correct ? hintCredit(tier) : 0,
       difficulty: obs.difficulty,
       ts: now,
       weight,

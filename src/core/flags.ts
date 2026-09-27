@@ -24,7 +24,7 @@ export function flagLabelKey(def: FlagDef): string {
 export const FLAGS: readonly FlagDef[] = [
   { id: 'mode.sprint', scope: 'profile', default: true, description: 'Timed "race your shadow" sprint on Solid fluency skills (a card the child may choose; Bands B/C only).' },
   { id: 'quests.daily', scope: 'profile', default: true, description: 'Daily quest card with 2–3 varied objectives.' },
-  { id: 'hints', scope: 'profile', default: true, description: 'Hint button (Bands B/C). Hinted answers count as half evidence.' },
+  { id: 'hints', scope: 'profile', default: true, description: 'Hint ladder (Bands B/C, not Sprint): strategy, first hop, worked step. A correct answer after tier t counts as 1 − 0.25·t evidence.' },
   { id: 'league.family', scope: 'device', default: true, description: 'Family board and rival-card sharing.' },
   { id: 'audio.tts', scope: 'device', default: true, description: 'Fall back to the browser speech engine when no recorded clip exists.' },
   { id: 'debug.shortSessions', scope: 'device', default: false, description: 'Four-item sessions (testing).' },
