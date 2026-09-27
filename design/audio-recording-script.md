@@ -11,7 +11,7 @@ every clip of that line exists. Grown-ups → Voices lists what is still missing
 
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 50 clips, 0 recorded
+## English (en) — 77 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -50,23 +50,50 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 33 | `num.90.mp3` | ninety |  |
 | 34 | `voice.blocks.mp3` | Hop to the number the blocks show! |  |
 | 35 | `voice.count.mp3` | How many dots? Hop there! |  |
-| 36 | `voice.gift.mp3` | A present for you! |  |
-| 37 | `voice.lookTogether.mp3` | Let's look together. |  |
-| 38 | `voice.praise1.mp3` | Nice! |  |
-| 39 | `voice.praise2.mp3` | Yes! |  |
-| 40 | `voice.praise3.mp3` | Great hop! |  |
-| 41 | `voice.praise4.mp3` | Spot on! |  |
-| 42 | `voice.sessionDone.mp3` | Great playing today! |  |
-| 43 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
-| 44 | `voice.trophy.mp3` | You found a trophy! |  |
-| 45 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 46 | `word.dividedBy.mp3` | divided by |  |
-| 47 | `word.hopsOf.mp3` | hops of |  |
-| 48 | `word.minus.mp3` | minus |  |
-| 49 | `word.plus.mp3` | plus |  |
-| 50 | `word.times.mp3` | times |  |
+| 36 | `voice.frac.bigger.mp3` | Land on the bigger number! |  |
+| 37 | `voice.frac.flag.mp3` | Hop to the flag! |  |
+| 38 | `voice.frac.outOf.mp3` | out of |  |
+| 39 | `voice.frac.parts.mp3` | parts |  |
+| 40 | `voice.frac.smaller.mp3` | Land on the smaller number! |  |
+| 41 | `voice.gift.mp3` | A present for you! |  |
+| 42 | `voice.lookTogether.mp3` | Let's look together. |  |
+| 43 | `voice.praise1.mp3` | Nice! |  |
+| 44 | `voice.praise2.mp3` | Yes! |  |
+| 45 | `voice.praise3.mp3` | Great hop! |  |
+| 46 | `voice.praise4.mp3` | Spot on! |  |
+| 47 | `voice.puzzle.balance.mp3` | The scales are balanced. How heavy is the shape? |  |
+| 48 | `voice.puzzle.hint.count.mp3` | Count the cubes. |  |
+| 49 | `voice.puzzle.hint.groups.mp3` | Each group gets bigger. |  |
+| 50 | `voice.puzzle.hint.grows.mp3` | Look how the last group grows. |  |
+| 51 | `voice.puzzle.hint.remove.mp3` | Take the same cubes off both sides. |  |
+| 52 | `voice.puzzle.hint.same.mp3` | The next one is the same as the shiny one. |  |
+| 53 | `voice.puzzle.hint.share.mp3` | Share the cubes fairly. |  |
+| 54 | `voice.puzzle.hint.start.mp3` | Start with the shiny scale. |  |
+| 55 | `voice.puzzle.hint.unit.mp3` | Look at the part that repeats. |  |
+| 56 | `voice.puzzle.notYet.mp3` | Not yet! Look again. |  |
+| 57 | `voice.puzzle.pattern.mp3` | What comes next? Tap it! |  |
+| 58 | `voice.puzzle.shelf.mp3` | Pick a puzzle! |  |
+| 59 | `voice.puzzle.solved.mp3` | You solved it! |  |
+| 60 | `voice.puzzle.together.mp3` | We solved it together! |  |
+| 61 | `voice.puzzle.weighs.mp3` | This shape weighs |  |
+| 62 | `voice.season.easter.mp3` | Hi! Happy holidays! Let's play! |  |
+| 63 | `voice.season.newYear.mp3` | Hi! Happy New Year! Let's play! |  |
+| 64 | `voice.sessionDone.mp3` | Great playing today! |  |
+| 65 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
+| 66 | `voice.target.makeTen.mp3` | Make ten! Tap the cards. |  |
+| 67 | `voice.target.makeWord.mp3` | Make |  |
+| 68 | `voice.target.tapShiny.mp3` | Now tap the shiny cards! |  |
+| 69 | `voice.trophy.mp3` | You found a trophy! |  |
+| 70 | `voice.weekly.done.mp3` | All the stones are lit! There's a gift for you. |  |
+| 71 | `voice.weekly.intro.mp3` | This is this week's game! Play it to light up the stones. |  |
+| 72 | `voice.welcome.mp3` | Hi! Let's play! |  |
+| 73 | `word.dividedBy.mp3` | divided by |  |
+| 74 | `word.hopsOf.mp3` | hops of |  |
+| 75 | `word.minus.mp3` | minus |  |
+| 76 | `word.plus.mp3` | plus |  |
+| 77 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 51 clips, 0 recorded
+## Македонски (mk) — 78 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -105,20 +132,47 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 33 | `num.90.mp3` | деведесет |  |
 | 34 | `voice.blocks.mp3` | Скокни до бројот што го покажуваат коцките! |  |
 | 35 | `voice.count.mp3` | Колку точки има? Скокни до тој број! |  |
-| 36 | `voice.gift.mp3` | Подарок за тебе! |  |
-| 37 | `voice.lookTogether.mp3` | Ајде да погледнеме заедно. |  |
-| 38 | `voice.praise1.mp3` | Браво! |  |
-| 39 | `voice.praise2.mp3` | Да! |  |
-| 40 | `voice.praise3.mp3` | Одличен скок! |  |
-| 41 | `voice.praise4.mp3` | Точно така! |  |
-| 42 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
-| 43 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
-| 44 | `voice.trophy.mp3` | Најде трофеј! |  |
-| 45 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 46 | `word.and.mp3` | и |  |
-| 47 | `word.dividedBy.mp3` | поделено со |  |
-| 48 | `word.hopsOf.mp3` | скока по |  |
-| 49 | `word.minus.mp3` | минус |  |
-| 50 | `word.plus.mp3` | плус |  |
-| 51 | `word.times.mp3` | пати |  |
+| 36 | `voice.frac.bigger.mp3` | Слетај на поголемиот број! |  |
+| 37 | `voice.frac.flag.mp3` | Скокни до знамето! |  |
+| 38 | `voice.frac.outOf.mp3` | од |  |
+| 39 | `voice.frac.parts.mp3` | дела |  |
+| 40 | `voice.frac.smaller.mp3` | Слетај на помалиот број! |  |
+| 41 | `voice.gift.mp3` | Подарок за тебе! |  |
+| 42 | `voice.lookTogether.mp3` | Ајде да погледнеме заедно. |  |
+| 43 | `voice.praise1.mp3` | Браво! |  |
+| 44 | `voice.praise2.mp3` | Да! |  |
+| 45 | `voice.praise3.mp3` | Одличен скок! |  |
+| 46 | `voice.praise4.mp3` | Точно така! |  |
+| 47 | `voice.puzzle.balance.mp3` | Вагите се во рамнотежа. Колку е тешка фигурата? |  |
+| 48 | `voice.puzzle.hint.count.mp3` | Изброј ги коцките. |  |
+| 49 | `voice.puzzle.hint.groups.mp3` | Секоја група станува поголема. |  |
+| 50 | `voice.puzzle.hint.grows.mp3` | Погледни како расте последната група. |  |
+| 51 | `voice.puzzle.hint.remove.mp3` | Тргни исто толку коцки од двете страни. |  |
+| 52 | `voice.puzzle.hint.same.mp3` | Следната е иста како онаа што свети. |  |
+| 53 | `voice.puzzle.hint.share.mp3` | Подели ги коцките еднакво. |  |
+| 54 | `voice.puzzle.hint.start.mp3` | Почни со вагата што свети. |  |
+| 55 | `voice.puzzle.hint.unit.mp3` | Погледни го делот што се повторува. |  |
+| 56 | `voice.puzzle.notYet.mp3` | Уште не! Погледни пак. |  |
+| 57 | `voice.puzzle.pattern.mp3` | Што следува? Допри го! |  |
+| 58 | `voice.puzzle.shelf.mp3` | Избери загатка! |  |
+| 59 | `voice.puzzle.solved.mp3` | Ја реши! |  |
+| 60 | `voice.puzzle.together.mp3` | Ја решивме заедно! |  |
+| 61 | `voice.puzzle.weighs.mp3` | Оваа фигура тежи |  |
+| 62 | `voice.season.easter.mp3` | Здраво! Среќни празници! Ајде да играме! |  |
+| 63 | `voice.season.newYear.mp3` | Здраво! Среќна Нова година! Ајде да играме! |  |
+| 64 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
+| 65 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
+| 66 | `voice.target.makeTen.mp3` | Направи десет! Допри ги картичките. |  |
+| 67 | `voice.target.makeWord.mp3` | Направи |  |
+| 68 | `voice.target.tapShiny.mp3` | Сега допри ги картичките што светат! |  |
+| 69 | `voice.trophy.mp3` | Најде трофеј! |  |
+| 70 | `voice.weekly.done.mp3` | Сите камчиња светат! Те чека подарок. |  |
+| 71 | `voice.weekly.intro.mp3` | Ова е играта на неделата! Играј ја за да ги запалиш камчињата. |  |
+| 72 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
+| 73 | `word.and.mp3` | и |  |
+| 74 | `word.dividedBy.mp3` | поделено со |  |
+| 75 | `word.hopsOf.mp3` | скока по |  |
+| 76 | `word.minus.mp3` | минус |  |
+| 77 | `word.plus.mp3` | плус |  |
+| 78 | `word.times.mp3` | пати |  |
 

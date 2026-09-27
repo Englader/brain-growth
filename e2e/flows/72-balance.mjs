@@ -78,7 +78,7 @@ export default async function balance(t) {
   await page.locator('.lang button', { hasText: 'МК' }).click();
 
   // One pan only: the scale refuses and tips; the attempt is logged with a '!'.
-  await page.locator('.sc-piece').first().click();
+  await page.locator('.sc-tap').first().click();
   await page.waitForSelector('.balance-blocked');
   await t.shot('blocked');
 
@@ -108,8 +108,8 @@ export default async function balance(t) {
 
   const items = (await recentLog(t, pid)).filter((r) => r.type === 'item');
   assert(items.length === 3 && items.every((r) => r.mode === 'balance' && r.gen === 'equation'), `three Balance items, got ${items.length}`);
-  assert(items[0].correct && /!(L|R):/.test(items[0].answer) && items[0].hint, `item 1 solved after a logged blocked move: ${items[0].answer}`);
-  assert(items[1].correct && !items[1].answer.includes('!'), `item 2 solved cleanly: ${items[1].answer}`);
+  assert(items[0].correct && /!(L|R):/.test(items[0].answer) && items[0].tier === 1, `item 1 solved after one logged blocked move, credit tier 1: ${items[0].answer} tier ${items[0].tier}`);
+  assert(items[1].correct && !items[1].answer.includes('!') && items[1].tier === 0, `item 2 solved cleanly, full credit: ${items[1].answer}`);
   assert(!items[2].correct && items[2].answer.endsWith('=?'), `item 3 revealed: ${items[2].answer}`);
 
   // Hop serves the same skill as a missing number on a signed line (no wall for Hop-only children).

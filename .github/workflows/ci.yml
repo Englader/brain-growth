@@ -26,6 +26,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Bundle size budget (entry and first-load JS, DESIGN T-4)
+        run: npm run size
       - name: Install Chromium for the end-to-end run
         run: npx playwright-core install --with-deps chromium
       - name: End-to-end flow in Macedonian at 360px (errors and horizontal overflow fail the build)

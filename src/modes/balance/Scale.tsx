@@ -126,16 +126,11 @@ export function Scale(props: ScaleProps): JSX.Element {
           const x = left + it.x;
           const w = it.w * it.s;
           const h = it.h * it.s;
-          const tap = props.onTap ? () => props.onTap!(tapMove(it.kind, side)) : undefined;
           const common = {
             key: i,
             class: `sc-piece sc-${it.kind}${props.isolated && it.kind === 'x' ? ' sc-alone' : ''}`,
             'data-piece': it.kind,
             'data-side': side,
-            role: tap ? ('button' as const) : undefined,
-            tabIndex: tap ? 0 : undefined,
-            'aria-label': tap ? t('balance.takeOne') : undefined,
-            onClick: tap,
           };
           if (it.kind === 'x' || it.kind === 'ten' || it.kind === 'unit') {
             return (
@@ -161,6 +156,26 @@ export function Scale(props: ScaleProps): JSX.Element {
             </g>
           );
         })}
+        {/* The whole pan is one tap target (pieces are too small to hit): take its top piece off this pan only. */}
+        {props.onTap && items.length > 0 && (
+          <rect
+            class="sc-tap"
+            data-side={side}
+            x={cx - 58}
+            y={52}
+            width={116}
+            height={122}
+            role="button"
+            tabIndex={0}
+            aria-label={t('balance.takeOne')}
+            onClick={() => props.onTap!(tapMove(items[items.length - 1]!.kind, side))}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter' && e.key !== ' ') return;
+              e.preventDefault();
+              props.onTap!(tapMove(items[items.length - 1]!.kind, side));
+            }}
+          />
+        )}
       </g>
     );
   };

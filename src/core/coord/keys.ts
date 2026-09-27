@@ -18,7 +18,7 @@ export const COORD_MIS_KEYS = {
 
 /** Worked solution: across, then up/down. */
 export const COORD_SOL_KEYS = {
-  /** {n, dir: 'left'|'right'|'none'}: "From 0, go {n} steps right." / "Stay on the y-axis." */
+  /** {n, dir: 'left'|'right'|'none'}: "From the origin, go {n} steps right." / "No steps across: stay on the y-axis." (no digit: the hint ladder must not print a coordinate) */
   across: 'sol.coord.across',
   /** {n, dir: 'up'|'down'|'none'}: "Then {n} steps up." / "Stay on the x-axis." */
   upDown: 'sol.coord.upDown',

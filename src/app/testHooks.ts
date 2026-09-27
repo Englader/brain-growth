@@ -9,7 +9,7 @@
 import type { LogRecord } from '../core/log/types';
 import { EVENTS } from '../core/log/types';
 import { defaultBandForAge } from '../core/profile';
-import { starterCosmetics } from '../core/rewards/cosmetics';
+import { getCosmetic, starterCosmetics } from '../core/rewards/cosmetics';
 import { GRAPH } from '../core/skills';
 import type { BandId, SkillId } from '../core/types';
 import { addProfile, rebuildFromLog, updateProfile } from './actions';
@@ -28,6 +28,8 @@ export interface SeedInput {
   sd?: number;
   /** Per-child flag overrides, e.g. { 'mode.sprint': false }. */
   flags?: Record<string, boolean>;
+  /** Cosmetic ids waiting as unopened gifts (rewards.pending), opened through the real wardrobe/results path. */
+  gifts?: string[];
 }
 
 export interface HopaTestHooks {
@@ -49,6 +51,10 @@ function seed(input: SeedInput): string {
   const avatar = starterCosmetics(band, band === 'C' ? 'theme' : 'color')[0]?.id ?? 'color.green';
   const p = addProfile({ name: input.name, age: input.age, locale: input.locale ?? 'mk', avatar, band });
   if (input.flags) updateProfile(p.id, { flags: { ...input.flags } });
+  if (input.gifts) {
+    for (const id of input.gifts) if (!getCosmetic(id)) throw new Error(`seed: unknown cosmetic ${id}`);
+    updateProfile(p.id, { rewards: { ...p.rewards, pending: [...input.gifts] } });
+  }
   if (input.g !== undefined) {
     const g = input.g;
     const sd = input.sd ?? 0.3;

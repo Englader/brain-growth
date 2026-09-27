@@ -28,5 +28,5 @@ registerMode({
   // An equation takes several moves: shorter sessions than Hop.
   plannedItems: (band, opts) => (opts.quick ? band.quickItems : 8),
   // Its own chunk: the scale screen loads when the mode opens.
-  Component: lazyScreen(() => import('./BalanceMode').then((m) => m.BalanceMode)),
+  Component: lazyScreen(() => import('./BalanceMode').then((m) => m.BalanceMode), { placeholderClass: 'play balance-play lazy-screen' }),
 });

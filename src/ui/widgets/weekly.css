@@ -1,0 +1,117 @@
+/* Weekly challenge card (src/ui/widgets/WeeklyCard.tsx). */
+.weekly .theme-pic {
+  flex-shrink: 0;
+  display: block;
+}
+.weekly-stones {
+  align-items: center;
+  flex-wrap: wrap;
+}
+.weekly-stones .stone.lit {
+  background: var(--accent, #f59e0b);
+}
+.weekly-gift {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 30px;
+  color: var(--muted);
+}
+.weekly-gift.open {
+  color: var(--good);
+}
+
+/* Band A: picture + stones, no text. */
+.weekly-a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.weekly-pic-btn {
+  position: relative;
+  border: 0;
+  padding: 6px;
+  border-radius: 26px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+.weekly-go {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--go);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+.weekly-a-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.weekly-a .weekly-stones {
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+.weekly-a .stone,
+.weekly-a .weekly-gift {
+  width: 30px;
+  height: 24px;
+}
+
+/* Band B: card. */
+.weekly-b {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.weekly-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.weekly-titles h2 {
+  margin: 0;
+}
+.weekly-theme {
+  margin: 0;
+  font-weight: 800;
+}
+.weekly-b p {
+  margin: 0;
+}
+.weekly-status {
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Band C: one compact line. */
+.weekly-c {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+}
+.weekly-c-text {
+  flex: 1;
+  min-width: 0;
+}
+.weekly-c-text p {
+  margin: 0;
+}
+.weekly-c .weekly-theme {
+  font-size: 0.95em;
+  line-height: 1.25;
+}
+.weekly-c .btn {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 8px 14px;
+}

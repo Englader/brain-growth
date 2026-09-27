@@ -1,6 +1,6 @@
 # Hopa · Хопа
 
-An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, and mistakes replay as worked hops.
+An adaptive, bilingual (English / Македонски) maths game for ages 5–14. Children answer by **landing on the number line**: whole numbers, integers, fractions, decimals and percent. A knowledge-tracing engine keeps each child near 85% success, spaced retrieval brings old skills back, a three-step hint ladder helps a stuck child without giving the answer away, and mistakes replay as worked hops. In **Make it**, children combine dealt cards to hit a target number, then see the other ways. The **puzzle track** adds reasoning puzzles with no clock: picture and number patterns, balance scales, estimation ranges, logic grids and cryptarithms, each type with its own level. In **Balance**, older children solve equations on a pan scale, applying each move to both pans, and on the **coordinate plane** they plot and read points.
 
 It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no analytics. Progress lives on the device (the answer history in IndexedDB, so years of it fit), with backup export and import.
 
@@ -21,6 +21,7 @@ npm run dev      # http://localhost:5173
 npm run check    # typecheck + tests
 npm run sim      # simulated-learner report for the adaptive engine
 npm run build    # → dist/ (not committed; CI builds and deploys)
+npm run size     # start-up JS budget (CI): languages, mode screens and the grown-ups' view load on demand
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 

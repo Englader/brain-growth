@@ -23,5 +23,5 @@ registerMode({
   notReadyKey: 'coord.locked',
   plannedItems: (band, opts) => (opts.quick ? band.quickItems : 10),
   // Its own chunk: the plane screen loads when the mode opens.
-  Component: lazyScreen(() => import('./CoordMode').then((m) => m.CoordMode)),
+  Component: lazyScreen(() => import('./CoordMode').then((m) => m.CoordMode), { placeholderClass: 'play coord-play lazy-screen' }),
 });

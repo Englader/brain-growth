@@ -63,15 +63,25 @@ export async function waitNext(t, prevKey) {
   throw new Error(`stuck after ${prevKey}`);
 }
 
-/** Answer the current Hop item (pads in Band A, ruler taps for estimates, numpad otherwise); optionally wrong, with a feedback screenshot. */
+/** Tap the ruler at value `v` (the SVG maps [min, max] onto its width minus 22 px each side). */
+export async function tapRuler(t, line, v) {
+  const box = await t.page.locator('.ruler > svg').boundingBox();
+  const x = box.x + 22 + ((v - line.min) / (line.max - line.min)) * (box.width - 44);
+  await t.page.mouse.click(x, box.y + 92);
+}
+
+/** Answer the current Hop item (pads in Band A, ruler taps for estimates and exact picks, numpad otherwise); optionally wrong, with a feedback screenshot. */
 export async function answer(t, s, { wrong = false } = {}) {
   const { page } = t;
   const { line, ans, tol } = s.cur;
   const value = ans.n / ans.d;
+  // One grid step: 1/den on a rational line (fractions, decimals), else 1.
+  const unit = line.den ? 1 / line.den : 1;
   if (s.band === 'A') {
     let target = line.answerMode === 'count' ? line.flag : value;
-    if (wrong) target = target + 1 <= line.max ? target + 1 : target - 1;
-    await page.locator('.pads').getByRole('button', { name: String(target), exact: true }).click();
+    if (wrong) target = target + unit <= line.max + 1e-9 ? target + unit : target - unit;
+    if (line.den) await page.locator('.pads .pad').nth(Math.round(target * line.den) - Math.round(line.min * line.den)).click();
+    else await page.locator('.pads').getByRole('button', { name: String(target), exact: true }).click();
     await page.locator('.hop-controls .btn.go').click();
     if (wrong) {
       await page.waitForSelector('.play.phase-errorless', { timeout: 15000 });
@@ -81,14 +91,15 @@ export async function answer(t, s, { wrong = false } = {}) {
     return;
   }
   if (tol !== null) {
-    const box = await page.locator('.ruler > svg').boundingBox();
-    const v = wrong ? Math.min(line.max, value + 4 * tol) : value;
-    const x = box.x + 22 + ((v - line.min) / (line.max - line.min)) * (box.width - 44);
-    await page.mouse.click(x, box.y + 92);
+    await tapRuler(t, line, wrong ? Math.min(line.max, value + 4 * tol) : value);
+    await page.locator('.estimate-controls .btn.primary').click();
+  } else if (line.pick === 'tap') {
+    // An exact pick: the tap snaps to the nearest 1/den.
+    await tapRuler(t, line, wrong ? (value + unit <= line.max + 1e-9 ? value + unit : value - unit) : value);
     await page.locator('.estimate-controls .btn.primary').click();
   } else {
     const v = wrong ? value + 10 : value;
-    const txt = String(Math.abs(v));
+    const txt = String(Math.abs(Math.round(v * 1000) / 1000)); // decimals: no float noise (2.35 + 10)
     if (v < 0) await page.keyboard.press('-');
     await page.keyboard.type(txt);
     await page.keyboard.press('Enter');
@@ -106,7 +117,7 @@ export async function playSession(t, band, { shotAt = 0, wrongAt = 1 } = {}) {
   let s = await waitNext(t, 'none');
   for (let i = 0; i < 40 && s.route !== '/results'; i++) {
     if (i === shotAt) {
-      if (s.band !== 'A' && s.cur.tol === null) {
+      if (s.band !== 'A' && s.cur.tol === null && s.cur.line.pick !== 'tap') {
         // Show the live magnitude marker: type the first digit before the screenshot.
         const v = s.cur.ans.n / s.cur.ans.d;
         const first = String(Math.abs(v))[0];

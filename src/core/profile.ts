@@ -10,6 +10,7 @@ import { startPlacement } from './engine/placement';
 import { uid } from './hash';
 import { emptyStreak, type StreakState } from './streaks';
 import type { BandId, LocaleId, SkillId } from './types';
+import type { WeeklyState } from './weekly';
 
 export interface SprintRun {
   at: number;
@@ -51,9 +52,13 @@ export interface Profile {
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  /** This week's pinned challenge theme and whether its set piece was granted (src/core/weekly.ts). */
+  weekly: WeeklyState | null;
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
+  /** Per-puzzle-type rating (src/puzzles/rating.ts); never stored in `skills` (analytics look skill ids up in the graph). */
+  puzzles: import('../puzzles/rating').PuzzleRatings;
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──
@@ -104,9 +109,11 @@ export function createProfile(input: NewProfileInput, now: number): Profile {
     // ── slot: pilot ──
     // ── slot: storage ──
     // ── slot: weekly ──
+    weekly: null,
     // ── slot: target ──
     // ── slot: dice ──
     // ── slot: puzzle ──
+    puzzles: {},
     // ── slot: workshop ──
     // ── slot: balance ──
     // ── slot: coord ──

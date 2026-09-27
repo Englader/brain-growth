@@ -8,6 +8,7 @@ import type { Expr, Prompt } from '../../core/items/types';
 import { createRng } from '../../core/rng';
 import type { LocaleId } from '../../core/types';
 import { exprTokens } from '../../i18n/render';
+import './frac.css';
 
 const DICE: Record<number, Array<[number, number]>> = {
   1: [[1, 1]],
@@ -125,28 +126,64 @@ export function Groups({ groups, size, label }: { groups: number; size: number; 
   );
 }
 
-export function ExprView({ expr, rhs, locale }: { expr: Expr; rhs?: Expr | undefined; locale: LocaleId }): JSX.Element {
-  const tokens = exprTokens(expr, locale);
-  const rhsTokens = rhs ? exprTokens(rhs, locale) : null;
-  const render = (tk: ReturnType<typeof exprTokens>[number], i: number): JSX.Element =>
-    tk.t === 'blank' ? (
+/** A fraction drawn stacked (numerator over denominator); a null numerator is a blank to fill. */
+export function Frac({ n, d, cls = '' }: { n: string | null; d: string; cls?: string }): JSX.Element {
+  return (
+    <span class={`stacked ${cls}`} role="img" aria-label={`${n ?? '?'}/${d}`}>
+      <span class={n === null ? 'stacked-n expr-blank' : 'stacked-n'}>{n ?? '?'}</span>
+      <span class="stacked-d">{d}</span>
+    </span>
+  );
+}
+
+function renderToken(tk: ReturnType<typeof exprTokens>[number], i: number): JSX.Element {
+  if (tk.t === 'blank') {
+    return (
       <span key={i} class="expr-blank" aria-label="?">
         ?
       </span>
-    ) : (
-      <span key={i} class={`expr-${tk.t}`}>
-        {tk.s}
-      </span>
     );
+  }
+  if (tk.t === 'frac') return <Frac key={i} n={tk.n} d={tk.d} cls="expr-frac" />;
+  return (
+    <span key={i} class={`expr-${tk.t}`}>
+      {tk.s}
+    </span>
+  );
+}
+
+export function ExprView({ expr, rhs, locale }: { expr: Expr; rhs?: Expr | undefined; locale: LocaleId }): JSX.Element {
+  const tokens = exprTokens(expr, locale);
+  const rhsTokens = rhs ? exprTokens(rhs, locale) : null;
   return (
     <div class="expr" dir="ltr">
-      {tokens.map(render)}
+      {tokens.map(renderToken)}
       {rhsTokens && (
         <>
           <span class="expr-op">=</span>
-          {rhsTokens.map(render)}
+          {rhsTokens.map(renderToken)}
         </>
       )}
+    </div>
+  );
+}
+
+/** Two numbers to compare, with the textbook's empty circle between them ("2/3 ○ 3/5"). */
+export function CompareView({ a, b, locale }: { a: Expr; b: Expr; locale: LocaleId }): JSX.Element {
+  return (
+    <div class="expr" dir="ltr">
+      {exprTokens(a, locale).map(renderToken)}
+      <span class="compare-vs" aria-hidden="true" />
+      {exprTokens(b, locale).map(renderToken)}
+    </div>
+  );
+}
+
+/** "25 % of 80", already rendered in the locale. */
+export function PercentOf({ text }: { text: string }): JSX.Element {
+  return (
+    <div class="pct-of" dir="ltr">
+      {text}
     </div>
   );
 }

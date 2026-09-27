@@ -28,7 +28,19 @@ export const MODEL = {
   Q_DAY: 0.03,
   S2_MIN: 0.05,
   S2_MAX: 2.0,
-  /** Credit for a correct answer given after a hint. */
+  /**
+   * Hint ladder (DESIGN §1.5): a correct answer after hint tier t (the highest
+   * tier used; 0 = none) earns y = 1 − HINT_TIER_PENALTY·t, so tiers 1/2/3
+   * give 0.75/0.5/0.25.
+   */
+  HINT_TIER_PENALTY: 0.25,
+  /**
+   * Records from before the ladder carry `hint` without a tier; they count as
+   * this tier, so their credit is exactly the old single-hint HINT_CREDIT and
+   * replaying old logs gives identical states.
+   */
+  LEGACY_HINT_TIER: 2,
+  /** Credit of the old single hint (= 1 − HINT_TIER_PENALTY·LEGACY_HINT_TIER). */
   HINT_CREDIT: 0.5,
   /** Logits subtracted from ability when predicted recall R → 0 (applied as FORGET·(1−R)). */
   FORGET: 1.0,
@@ -87,6 +99,15 @@ export const SELECTION = {
   IN_PROGRESS_BOOST: 1.5,
   /** Solid-but-not-mastered skills keep being practised toward mastery, at lower priority. */
   CONSOLIDATE_WEIGHT: 0.5,
+  /**
+   * ...but consolidation fades for skills more than CONSOLIDATE_SPAN grades below the leading edge
+   * (the hardest skill the child is learning): weight × exp(−CONSOLIDATE_BELOW_DECAY · (distance − span)).
+   * Placement makes skills far below a child Solid (never mastered); served as consolidation they
+   * were 43% of a grade 4–6.5 child's items at 0.96 success, overshooting the target (simulation:
+   * 0.912 → 0.880; DESIGN §1.5). Review still reaches them when due.
+   */
+  CONSOLIDATE_SPAN: 3,
+  CONSOLIDATE_BELOW_DECAY: 1.2,
   /** At most this many never-seen skills introduced per session. */
   MAX_NEW_PER_SESSION: 2,
   /** A wrong item returns after this many other items. */
@@ -132,6 +153,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  // A deal has many solutions and mixes skills: half evidence until calibration data exists.
+  target: 0.5,
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

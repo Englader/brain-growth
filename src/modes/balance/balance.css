@@ -67,8 +67,15 @@
   dominant-baseline: central;
   pointer-events: none;
 }
-.sc-piece[role='button'] {
+.sc-tap {
+  fill: transparent;
   cursor: pointer;
+}
+.sc-tap:focus-visible {
+  outline: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
 }
 .sc-x rect {
   fill: var(--primary);

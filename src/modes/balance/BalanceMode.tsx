@@ -11,10 +11,10 @@
  * checker replays it and never trusts this screen.
  *
  * Credit: y = 1 − 0.25 per refused unbalancing move and per hint tier
- * (`balanceY`); "Show me" is a wrong attempt (y = 0) and the item returns
- * later. The engine takes a correct answer as full credit or hinted (0.5)
- * until it accepts a tiered credit, so any refused move or hint marks the
- * answer as hinted here (see `credit`).
+ * (`balanceY`), passed to the engine as the hint tier min(4, refusals +
+ * tiers); "Show me" is a wrong attempt (y = 0) and the item returns later.
+ * The time spent on the worked solution after a mistake is logged like
+ * Hop's (feedbackTime.ts).
  */
 import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
@@ -30,7 +30,6 @@ import {
   BALANCE_HINT_KEYS,
   BALANCE_HINT_THEN_KEYS,
   balanceHints,
-  balanceY,
   describeMove,
   isBlocked,
   isolatedValue,
@@ -55,6 +54,7 @@ import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
 import { Numpad } from '../../ui/components/Numpad';
 import { useT } from '../../ui/hooks';
+import { useFeedbackTime } from '../feedbackTime';
 import { amountText, equationText, moveText, panText } from './format';
 import { Scale } from './Scale';
 import './balance.css';
@@ -138,20 +138,32 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
   const shownAt = useRef(0);
   const timer = useRef(0);
   const tipTimer = useRef(0);
+  const fb = useFeedbackTime();
+
+  const finish = (): void => {
+    fb.flush();
+    onFinished();
+  };
+  const exit = (): void => {
+    fb.flush();
+    onExit();
+  };
 
   const load = (): void => {
     window.clearTimeout(timer.current);
     window.clearTimeout(tipTimer.current);
+    fb.feedback(false);
     const p = nextItem();
     if (!p) {
-      onFinished();
+      finish();
       return;
     }
     const d = p.item.prompt.kind === 'custom' ? readBalanceData(p.item.prompt.data) : null;
     if (!d) {
-      onFinished();
+      finish();
       return;
     }
+    fb.shown(p);
     setCur(p);
     // Band C scales always carry balloons; Band B only when the equation needs them.
     const balloons = band.id === 'C' || d.balloons;
@@ -218,8 +230,8 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     setTyped('');
   };
 
-  /** Answer credit this screen would give (the engine currently takes it as full or hinted). */
-  const credit = (): number => balanceY(penalised + tier, false);
+  /** The engine's credit tier: one per refused unbalancing move and per hint tier, so y = balanceY(refusals + tiers). */
+  const creditTier = (): number => Math.min(4, penalised + tier);
 
   const submit = (value: string | null): void => {
     if (phase !== 'input') return;
@@ -239,7 +251,7 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     const r = submitAnswer(
       cur,
       { kind: 'built', value: v, repr, data: { bal: state.balloons ? 1 : 0 } },
-      { latencyMs: latency, hint: credit() < 1, input: 'typed', hops: 0 },
+      { latencyMs: latency, hint: tier > 0, hintTier: creditTier(), input: 'typed', hops: 0 },
     );
     if (r.grade.invalid) {
       setInvalid(true);
@@ -262,6 +274,7 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     if (solved) setStack((s) => [...s, solved]);
     setRevealed(value === null);
     setPhase('explain');
+    fb.feedback(true);
   };
 
   const moveLine = (m: BalanceMove): string => {
@@ -292,7 +305,7 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
   return (
     <div class={`play balance-play phase-${phase}${alone ? ' alone' : ''}`}>
       <header class="play-head">
-        <button type="button" class="icon-btn" aria-label={t('play.exit')} onClick={onExit}>
+        <button type="button" class="icon-btn" aria-label={t('play.exit')} onClick={exit}>
           <Icon name="close" />
         </button>
         <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={planned} aria-valuenow={firstPresented} aria-label={t('play.progress', { n: firstPresented, total: planned })}>

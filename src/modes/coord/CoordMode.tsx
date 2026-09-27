@@ -26,6 +26,7 @@ import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
 import { Numpad } from '../../ui/components/Numpad';
 import { useT } from '../../ui/hooks';
+import { useFeedbackTime } from '../feedbackTime';
 import { Plane } from './Plane';
 import './coord.css';
 
@@ -68,15 +69,23 @@ function CoordPlay({ onFinished, onExit }: { onFinished: () => void; onExit: () 
   const [praise, setPraise] = useState('');
   const shownAt = useRef(0);
   const timer = useRef(0);
+  const fb = useFeedbackTime();
+  const exit = (): void => {
+    fb.flush();
+    onExit();
+  };
 
   const load = (): void => {
     window.clearTimeout(timer.current);
+    fb.feedback(false);
     const p = nextItem();
     const d = p && p.item.prompt.kind === 'custom' ? readCoordData(p.item.prompt.data) : null;
     if (!p || !d) {
+      fb.flush();
       onFinished();
       return;
     }
+    fb.shown(p);
     setCur(p);
     setData(d);
     setPick(null);
@@ -106,7 +115,8 @@ function CoordPlay({ onFinished, onExit }: { onFinished: () => void; onExit: () 
     const r = submitAnswer(
       cur,
       { kind: 'built', value: null, repr: pointRepr(p) },
-      { latencyMs: performance.now() - shownAt.current, hint: hintOn, input: reading ? 'typed' : 'tap', hops: 0 },
+      // The one hint is a strategy prompt with no number in it: tier 1 of the ladder (0.75 credit).
+      { latencyMs: performance.now() - shownAt.current, hint: hintOn, hintTier: hintOn ? 1 : 0, input: reading ? 'typed' : 'tap', hops: 0 },
     );
     if (r.grade.invalid) {
       setInvalid(true);
@@ -125,6 +135,7 @@ function CoordPlay({ onFinished, onExit }: { onFinished: () => void; onExit: () 
     }
     sfx('soft');
     setPhase('explain');
+    fb.feedback(true);
   };
 
   const readNumber = (raw: string): number | null => {
@@ -165,7 +176,7 @@ function CoordPlay({ onFinished, onExit }: { onFinished: () => void; onExit: () 
   return (
     <div class={`play coord-play phase-${phase}${reading ? ' coord-read' : ' coord-plot'}`}>
       <header class="play-head">
-        <button type="button" class="icon-btn" aria-label={t('play.exit')} onClick={onExit}>
+        <button type="button" class="icon-btn" aria-label={t('play.exit')} onClick={exit}>
           <Icon name="close" />
         </button>
         <div class="progress" role="progressbar" aria-valuemin={0} aria-valuemax={planned} aria-valuenow={firstPresented} aria-label={t('play.progress', { n: firstPresented, total: planned })}>

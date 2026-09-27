@@ -18,11 +18,15 @@
     "play": "Play",
     "speaker": "Hear it again",
     "loading": "Loading…",
+    "loadFailed": "This part of the game could not be loaded just now. Check the connection and try again.",
+    "retry": "Try again",
     "new": "New!",
     "points": "{n, plural, one {# pt} other {# pts}}"
   },
   "lang": {
-    "switchTo": "Switch language to {lang}"
+    "switchTo": "Switch language to {lang}",
+    "loading": "{lang}: loading…",
+    "failed": "That language could not be loaded just now. Check the connection and try again."
   },
   "grade": {
     "label": "{g, select, 0 {Preschool} other {Grade {g}}}"
@@ -123,6 +127,7 @@
     "hopForward": "Hop forward {n}",
     "hopBack": "Hop back {n}",
     "tapLine": "Tap the line where it lands",
+    "line": "Number line from {from} to {to}",
     "typeNumber": "Type a number",
     "invalid": "Hmm, I can't read that number. Try again?",
     "hint": "Hint",
@@ -183,18 +188,50 @@
     "sessionDone": "Great playing today!",
     "trophy": "You found a trophy!",
     "frac": {
+      "hopTo": "Hop to {n} out of {d} parts!",
+      "outOf": "out of",
+      "parts": "parts",
+      "bigger": "Land on the bigger number!",
+      "smaller": "Land on the smaller number!",
+      "flag": "Hop to the flag!"
     },
     "weekly": {
+      "intro": "This is this week's game! Play it to light up the stones.",
+      "done": "All the stones are lit! There's a gift for you."
     },
     "target": {
+      "makeTen": "Make ten! Tap the cards.",
+      "make": "Make {n}!",
+      "makeWord": "Make",
+      "tapShiny": "Now tap the shiny cards!"
     },
     "dice": {
     },
     "puzzle": {
+      "shelf": "Pick a puzzle!",
+      "pattern": "What comes next? Tap it!",
+      "balance": "The scales are balanced. How heavy is the shape?",
+      "notYet": "Not yet! Look again.",
+      "solved": "You solved it!",
+      "together": "We solved it together!",
+      "weighs": "This shape weighs",
+      "hint": {
+        "unit": "Look at the part that repeats.",
+        "same": "The next one is the same as the shiny one.",
+        "groups": "Each group gets bigger.",
+        "grows": "Look how the last group grows.",
+        "start": "Start with the shiny scale.",
+        "remove": "Take the same cubes off both sides.",
+        "share": "Share the cubes fairly.",
+        "count": "Count the cubes.",
+        "known": "This shape weighs {weight}."
+      }
     },
     "workshop": {
     },
     "season": {
+      "newYear": "Hi! Happy New Year! Let's play!",
+      "easter": "Hi! Happy holidays! Let's play!"
     }
   },
   "results": {
@@ -212,7 +249,7 @@
     "trophies": "New trophies",
     "trophies@C": "New achievements",
     "again": "Play again",
-    "accuracy": "First-try accuracy: {pct}%",
+    "accuracy": "First-try accuracy: {pct, percent}",
     "skills": "Skills trained",
     "placed": "Your trail is ready!",
     "placed@C": "Starting level set.",
@@ -334,7 +371,7 @@
       "mastery": "Skills solid and mastered over time",
       "masteredSeries": "Mastered",
       "proficientSeries": "Solid",
-      "freeChoice": "Play after the daily quest was complete: {pct}% of problems",
+      "freeChoice": "Play after the daily quest was complete: {pct, percent} of problems",
       "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, quests may be replacing interest — consider turning them off.",
       "noData": "No play recorded yet.",
       "freeChoiceNone": "No completed daily quests yet."
@@ -367,14 +404,14 @@
       "n": "n",
       "flagged": "Skills where the model is mis-calibrated",
       "none": "Nothing flagged yet (needs at least 15 first attempts on a skill).",
-      "biasRow": "{skill}: predicted {p}%, observed {o}% over {n} tries"
+      "biasRow": "{skill}: predicted {p, percent}, observed {o, percent} over {n} tries"
     },
     "errors": {
       "title": "Recurring mistake patterns",
       "none": "No recurring patterns yet.",
       "count": "{n, plural, one {# time} other {# times}}",
       "unusual": "Skills with unusual error rates",
-      "expected": "expected {e}% errors, observed {o}%",
+      "expected": "expected {e, percent} errors, observed {o, percent}",
       "noneUnusual": "No skill stands out."
     },
     "data": {
@@ -417,7 +454,7 @@
   "flag": {
     "mode.sprint": "Timed “race your shadow” on Solid facts (a card the child chooses; Bands B and C).",
     "quests.daily": "Daily quest card with 2–3 varied objectives.",
-    "hints": "Hint button (Bands B and C). Hinted answers count as half evidence.",
+    "hints": "Hint ladder (Bands B and C): a strategy, then the first hop, then a worked step. The more help used, the less the answer counts as evidence.",
     "league.family": "Family board and card sharing.",
     "audio.tts": "Use the device's speech voice when no recorded clip exists.",
     "debug.shortSessions": "Four-problem sessions (for testing)."
@@ -566,6 +603,34 @@
     "addNeg": "Adding a negative is taking away: {a} + (−{b}) = {a} − {b}.",
     "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}.",
     "frac": {
+      "unitSplit": "One whole, from 0 to 1, is split into {d} equal parts.",
+      "unitHops": "{n}/{d} is {n, plural, one {# hop} other {# hops}} of 1/{d} from 0.",
+      "equivDen": "The denominator {b} becomes {bn}: {b} {op} {m} = {bn}.",
+      "equiv": "{a}/{b} = {an}/{bn}: multiply the numerator and the denominator by {m}.",
+      "commonDen": "Use the common denominator {l}: it is a multiple of both {b} and {d}.",
+      "common": "With denominator {l}: {a}/{b} = {a2}/{l} and {c}/{d} = {c2}/{l}.",
+      "sameDen": "Same denominator {d}: the one with more parts is bigger.",
+      "sameNum": "Same numerator {n}: the more parts a whole is cut into, the smaller each part.",
+      "bigger": "{n1}/{d1} is bigger than {n2}/{d2}.",
+      "smaller": "{n1}/{d1} is smaller than {n2}/{d2}.",
+      "tenthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one tenth.",
+      "hundredthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one hundredth.",
+      "tenthsHops": "From {lo}, {n, plural, one {# hop of one tenth reaches} other {# hops of one tenth reach}} {x}.",
+      "hundredthsHops": "From {lo}, {n, plural, one {# hop of one hundredth reaches} other {# hops of one hundredth reach}} {x}.",
+      "decPlaces": "Compare the tenths first, then the hundredths.",
+      "decTenths": "{a} is {an, plural, one {# tenth} other {# tenths}} and {b} is {bn, plural, one {# tenth} other {# tenths}}.",
+      "decHundredths": "{a} is {an, plural, one {# hundredth} other {# hundredths}} and {b} is {bn, plural, one {# hundredth} other {# hundredths}}.",
+      "decBigger": "{a} is bigger than {b}.",
+      "decSmaller": "{a} is smaller than {b}.",
+      "decSplit2": "Split it up: {b} = {p1} + {p2}.",
+      "decSplit3": "Split it up: {b} = {p1} + {p2} + {p3}.",
+      "pctTen": "{p, percent} of {of} is {ten}: that is one hop.",
+      "pctHalf": "50% is one half: {of} {op} 2 = {r}.",
+      "pctQuarter": "25% is one quarter: {of} {op} 4 = {r}.",
+      "pctThreeQuarters": "75% is three quarters: {of} {op} 4 = {q}, and three of those make {r}.",
+      "pctHops": "{pct, percent} is {n, plural, one {# hop} other {# hops}} of 10%: {r}.",
+      "pctFive": "5% is half of 10%: half of {ten} is {r}.",
+      "pctHopsHalf": "{pct, percent} is {n, plural, one {# hop} other {# hops}} of 10% and half a hop: {r}."
     },
     "target": {
     },
@@ -582,8 +647,8 @@
       "result": "So x = {x}."
     },
     "coord": {
-      "across": "{dir, select, none {x is 0, so stay on the y-axis.} left {From 0, go {n, plural, one {# step} other {# steps}} left.} other {From 0, go {n, plural, one {# step} other {# steps}} right.}}",
-      "upDown": "{dir, select, none {y is 0, so stay on the x-axis.} down {Then go {n, plural, one {# step} other {# steps}} down.} other {Then go {n, plural, one {# step} other {# steps}} up.}}"
+      "across": "{dir, select, none {No steps across: stay on the y-axis.} left {From the origin, go {n, plural, one {# step} other {# steps}} left.} other {From the origin, go {n, plural, one {# step} other {# steps}} right.}}",
+      "upDown": "{dir, select, none {No steps up or down: stay on the x-axis.} down {Then go {n, plural, one {# step} other {# steps}} down.} other {Then go {n, plural, one {# step} other {# steps}} up.}}"
     }
   },
   "mis": {
@@ -684,8 +749,72 @@
       "tip": "From a negative number, adding moves you right, toward 0."
     },
     "frac": {
+      "biggerDen": {
+        "name": "Thought a bigger denominator means a bigger fraction",
+        "tip": "A bigger denominator means smaller parts: 1/8 is less than 1/4."
+      },
+      "countedTicks": {
+        "name": "Counted the tick marks instead of the parts",
+        "tip": "Count the hops between the ticks, not the ticks themselves."
+      },
+      "addSame": {
+        "name": "Added the same number to the numerator and the denominator",
+        "tip": "Multiply the numerator and the denominator by the same number; adding changes the fraction."
+      },
+      "numeratorOnly": {
+        "name": "Looked only at the numerator",
+        "tip": "The denominator matters too: it tells you how big each part is."
+      },
+      "wholeLine": {
+        "name": "Split the whole line instead of one whole",
+        "tip": "One whole is the space from 0 to 1. Split that, not the whole line."
+      },
+      "dec": {
+        "longerIsLarger": {
+          "name": "Thought more digits means a bigger number",
+          "tip": "Compare the tenths first: 0.5 = 0.50, which is more than 0.45."
+        },
+        "shorterIsLarger": {
+          "name": "Thought fewer digits means a bigger number",
+          "tip": "Give both the same number of decimals: 0.3 = 0.30, which is less than 0.45."
+        },
+        "misaligned": {
+          "name": "Lined up the last digits instead of the decimal points",
+          "tip": "Line up the decimal points: tenths under tenths, hundredths under hundredths."
+        },
+        "tenthsAsHundredths": {
+          "name": "Mixed up tenths and hundredths",
+          "tip": "The first digit after the point is tenths, the second is hundredths. Ten tenths make one whole."
+        }
+      },
+      "pct": {
+        "asNumber": {
+          "name": "Gave the percent itself as the answer",
+          "tip": "A percent is a part of 100. Find 10% first, then build up."
+        },
+        "dividedBy": {
+          "name": "Divided by the percent",
+          "tip": "Percent means out of 100: 10% of 80 is 80 ÷ 10 = 8."
+        }
+      }
     },
     "target": {
+      "reusedCard": {
+        "name": "Card used twice",
+        "tip": "Each card can be used only once."
+      },
+      "notCard": {
+        "name": "Number not dealt",
+        "tip": "Use only the numbers on the cards."
+      },
+      "badOp": {
+        "name": "Sign not in this deal",
+        "tip": "Use only the signs shown."
+      },
+      "unused": {
+        "name": "Cards left over",
+        "tip": "This deal needs every card."
+      }
     },
     "workshop": {
     },
@@ -762,8 +891,40 @@
     "title.analyst": "Analyst",
     "title.architect": "Architect",
     "weekly": {
+      "counting.pad": "Dotty pads",
+      "bonds.pad": "Two-part pads",
+      "bridgeTen.pad": "Bridge pads",
+      "doubles.pad": "Mirror pads",
+      "tens.pad": "Striped pads",
+      "numberLine.pad": "Ruler pads",
+      "mixed.pad": "Rainbow pads",
+      "bridgeTen.color": "River",
+      "doubles.color": "Spring green",
+      "tens.color": "Pumpkin",
+      "bridgeHundred.color": "Raspberry",
+      "tables.color": "Night blue",
+      "bigNumbers.color": "Pine",
+      "numberLine.color": "Sky",
+      "belowZero.color": "Deep sea",
+      "mixed.color": "Fuchsia",
+      "bridgeHundred.theme": "Apricot",
+      "tables.theme": "Lavender",
+      "bigNumbers.theme": "Flamingo",
+      "numberLine.theme": "Lime",
+      "belowZero.theme": "Glacier",
+      "mixed.theme": "Orchid"
     },
     "season": {
+      "newYear.hat": "Winter hat",
+      "newYear.pad": "Snowy pad",
+      "newYear.color": "Festive red",
+      "newYear.theme": "Frost",
+      "newYear.title": "Polar Explorer",
+      "easter.hat": "Flower crown",
+      "easter.pad": "Painted-egg pad",
+      "easter.color": "Sunny yellow",
+      "easter.theme": "Meadow",
+      "easter.title": "Spring Explorer"
     }
   },
   "ach": {
@@ -983,10 +1144,40 @@
     "weekly": {
     },
     "target": {
+      "manyWays": {
+        "name": "Many Ways",
+        "desc": "Found 3 ways to make the same target.",
+        "hint": "After you make a target, look for a different way.",
+        "name@C": "Many Roads",
+        "desc@C": "Found three distinct solutions to one deal."
+      }
     },
     "dice": {
     },
     "puzzle": {
+      "solver": {
+        "name": "Puzzle Solver",
+        "desc": "Ten puzzles solved. Careful thinking pays off!",
+        "hint": "Solve 10 puzzles.",
+        "name@C": "Puzzle Solver",
+        "desc@C": "Solved 10 puzzles."
+      },
+      "aboveLevel": {
+        "name": "Above My Level",
+        "desc": "You asked for a harder puzzle and solved it!",
+        "hint": "Tap “Harder one” and solve a puzzle.",
+        "name@C": "Above My Level",
+        "desc@C": "Solved a puzzle chosen above your level.",
+        "hint@C": "Turn on “Harder one” and solve a puzzle."
+      },
+      "estimator": {
+        "name": "Estimator",
+        "desc": "Ten good estimates: the answer was inside your range every time.",
+        "hint": "Solve 10 “Good guess” puzzles.",
+        "name@C": "Estimator",
+        "desc@C": "Solved 10 estimation ranges.",
+        "hint@C": "Solve 10 estimation-range puzzles."
+      }
     },
     "workshop": {
     },
@@ -1009,6 +1200,14 @@
       }
     },
     "season": {
+      "newYear": {
+        "name": "Winter Wonder",
+        "desc": "You played during the New Year holidays."
+      },
+      "easter": {
+        "name": "Spring Blossom",
+        "desc": "You played during the Easter holidays."
+      }
     }
   },
   "clip": {
@@ -1059,8 +1258,81 @@
     }
   },
   "frac": {
+    "locate": "Where is this fraction?",
+    "locateDec": "Where is this decimal?",
+    "biggerFrac": "Which fraction is bigger? Land on it.",
+    "smallerFrac": "Which fraction is smaller? Land on it.",
+    "biggerDec": "Which number is bigger? Land on it.",
+    "smallerDec": "Which number is smaller? Land on it.",
+    "read": "Which number is at the flag? Type it.",
+    "equiv": "Which number goes in the numerator?",
+    "percent": "How much is that? Type the number.",
+    "pctOf": "{pct, percent} of {of}"
   },
   "hint": {
+    "nextHop": "Show me the first hop",
+    "nextStep": "Show me the first step",
+    "nextHop@C": "Show the first hop",
+    "nextStep@C": "Show the first step",
+    "hop": "The first hop goes from {from} to {to}.",
+    "hop@C": "First hop: from {from} to {to}.",
+    "s": {
+      "count": "Count each dot exactly once. Small groups make it easier.",
+      "locateTens": "Jump in tens first, then in ones.",
+      "locateHundreds": "Jump in hundreds first, then in tens, then in ones.",
+      "locateNeg": "Negative numbers are to the left of zero, positive numbers to the right.",
+      "blocks2": "Count the tens first, then the ones.",
+      "blocks3": "Count the hundreds first, then the tens, then the ones.",
+      "bond": "Count on from the first number until you reach the total.",
+      "makeTen": "Make a ten first, then add what is left.",
+      "makeTen@C": "Bridge through ten: complete the ten, then add the remainder.",
+      "backThroughTen": "Go back to ten first, then take away what is left.",
+      "backThroughTen@C": "Bridge back through ten: subtract down to ten, then subtract the remainder.",
+      "countOn": "Start at the bigger number and count on.",
+      "countBack": "Start at the first number and count back.",
+      "split": {
+        "add": "Split the second number by place value, then add one part at a time.",
+        "add@C": "Decompose the second addend by place value and add the parts one at a time.",
+        "sub": "Split the number you take away by place value, then subtract one part at a time.",
+        "sub@C": "Decompose the subtrahend by place value and subtract the parts one at a time.",
+        "mul": "Split one number by place value, multiply each part, then add the results.",
+        "mul@C": "Distributive law: split one factor by place value, multiply each part, then add the products."
+      },
+      "step": {
+        "add": "Start at the first number and hop forward by the second.",
+        "sub": "Start at the first number and hop back by the second."
+      },
+      "times9": "Nines: work out ten groups, then take one group away.",
+      "times9@C": "Nines: ten groups minus one group.",
+      "doubleDouble": "Times four: double, then double again.",
+      "fivePlus": "Do five groups first, then the rest of the groups, and add them together.",
+      "fivePlus@C": "Split the first factor into five plus the rest, then add the two products.",
+      "repeatedAdd": "Multiplying is adding equal groups: make equal hops, one after another.",
+      "divAsHops": "Think times tables: what do you multiply the second number by to get the first?",
+      "divAsHops@C": "Division undoes multiplication: find the missing factor.",
+      "timesTen": "Multiplying by ten moves every digit one place to the left; by a hundred, two places.",
+      "zeros": "Set the zeros aside, multiply what is left, then put all the zeros back.",
+      "addPartials": "Work out each part, then add the parts together.",
+      "subNeg": "Taking away a negative number is the same as adding the positive number.",
+      "subNeg@C": "Subtracting a negative number means adding its opposite.",
+      "addNeg": "Adding a negative number is the same as taking away the positive number.",
+      "addNeg@C": "Adding a negative number means subtracting its opposite.",
+      "intMove": "On the number line, adding takes you to the right and taking away to the left.",
+      "generic": "Picture it on the number line: where do you start, and which way do you hop?",
+      "frac": {
+        "unit": "The denominator says how many equal parts the whole from zero to one has; the numerator says how many parts to hop.",
+        "unit@C": "The denominator is the number of equal parts in one whole; the numerator is how many of them to count.",
+        "equiv": "Write the fraction with the new denominator: multiply the numerator and the denominator by the same number.",
+        "sameNum": "Same numerator: the more parts the whole is cut into, the smaller each part.",
+        "sameDen": "Same denominator: compare the numerators. More parts of the same size is more.",
+        "commonDen": "Give both fractions the same denominator, then compare the numerators.",
+        "tenths": "Each small part is one tenth: count the parts from the start of the line.",
+        "hundredths": "Each small part is one hundredth: count the parts from the start of the line.",
+        "decCompare": "Compare the whole numbers first, then the tenths, then the hundredths.",
+        "decParts": "Split the second number into wholes, tenths and hundredths, then hop one part at a time.",
+        "pct": "Find ten percent first: it is one tenth of the whole. Then build the rest from it."
+      }
+    }
   },
   "pilot": {
     "title": "Pilot readout",
@@ -1084,7 +1356,7 @@
     "strategy": {
       "title": "Strategy",
       "help": "Strategy (Band A): how often an answer used the hop buttons (counting on) rather than a direct tap on the number, and the median time of correct answers in the earlier half, then the later half. Fewer hops and faster answers mean a fact is moving from counting to memory.",
-      "split": "Hop buttons {hops}% · direct taps {taps}%",
+      "split": "Hop buttons {hops, percent} · direct taps {taps, percent}",
       "counting": "Counting on",
       "mixed": "Mixed",
       "retrieval": "Knows it by heart"
@@ -1106,12 +1378,238 @@
     "keepSafeDenied": "The browser has not allowed it yet. Adding Hopa to the Home Screen and regular backups also keep the data safe."
   },
   "weekly": {
+    "title": "This week's challenge",
+    "title@C": "Weekly challenge",
+    "play": "Play this week's challenge",
+    "play@C": "Play",
+    "how": "Every game with 3 problems from this week's theme lights a stone.",
+    "how@C": "A session with at least 3 theme problems counts.",
+    "progress": "{done} of {target} stones lit",
+    "progress@C": "{done}/{target} sessions",
+    "complete": "All the stones are lit — the week's gift is yours!",
+    "complete@C": "Set complete. Reward unlocked.",
+    "stone": "A stone lit up on this week's challenge: {done} of {target}",
+    "stone@C": "Weekly challenge: {done}/{target} sessions",
+    "reward": "This week's challenge is complete — there's a gift for you!",
+    "reward@C": "Weekly challenge complete: new reward unlocked.",
+    "flag": "Weekly themed challenge: a 5-session set with a surprise cosmetic; sessions started from its card practise the theme's skills more often.",
+    "adult": {
+      "freeChoice": "Play after the weekly challenge was complete: {pct, percent} of that week's problems",
+      "freeChoiceNone": "No weekly challenge completed yet."
+    },
+    "theme": {
+      "counting": {
+        "name": "Counting week",
+        "desc": "Count the dots and know small numbers at a glance."
+      },
+      "bonds": {
+        "name": "Make-ten week",
+        "desc": "Numbers that fit together to make 5 and 10."
+      },
+      "bridgeTen": {
+        "name": "Bridge week: crossing ten",
+        "desc": "Adding and taking away across ten."
+      },
+      "doubles": {
+        "name": "Doubles week",
+        "desc": "Doubles, equal groups and times 2, 5 and 10."
+      },
+      "tens": {
+        "name": "Tens week",
+        "desc": "Tens and ones, all the way to 100."
+      },
+      "bridgeHundred": {
+        "name": "Bridge week: crossing a hundred",
+        "desc": "Adding and subtracting across hundreds."
+      },
+      "tables": {
+        "name": "Times-table week",
+        "desc": "Multiplication and division facts."
+      },
+      "bigNumbers": {
+        "name": "Big-numbers week",
+        "desc": "Multiplying by tens, hundreds and bigger numbers."
+      },
+      "numberLine": {
+        "name": "Number-line week",
+        "desc": "Find where every number lives on the line."
+      },
+      "belowZero": {
+        "name": "Below-zero week",
+        "desc": "Negative numbers: adding and subtracting below zero."
+      },
+      "mixed": {
+        "name": "Mixed week",
+        "desc": "A little of everything you are learning."
+      }
+    }
   },
   "target": {
+    "title": "Make it",
+    "title@C": "Target",
+    "desc": "Combine the cards to make the target number",
+    "desc@C": "Combine numbers with the four operations to hit a target",
+    "flag": "Make it: combine dealt cards to make a target number (all bands; its answers count as half evidence).",
+    "notReady": "Opens after a little more practice on the number trail",
+    "notReady@C": "Unlocks once a skill it trains is within reach",
+    "prompt": "Make {target}",
+    "promptAll": "Make {target} using every card",
+    "howTo": "Tap a card, then a sign, then another card.",
+    "card": "Card {value}",
+    "op": {
+      "add": "plus",
+      "sub": "minus",
+      "mul": "times",
+      "div": "divided by"
+    },
+    "undo": "Undo",
+    "reset": "Start again",
+    "showMe": "Show me",
+    "pickFirst": "Tap a card first.",
+    "divZero": "You can't divide by zero.",
+    "wholeOnly": "This deal uses whole numbers only.",
+    "noNegative": "This deal stays at zero or above.",
+    "missOver": "You made {value}. That is {d} more than {target}.",
+    "missUnder": "You made {value}. That is {d} less than {target}.",
+    "missOther": "You made {value}, not {target}.",
+    "useAll": "You made {target}, but this deal needs every card.",
+    "another": "Find another way",
+    "anotherPrompt": "Can you make {target} another way?",
+    "newWay": "A new way! You have found {n, plural, one {# way} other {# ways}}.",
+    "sameWay": "That is the same way as before. Try a different one!",
+    "next": "Next",
+    "otherWays": "Other ways",
+    "waysTotal": "{n, plural, one {# way} other {# ways}} in all",
+    "foundByYou": "You found this one",
+    "reveal": "Here is one way:",
+    "hint": {
+      "op": "Try this sign:",
+      "start": "Start with:",
+      "then": "Then:"
+    },
+    "results": {
+      "ways": "{n, plural, one {You found # extra way to make a target.} other {You found # extra ways to make a target.}}"
+    }
   },
   "dice": {
   },
   "puzzle": {
+    "title": "Puzzles",
+    "title@C": "Puzzles",
+    "desc": "Think it through: no clock, check as often as you like",
+    "desc@C": "Reasoning puzzles, untimed, with their own level per type",
+    "flag": "Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms (untimed; its own level per puzzle type; never needed for progress).",
+    "notReady": "Opens after your first round on the number trail",
+    "notReady@C": "Available after your first calibration session",
+    "harder": "Harder one",
+    "harderOn": "Harder ones: on",
+    "harder@C": "Harder one",
+    "harderOn@C": "Harder ones: on",
+    "play": "Play",
+    "type": {
+      "pattern": "What comes next?",
+      "pattern@C": "Sequences",
+      "balance": "Balance",
+      "balance@C": "Balance scales",
+      "estimate": "Good guess",
+      "estimate@C": "Estimation ranges",
+      "logic": "Who has what?",
+      "logic@C": "Logic grids",
+      "crypt": "Secret shapes",
+      "crypt@C": "Cryptarithms"
+    },
+    "about": {
+      "pattern": "Find the rule, then the next one",
+      "balance": "Work out how heavy each shape is",
+      "estimate": "Catch the answer in a range, no exact sums",
+      "logic": "Use the clues to see what goes together",
+      "crypt": "Each shape is a digit: crack the sum"
+    },
+    "ask": {
+      "patternTiles": "A row of pictures; the last one is missing",
+      "pattern": "What number comes next?",
+      "balance": "Every scale is balanced. How heavy is each shape?",
+      "estimate": "Where is the answer? Catch it inside your range.",
+      "logic": "Tick what goes together. Tap a box again for a cross.",
+      "crypt": "Same shape, same digit; different shapes, different digits. No number starts with 0."
+    },
+    "check": "Check",
+    "help": "Hint",
+    "reveal": "Show me",
+    "next": "Next puzzle",
+    "more": "Other puzzles",
+    "toShelf": "Back to the puzzles",
+    "solved": "Solved!",
+    "solved@C": "Solved.",
+    "revealed": "Here is one way to solve it. Try the next one!",
+    "revealed@C": "Here is one solution.",
+    "violated": {
+      "answer": "Not yet. Look again!",
+      "next": "That does not fit the rule yet.",
+      "scale": "{n, plural, one {A scale tips. Look at the glowing one.} other {# scales tip. Look at the glowing ones.}}",
+      "shape": "Give every shape a weight.",
+      "wide": "Your range is too wide. Make it narrower.",
+      "outside": "The answer is not inside your range yet.",
+      "missing": "Give every shape a digit.",
+      "distinct": "Two different shapes cannot be the same digit.",
+      "lead": "A number cannot start with 0.",
+      "col": "{n, plural, one {A column does not add up yet.} other {# columns do not add up yet.}}",
+      "twice": "Someone has two things of the same kind.",
+      "clue": "{n, plural, one {A clue is not true yet. Look at the glowing one.} other {# clues are not true yet. Look at the glowing ones.}}"
+    },
+    "hint": {
+      "pattern": {
+        "unit": "Look at the part that repeats.",
+        "same": "The next one matches the glowing one.",
+        "groups": "Each group grows by one.",
+        "grows": "Look at how the last group grows.",
+        "gaps": "Look at how much it changes at each step.",
+        "ratios": "Look at how many times bigger each number gets.",
+        "neighbours": "Look at three numbers in a row.",
+        "step": "Each step changes it by {step}.",
+        "ratio": "{form, select, times {Each number is {num} times the one before.} other {Each number is {num}/{den} of the one before.}}",
+        "alternate": "The steps take turns: {first}, then {second}.",
+        "gapGrows": "The steps change by {by} each time.",
+        "sumTwo": "Add the two numbers before it.",
+        "nextGap": "The next step is {gap}."
+      },
+      "balance": {
+        "start": "Start with the glowing scale.",
+        "compare": "Compare the two glowing scales: what is different?",
+        "remove": "Take {units, plural, one {# cube} other {# cubes}} off both sides: it stays balanced.",
+        "share": "Share {units, plural, one {# cube} other {# cubes}} fairly among {count} shapes.",
+        "count": "Count the cubes on the other side.",
+        "known": "This shape weighs {weight}."
+      },
+      "estimate": {
+        "roundEach": "{to, plural, =10 {Round each number to the nearest ten.} =100 {Round each number to the nearest hundred.} other {Round each number to the nearest {to}.}}",
+        "roundBoth": "Think of {a} {op} {b}.",
+        "friendlyDivide": "Think of {a} {op} {b}.",
+        "tenPercent": "10% of the number is about {tenth}.",
+        "about": "It is about {value}.",
+        "between": "It is between {lo} and {hi}."
+      },
+      "logic": {
+        "start": "Start with the glowing clue.",
+        "pair": "These two go together."
+      },
+      "crypt": {
+        "carry": "The extra shape at the left of the sum is always 1.",
+        "units": "Start with the ones column, on the right.",
+        "reveal": "This shape is {digit}."
+      }
+    },
+    "tile": "Picture {n}",
+    "pickShape": "Choose a shape, then type its weight",
+    "weightOf": "Weight of shape {n}",
+    "pickSymbol": "Choose a shape, then type its digit",
+    "symbol": "Shape {n}",
+    "cell": "Row {r}, column {c}",
+    "from": "From",
+    "to": "To",
+    "width": "Width {w} (at most {max})",
+    "range": "From {lo} to {hi}",
+    "percentOf": "{pct, percent} of {of}"
   },
   "workshop": {
   },
@@ -1211,5 +1709,18 @@
     }
   },
   "season": {
+    "flag": "Seasonal touches: New Year and Easter decorations, seasonal cosmetics as surprise gifts, a festive weekly theme and a festive greeting.",
+    "newYear": {
+      "name": "New Year",
+      "week": "New Year week",
+      "weekDesc": "Snowflakes and sparkles: every kind of problem counts this week.",
+      "weekDesc@C": "Festive week: every skill counts."
+    },
+    "easter": {
+      "name": "Easter",
+      "week": "Painted-egg week",
+      "weekDesc": "Painted eggs and spring flowers: every kind of problem counts this week.",
+      "weekDesc@C": "Spring week: every skill counts."
+    }
   }
 }
