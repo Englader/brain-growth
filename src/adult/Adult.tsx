@@ -21,6 +21,7 @@ import { numberText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
 import { Icon } from '../ui/components/Icon';
 import { useT } from '../ui/hooks';
+import { StorageDetails, StorageWarning } from '../ui/storage/StorageDetails';
 import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors } from './analytics';
 import { BarChart, Reliability, StepLines } from './charts';
 import { MissingClips, PilotReadout, StrategyStat } from './Pilot';
@@ -300,6 +301,7 @@ function DataTab(): JSX.Element {
   const t = useT();
   const meta = useStore((s) => s.meta);
   const readOnly = useStore((s) => s.readOnly);
+  const otherTab = useStore((s) => s.otherTab);
   const full = useStore((s) => s.storageFull);
   const [msg, setMsg] = useState<string | null>(null);
   const usage = repo.usage();
@@ -322,8 +324,9 @@ function DataTab(): JSX.Element {
   const last = meta?.lastBackupAt ? new Intl.DateTimeFormat(getLocale(t.locale).bcp47, { dateStyle: 'medium' }).format(meta.lastBackupAt) : t('adult.data.never');
   return (
     <div class="stack">
-      {readOnly && <p class="warn">{t('adult.data.readOnly')}</p>}
+      {readOnly && !otherTab && <p class="warn">{t('adult.data.readOnly')}</p>}
       {full && <p class="warn">{t('adult.data.full')}</p>}
+      <StorageWarning />
       <section class="card">
         <p>{t('adult.data.lastBackup', { date: last })}</p>
         <div class="row wrap">
@@ -341,8 +344,9 @@ function DataTab(): JSX.Element {
         {msg && <p role="status">{msg}</p>}
         <p class="muted">{t('adult.data.iosNote')}</p>
       </section>
-      <section class="card">
+      <section class="card storage-card">
         <p>{t('adult.data.storage', { kb: Math.round(usage.bytes / 1024) })}</p>
+        <StorageDetails idbBytes={usage.idbBytes} />
         <p class="muted">{t('adult.data.rivals', { n: Object.keys(repo.rivals()).length })}</p>
       </section>
     </div>

@@ -67,6 +67,8 @@ export interface AppState {
   swUpdateReady: boolean;
   readOnly: boolean;
   storageFull: boolean;
+  /** Another tab holds the single-writer lock: this one is read-only and says so. */
+  otherTab: boolean;
 }
 
 type Listener = (s: AppState) => void;
@@ -84,6 +86,7 @@ let state: AppState = {
   swUpdateReady: false,
   readOnly: false,
   storageFull: false,
+  otherTab: false,
 };
 
 const listeners = new Set<Listener>();
