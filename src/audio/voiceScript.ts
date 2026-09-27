@@ -48,6 +48,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  'voice.weekly.intro': ['voice.weekly.intro'],
+  'voice.weekly.done': ['voice.weekly.done'],
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
@@ -55,6 +57,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  'voice.season.newYear': ['voice.season.newYear'],
+  'voice.season.easter': ['voice.season.easter'],
 };
 
 /** Per-locale overrides where word order differs (none needed for en/mk yet). */

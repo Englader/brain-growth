@@ -34,6 +34,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: pilot ──
   // ── slot: storage ──
   // ── slot: weekly ──
+  { id: 'weekly', scope: 'profile', default: true, labelKey: 'weekly.flag', description: 'Weekly themed challenge: a 5-session set with a cosmetic set piece; themed sessions boost theme skills.' },
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
@@ -41,6 +42,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  { id: 'season', scope: 'profile', default: true, labelKey: 'season.flag', description: 'Seasonal touches (New Year, Orthodox Easter): decoration, seasonal cosmetics in the drop pool, the seasonal weekly theme, a seasonal greeting.' },
 ];
 
 const byId = new Map(FLAGS.map((f) => [f.id, f]));

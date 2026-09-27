@@ -16,6 +16,7 @@ import { FLAGS, flagLabelKey, isEnabled, type FlagDef } from '../core/flags';
 import { defaultBandForAge, type Profile } from '../core/profile';
 import { GRAPH } from '../core/skills';
 import { BAND_IDS, type BandId } from '../core/types';
+import { weeklyFreeChoice } from '../core/weekly';
 import { allLocales, getLocale } from '../i18n/locales';
 import { numberText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
@@ -98,6 +99,7 @@ function Tile({ label, value }: { label: string; value: string }): JSX.Element {
 function OverviewTab({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const o = useMemo(() => overview(p, recentLog(p.id), now()), [p]);
+  const weeklyFree = useMemo(() => weeklyFreeChoice(recentLog(p.id)), [p]);
   const fmtDay = (d: string): string => new Intl.DateTimeFormat(getLocale(t.locale).bcp47, { day: 'numeric', month: 'numeric' }).format(new Date(`${d}T12:00:00`));
   return (
     <div class="stack">
@@ -134,6 +136,7 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
       </section>
       <section class="card">
         <p>{o.freeChoice === null ? t('adult.overview.freeChoiceNone') : t('adult.overview.freeChoice', { pct: Math.round(o.freeChoice * 100) })}</p>
+        <p>{weeklyFree === null ? t('weekly.adult.freeChoiceNone') : t('weekly.adult.freeChoice', { pct: Math.round(weeklyFree * 100) })}</p>
         <p class="muted">{t('adult.overview.freeChoiceHelp')}</p>
       </section>
       <PilotReadout p={p} />

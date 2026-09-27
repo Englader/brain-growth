@@ -11,7 +11,7 @@ every clip of that line exists. Grown-ups → Voices lists what is still missing
 
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 55 clips, 0 recorded
+## English (en) — 59 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -61,17 +61,21 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 44 | `voice.praise2.mp3` | Yes! |  |
 | 45 | `voice.praise3.mp3` | Great hop! |  |
 | 46 | `voice.praise4.mp3` | Spot on! |  |
-| 47 | `voice.sessionDone.mp3` | Great playing today! |  |
-| 48 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
-| 49 | `voice.trophy.mp3` | You found a trophy! |  |
-| 50 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 51 | `word.dividedBy.mp3` | divided by |  |
-| 52 | `word.hopsOf.mp3` | hops of |  |
-| 53 | `word.minus.mp3` | minus |  |
-| 54 | `word.plus.mp3` | plus |  |
-| 55 | `word.times.mp3` | times |  |
+| 47 | `voice.season.easter.mp3` | Hi! Happy holidays! Let's play! |  |
+| 48 | `voice.season.newYear.mp3` | Hi! Happy New Year! Let's play! |  |
+| 49 | `voice.sessionDone.mp3` | Great playing today! |  |
+| 50 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
+| 51 | `voice.trophy.mp3` | You found a trophy! |  |
+| 52 | `voice.weekly.done.mp3` | All the stones are lit! There's a gift for you. |  |
+| 53 | `voice.weekly.intro.mp3` | This is this week's game! Play it to light up the stones. |  |
+| 54 | `voice.welcome.mp3` | Hi! Let's play! |  |
+| 55 | `word.dividedBy.mp3` | divided by |  |
+| 56 | `word.hopsOf.mp3` | hops of |  |
+| 57 | `word.minus.mp3` | minus |  |
+| 58 | `word.plus.mp3` | plus |  |
+| 59 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 56 clips, 0 recorded
+## Македонски (mk) — 60 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -121,14 +125,18 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 44 | `voice.praise2.mp3` | Да! |  |
 | 45 | `voice.praise3.mp3` | Одличен скок! |  |
 | 46 | `voice.praise4.mp3` | Точно така! |  |
-| 47 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
-| 48 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
-| 49 | `voice.trophy.mp3` | Најде трофеј! |  |
-| 50 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 51 | `word.and.mp3` | и |  |
-| 52 | `word.dividedBy.mp3` | поделено со |  |
-| 53 | `word.hopsOf.mp3` | скока по |  |
-| 54 | `word.minus.mp3` | минус |  |
-| 55 | `word.plus.mp3` | плус |  |
-| 56 | `word.times.mp3` | пати |  |
+| 47 | `voice.season.easter.mp3` | Здраво! Среќни празници! Ајде да играме! |  |
+| 48 | `voice.season.newYear.mp3` | Здраво! Среќна Нова година! Ајде да играме! |  |
+| 49 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
+| 50 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
+| 51 | `voice.trophy.mp3` | Најде трофеј! |  |
+| 52 | `voice.weekly.done.mp3` | Сите камчиња светат! Те чека подарок. |  |
+| 53 | `voice.weekly.intro.mp3` | Ова е играта на неделата! Играј ја за да ги запалиш камчињата. |  |
+| 54 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
+| 55 | `word.and.mp3` | и |  |
+| 56 | `word.dividedBy.mp3` | поделено со |  |
+| 57 | `word.hopsOf.mp3` | скока по |  |
+| 58 | `word.minus.mp3` | минус |  |
+| 59 | `word.plus.mp3` | плус |  |
+| 60 | `word.times.mp3` | пати |  |
 

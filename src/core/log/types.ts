@@ -61,6 +61,8 @@ export interface SessionOptions {
   quick?: boolean;
   /** Serve only these skills, bypassing scheduling and placement (e2e `__hopa.forceSkill`; never set by the UI). */
   only?: SkillId[];
+  /** Weekly theme id when started from the weekly card: its skills get the scheduler boost (src/core/weekly.ts). */
+  theme?: string;
 }
 
 export interface SessionRecord {
@@ -128,6 +130,7 @@ export const EVENTS = {
   FEEDBACK: 'pilot_feedback',
   // ── slot: storage ──
   // ── slot: weekly ──
+  WEEKLY_DONE: 'weekly_done',
   // ── slot: target ──
   // ── slot: dice ──
   // ── slot: puzzle ──
