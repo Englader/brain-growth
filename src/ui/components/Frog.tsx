@@ -45,6 +45,52 @@ export function Hat({ id }: { id?: string | undefined }): JSX.Element | null {
       return (
         <path d="M36 26 L38 10 L45 18 L50 6 L55 18 L62 10 L64 26 Z" fill="#facc15" stroke="#ca8a04" stroke-width="1.5" />
       );
+    // Seasonal hats (src/core/seasons.ts): a knitted New Year beanie, a spring flower crown.
+    case 'winterHat':
+      return (
+        <g>
+          <path d="M32 20 C32 7 41 1 50 1 C59 1 68 7 68 20 Z" fill="#dc2626" stroke="#991b1b" stroke-width="1.5" stroke-linejoin="round" />
+          <path d="M35.5 11.5 Q50 6.5 64.5 11.5" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+          <rect x="29" y="18" width="42" height="8.5" rx="4.25" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2" />
+          <path d="M35 20.5v4M41 20.5v4M47 20.5v4M53 20.5v4M59 20.5v4M65 20.5v4" stroke="#cbd5e1" stroke-width="1.4" stroke-linecap="round" />
+          <circle cx="50" cy="-1" r="5.5" fill="#fff" stroke="#cbd5e1" stroke-width="1.2" />
+        </g>
+      );
+    case 'flowerCrown':
+      return (
+        <g>
+          <path d="M26 21 Q50 6 74 21" fill="none" stroke="#15803d" stroke-width="2.5" stroke-linecap="round" />
+          {[
+            [32, 17.5, -35],
+            [44, 13.8, -12],
+            [56, 13.8, 12],
+            [68, 17.5, 35],
+          ].map(([x, y, r]) => (
+            <ellipse cx={x} cy={y} rx="3.6" ry="1.9" transform={`rotate(${r} ${x} ${y})`} fill="#22c55e" />
+          ))}
+          {[
+            [26, 21, '#f9a8d4', '#facc15'],
+            [38, 15.4, '#fde047', '#f97316'],
+            [50, 13.5, '#ffffff', '#facc15'],
+            [62, 15.4, '#c4b5fd', '#facc15'],
+            [74, 21, '#f9a8d4', '#facc15'],
+          ].map(([x, y, petal, heart]) => (
+            <g transform={`translate(${x} ${y})`}>
+              {[0, 72, 144, 216, 288].map((a) => (
+                <circle
+                  cx={Math.cos(((a - 90) * Math.PI) / 180) * 3.4}
+                  cy={Math.sin(((a - 90) * Math.PI) / 180) * 3.4}
+                  r="3"
+                  fill={petal as string}
+                  stroke="rgba(0,0,0,.15)"
+                  stroke-width=".6"
+                />
+              ))}
+              <circle r="2.2" fill={heart as string} />
+            </g>
+          ))}
+        </g>
+      );
     default:
       return null;
   }

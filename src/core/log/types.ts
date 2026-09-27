@@ -45,6 +45,13 @@ export interface ItemRecord {
   hops: number | null;
   /** Correct only under the other locale's separator reading. */
   alt: boolean;
+  /**
+   * Highest hint-ladder tier used (0 none, 1 strategy, 2 first hop, 3 worked
+   * step). Null when unknown: records written before the ladder (they decode
+   * with null) or a hint from a mode without tiers. Such a record with
+   * `hint: true` counts as MODEL.LEGACY_HINT_TIER (engine/observe.hintTierOf).
+   */
+  tier?: number | null;
 }
 
 export interface SessionOptions {
@@ -54,6 +61,8 @@ export interface SessionOptions {
   quick?: boolean;
   /** Serve only these skills, bypassing scheduling and placement (e2e `__hopa.forceSkill`; never set by the UI). */
   only?: SkillId[];
+  /** Weekly theme id when started from the weekly card: its skills get the scheduler boost (src/core/weekly.ts). */
+  theme?: string;
 }
 
 export interface SessionRecord {
@@ -70,6 +79,14 @@ export interface SessionRecord {
   firstCorrect: number | null;
   durationMs: number | null;
   completed: boolean | null;
+  /**
+   * End-only pilot fields (DESIGN §5.2, I-1). Optional because records written
+   * before them lack them; the codec decodes those as null.
+   * `lastCorrect`: whether the session's last answer (any attempt) was right; null if nothing was answered.
+   * `exitIndex`: for a session left early, how many items had been shown when the child quit (1 = on the first item); null when it ran to the end.
+   */
+  lastCorrect?: boolean | null;
+  exitIndex?: number | null;
 }
 
 export interface EventRecord {
@@ -109,9 +126,13 @@ export const EVENTS = {
   // ── slot: frac ──
   // ── slot: hint ──
   // ── slot: pilot ──
+  /** Time on the feedback after a wrong answer, until the next item: `{ key, attempt, ms }` (Hop mode). */
+  FEEDBACK: 'pilot_feedback',
   // ── slot: storage ──
   // ── slot: weekly ──
+  WEEKLY_DONE: 'weekly_done',
   // ── slot: target ──
+  TARGET_WAY: 'target_way',
   // ── slot: dice ──
   // ── slot: puzzle ──
   PUZZLE: 'puzzle',

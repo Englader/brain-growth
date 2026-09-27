@@ -66,6 +66,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  { id: 'target.manyWays', category: 'exploration', bands: ['B', 'C'], icon: 'cards', on: ON_ITEM, when: { metric: 'target.ways', gte: 3 } },
   // ── slot: dice ──
   // ── slot: puzzle ──
   { id: 'puzzle.solver', category: 'persistence', bands: 'all', icon: 'puzzle', on: ON_ITEM, when: { metric: 'puzzle.solved', gte: 10 } },
@@ -75,4 +76,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  // "Played during …" (plan step 10): secret discoveries, earned by any session in the season, any year.
+  { id: 'season.newYear', category: 'discovery', bands: 'all', secret: true, icon: 'snow', on: ON_SESSION, when: { metric: 'season.played', params: { season: 'newYear' }, gte: 1 } },
+  { id: 'season.easter', category: 'discovery', bands: 'all', secret: true, icon: 'egg', on: ON_SESSION, when: { metric: 'season.played', params: { season: 'easter' }, gte: 1 } },
 ];

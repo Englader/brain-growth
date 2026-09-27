@@ -18,6 +18,7 @@ import { SPRINT_ITEMS } from './sprint/timing';
 // ── slot: storage ──
 // ── slot: weekly ──
 // ── slot: target ──
+import './target';
 // ── slot: dice ──
 // ── slot: puzzle ──
 import './puzzle';

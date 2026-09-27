@@ -14,12 +14,12 @@ const item = (over: Partial<ItemRecord> = {}): ItemRecord => ({
   type: 'item', ts: T, sid: 's1', key: 's1:1', skill: 'as.add.20', gen: 'addsub', genV: 1, seed: 42,
   level: 0.5, diff: 0, p: 0.84, mu: 1.2, s2: 0.4, correct: true, attempt: 1, latency: 3200, hint: false,
   answer: '13', expected: '13', mis: null, mode: 'hop', band: 'A', locale: 'mk', source: 'frontier',
-  timed: false, input: 'hops', hops: 5, alt: false, ...over,
+  timed: false, input: 'hops', hops: 5, alt: false, tier: 0, ...over,
 });
 
 describe('log codec', () => {
   it('round-trips every record type', () => {
-    const s: SessionRecord = { type: 'session', ts: T, sid: 's1', phase: 'end', mode: 'hop', band: 'B', locale: 'en', opts: { stretch: true }, items: 12, firstCorrect: 10, durationMs: 300000, completed: true };
+    const s: SessionRecord = { type: 'session', ts: T, sid: 's1', phase: 'end', mode: 'hop', band: 'B', locale: 'en', opts: { stretch: true }, items: 12, firstCorrect: 10, durationMs: 300000, completed: true, lastCorrect: true, exitIndex: null };
     const e: EventRecord = { type: 'event', ts: T, sid: null, name: 'pet_tap', data: { n: 3 } };
     for (const r of [item(), item({ correct: false, mis: 'add.no_carry', hops: null }), s, e]) {
       expect(decodeRecord(JSON.parse(JSON.stringify(encodeRecord(r))))).toEqual(r);

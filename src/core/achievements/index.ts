@@ -6,6 +6,7 @@ import './metrics';
 // ── slot: storage ──
 // ── slot: weekly ──
 // ── slot: target ──
+import './metrics/target';
 // ── slot: dice ──
 // ── slot: puzzle ──
 import './metrics/puzzle';
@@ -13,6 +14,7 @@ import './metrics/puzzle';
 // ── slot: balance ──
 // ── slot: coord ──
 // ── slot: season ──
+import './metrics/season';
 
 export { ACHIEVEMENTS } from './definitions';
 export { evaluateAchievements, validateAchievements, evalCondition, appliesToBand } from './evaluator';

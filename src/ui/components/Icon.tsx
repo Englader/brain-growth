@@ -63,6 +63,10 @@ const PATHS = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  cards: 'M3 8h11v13H3zM8 5V3h11v13h-5',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',
+  restart: 'M3 12a9 9 0 103-6.7L3 8M3 3v5h5',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: dice ──
   // ── slot: puzzle ──
   puzzle: 'M5 8h3.5a2.5 2.5 0 015 0H17v3.5a2.5 2.5 0 010 5V20H5z',
@@ -71,11 +75,11 @@ const PATHS = {
   ruler: 'M3 16L16 3l5 5L8 21zM7 12l2 2M10 9l2 2M13 6l2 2',
   grid: 'M4 4h16v16H4zM4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16',
   key: 'M8 16a4 4 0 110-8 4 4 0 010 8zM12 12h9M18 12v3M21 12v2',
-  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──
+  egg: 'M12 3c-3.6 0-6.5 6-6.5 10.5a6.5 6.5 0 0013 0C18.5 9 15.6 3 12 3zM6 13l2-1.5 2 1.5 2-1.5 2 1.5 2-1.5 2 1.5',
 } as const;
 
 export type IconName = keyof typeof PATHS;

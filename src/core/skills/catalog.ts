@@ -41,12 +41,15 @@ export const SKILLS: readonly SkillDef[] = [
   s('num.count.20', 'number', 1.0, 'A', ['num.count.10'], [], [g('count', { max: 20, layouts: ['frame', 'scatter'] })]),
   s('as.bonds.5', 'addsub', 1.0, 'A', ['num.subitize.5', 'num.count.10'], ['fluency'], [g('bonds', { total: 5 })]),
   s('as.add.10', 'addsub', 1.1, 'A', ['as.bonds.5'], ['fluency'], [g('addsub', { op: '+', range: 10 })]),
-  s('as.bonds.10', 'addsub', 1.2, 'A', ['as.bonds.5', 'num.subitize.10'], ['fluency'], [g('bonds', { total: 10 })]),
+  s('as.bonds.10', 'addsub', 1.2, 'A', ['as.bonds.5', 'num.subitize.10'], ['fluency'], [g('bonds', { total: 10 }), g('makeTen')]),
   s('as.sub.10', 'addsub', 1.3, 'A', ['as.add.10'], ['fluency'], [g('addsub', { op: '-', range: 10 })]),
   s('num.line.20', 'number', 1.3, 'A', ['num.line.10', 'num.count.20'], [], [g('locate', { min: 0, max: 20 })]),
   s('num.compare.20', 'number', 1.4, 'A', ['num.compare.10', 'num.count.20']),
   s('geo.shapes.props', 'geometry', 1.5, 'A', ['geo.shapes.basic'], ['visual']),
-  s('as.add.20', 'addsub', 1.6, 'A', ['as.add.10', 'as.bonds.10', 'num.line.20'], ['fluency'], [g('addsub', { op: '+', range: 20 })]),
+  s('as.add.20', 'addsub', 1.6, 'A', ['as.add.10', 'as.bonds.10', 'num.line.20'], ['fluency'], [
+    g('addsub', { op: '+', range: 20 }),
+    g('makeIt', { band: 'B', ops: ['+', '-'], minTarget: 11, maxTarget: 20, maxCard: 10 }),
+  ]),
   s('pat.grow', 'patterns', 1.7, 'A', ['pat.repeat', 'num.count.20']),
   s('as.sub.20', 'addsub', 1.8, 'A', ['as.sub.10', 'as.add.20'], ['fluency'], [g('addsub', { op: '-', range: 20 })]),
   // ───────────────────────── Band A · одделение 2 (age 7) ───────────────────────
@@ -84,6 +87,7 @@ export const SKILLS: readonly SkillDef[] = [
   s('md.mult.facts', 'muldiv', 3.3, 'B', ['md.mult.2510'], ['fluency'], [
     g('mult', {}, 5),
     g('word', { template: 'wp.rows', base: { id: 'mult', config: { minFactor: 2 } } }, 1),
+    g('makeIt', { band: 'B', focus: '*', maxCard: 10 }, 1),
   ]),
   s('dp.pictograph', 'data', 3.3, 'B', ['as.add.100.noregroup'], ['visual', 'reading']),
   s('as.sub.multi', 'addsub', 3.4, 'B', ['as.sub.100', 'as.add.multi'], [], [
@@ -94,8 +98,9 @@ export const SKILLS: readonly SkillDef[] = [
   s('md.div.facts', 'muldiv', 3.5, 'B', ['md.mult.facts'], ['fluency'], [
     g('div', {}, 5),
     g('word', { template: 'wp.share', base: { id: 'div', config: { minFactor: 2 } } }, 1),
+    g('makeIt', { band: 'B', focus: '/' }, 1),
   ]),
-  s('f.unit', 'fractions', 3.6, 'B', ['md.groups'], ['visual']),
+  s('f.unit', 'fractions', 3.6, 'B', ['md.groups'], ['visual'], [g('fracLine', { mode: 'unit' })]),
   s('md.mult.10s', 'muldiv', 3.6, 'B', ['md.mult.facts', 'pv.1000'], [], [g('mult10s', {})]),
   s('geo.perimeter', 'geometry', 3.8, 'B', ['as.add.multi', 'meas.length']),
   // ───────────────────────── Band B · одделение 4 (age 9) ───────────────────────
@@ -106,19 +111,19 @@ export const SKILLS: readonly SkillDef[] = [
   s('dp.bar', 'data', 4.3, 'B', ['dp.pictograph'], ['reading']),
   s('geo.area.rect', 'geometry', 4.4, 'B', ['md.mult.facts', 'geo.perimeter']),
   s('md.factors', 'muldiv', 4.5, 'B', ['md.mult.facts', 'md.div.facts']),
-  s('f.equiv', 'fractions', 4.5, 'B', ['f.unit', 'md.mult.facts'], ['visual']),
+  s('f.equiv', 'fractions', 4.5, 'B', ['f.unit', 'md.mult.facts'], ['visual'], [g('fracLine', { mode: 'equiv' })]),
   s('meas.convert', 'measurement', 4.5, 'B', ['md.mult.10s']),
-  s('f.compare', 'fractions', 4.6, 'B', ['f.equiv']),
+  s('f.compare', 'fractions', 4.6, 'B', ['f.equiv'], [], [g('fracLine', { mode: 'compare' })]),
   s('geo.angles', 'geometry', 4.6, 'B', ['geo.shapes.props'], ['visual']),
   // ───────────────────────── Band B · одделение 5 (age 10) ──────────────────────
   s('f.add.like', 'fractions', 5.0, 'B', ['f.equiv']),
   s('md.div.long', 'muldiv', 5.2, 'B', ['md.div.remainder', 'md.mult.multi']),
-  s('d.tenths', 'decimals', 5.2, 'B', ['f.equiv', 'pv.big']),
+  s('d.tenths', 'decimals', 5.2, 'B', ['f.equiv', 'pv.big'], [], [g('decLine', { mode: 'tenths' })]),
   s('md.primes', 'muldiv', 5.3, 'B', ['md.factors']),
-  s('d.compare', 'decimals', 5.3, 'B', ['d.tenths']),
+  s('d.compare', 'decimals', 5.3, 'B', ['d.tenths'], [], [g('decLine', { mode: 'compare' })]),
   s('wp.multistep', 'addsub', 5.4, 'B', ['md.mult.multi', 'as.sub.multi'], ['reading']),
   s('f.add.unlike', 'fractions', 5.5, 'B', ['f.add.like', 'md.factors']),
-  s('d.addsub', 'decimals', 5.5, 'B', ['d.tenths', 'as.add.multi']),
+  s('d.addsub', 'decimals', 5.5, 'B', ['d.tenths', 'as.add.multi'], [], [g('decAddSub', {})]),
   s('geo.area.composite', 'geometry', 5.6, 'B', ['geo.area.rect']),
   s('dp.mean', 'data', 5.7, 'B', ['md.div.remainder', 'dp.bar']),
   // ───────────────────────── Band B · одделение 6 (age 11) ──────────────────────
@@ -128,14 +133,17 @@ export const SKILLS: readonly SkillDef[] = [
   s('num.gcd.lcm', 'muldiv', 6.2, 'B', ['md.primes']),
   s('f.div', 'fractions', 6.3, 'B', ['f.mult']),
   s('meas.convert.decimal', 'measurement', 6.3, 'B', ['meas.convert', 'd.multdiv']),
-  s('d.percent', 'decimals', 6.4, 'B', ['d.tenths', 'f.equiv']),
+  s('d.percent', 'decimals', 6.4, 'B', ['d.tenths', 'f.equiv'], [], [g('percentOf', {})]),
   s('geo.triangles', 'geometry', 6.4, 'B', ['geo.angles', 'geo.area.rect']),
   s('geo.volume.cuboid', 'geometry', 6.5, 'B', ['geo.area.rect']),
   s('al.expr.intro', 'algebra', 6.6, 'B', ['oo.basic']),
 
   // ───────────────────────── Band C · одделение 7 (age 12) ──────────────────────
   s('int.intro', 'integers', 7.0, 'C', ['num.line.1000'], [], [g('locate', { min: -10, max: 10 })]),
-  s('int.addsub', 'integers', 7.1, 'C', ['int.intro', 'as.sub.multi'], ['fluency'], [g('intAddSub', {})]),
+  s('int.addsub', 'integers', 7.1, 'C', ['int.intro', 'as.sub.multi'], ['fluency'], [
+    g('intAddSub', {}),
+    g('makeIt', { band: 'C', focus: 'neg' }),
+  ]),
   s('r.ratio', 'ratio', 7.2, 'C', ['f.equiv', 'md.mult.facts']),
   s('oo.full', 'algebra', 7.2, 'C', ['oo.basic', 'int.addsub']),
   s('geo.coord', 'geometry', 7.3, 'C', ['int.intro'], ['visual']),

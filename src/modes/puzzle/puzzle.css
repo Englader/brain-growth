@@ -131,6 +131,9 @@
 .pz-cell.slot {
   border: 3px dashed var(--line);
 }
+.pz-cell.slot .slot-q {
+  border: 0;
+}
 .pz-cell.slot.filled {
   border-style: solid;
   border-color: var(--primary);

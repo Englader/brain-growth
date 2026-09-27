@@ -8,6 +8,7 @@ import type { SkillState } from '../core/engine/model';
 import type { Profile } from '../core/profile';
 import { mergeStreaks } from '../core/streaks';
 import type { SkillId } from '../core/types';
+import { mergeWeekly } from '../core/weekly';
 
 function mergeSkill(a: SkillState | undefined, b: SkillState | undefined): SkillState {
   if (!a) return b!;
@@ -62,6 +63,7 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
     // ── slot: pilot ──
     // ── slot: storage ──
     // ── slot: weekly ──
+    weekly: mergeWeekly(a.weekly ?? null, b.weekly ?? null),
     // ── slot: target ──
     // ── slot: dice ──
     // ── slot: puzzle ──

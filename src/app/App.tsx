@@ -14,8 +14,11 @@ import { Results } from '../ui/screens/Results';
 import { Settings } from '../ui/screens/Settings';
 import { Trophies } from '../ui/screens/Trophies';
 import { Wardrobe } from '../ui/screens/Wardrobe';
+import { OtherTabNotice } from '../ui/storage/OtherTabNotice';
 import { receiveRival } from './actions';
 import { navigate } from './router';
+import { seasonNow } from './seasonActions';
+import { now } from './services';
 import { useStore } from './store';
 
 function Screen(): JSX.Element | null {
@@ -76,13 +79,19 @@ export function App(): JSX.Element {
 
   if (!booted) return <div class="boot" />;
   const accent = profile ? accentFor(profile) : undefined;
+  const adult = route === '/adult';
+  // Seasonal decoration (CSS only, app.css "Seasons"): child screens in season, never during play (nothing
+  // competes with the problem) and never when switched off for the child.
+  const season = adult || route.startsWith('/play/') ? null : seasonNow(profile, now());
   return (
     <div
       class="app"
       data-band={band?.id ?? 'none'}
-      data-theme={route === '/adult' ? 'adult' : band?.theme ?? 'lagoon'}
+      data-theme={adult ? 'adult' : band?.theme ?? 'lagoon'}
+      data-season={season ?? undefined}
       style={accent ? { '--accent': accent } : undefined}
     >
+      <OtherTabNotice />
       <Screen />
       <Toast />
     </div>
