@@ -75,6 +75,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.puzzle.hint.count': ['voice.puzzle.hint.count'],
   'voice.puzzle.hint.known': ['voice.puzzle.weighs', '{weight}'],
   // ── slot: workshop ──
+  // "Walk all the way round a rectangle, 4 by 6!" (Hop "walk the sides" items; mk "4 на 6" as dimensions are read).
+  'voice.workshop.walk': ['voice.workshop.walkRound', '{w}', 'voice.workshop.by', '{h}'],
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

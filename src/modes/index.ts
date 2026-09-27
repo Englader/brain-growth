@@ -27,6 +27,7 @@ import './dice';
 // ── slot: puzzle ──
 import './puzzle';
 // ── slot: workshop ──
+import './workshop';
 // ── slot: balance ──
 import './balance';
 // ── slot: coord ──

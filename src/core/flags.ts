@@ -42,6 +42,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: puzzle ──
   { id: 'mode.puzzle', scope: 'profile', default: true, labelKey: 'puzzle.flag', description: 'Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms; untimed, own rating per type, never needed for progress.' },
   // ── slot: workshop ──
+  { id: 'mode.workshop', scope: 'profile', default: true, description: 'Workshop: shade fraction bars and build rectangles to an area or perimeter; the construction is checked (Bands B/C; evidence weight 0.75).', labelKey: 'workshop.flag' },
   // ── slot: balance ──
   { id: 'mode.balance', scope: 'profile', default: true, labelKey: 'balance.flag', description: 'Balance: solve equations on a pan scale, doing the same to both pans (Bands B/C, once an equation skill unlocks).' },
   // ── slot: coord ──

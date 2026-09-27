@@ -160,6 +160,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   dice: 1,
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  // A construction found by adjusting it against live feedback (a readout, unlimited checks) is noisier evidence than a typed answer.
+  workshop: 0.75,
   // ── slot: balance ──
   // A scale with blocked moves and hints is scaffolded evidence, not a bare answer.
   balance: 0.75,

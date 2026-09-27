@@ -11,7 +11,7 @@ every clip of that line exists. Grown-ups → Voices lists what is still missing
 
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 80 clips, 0 recorded
+## English (en) — 82 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -90,13 +90,15 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 73 | `voice.weekly.done.mp3` | All the stones are lit! There's a gift for you. |  |
 | 74 | `voice.weekly.intro.mp3` | This is this week's game! Play it to light up the stones. |  |
 | 75 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 76 | `word.dividedBy.mp3` | divided by |  |
-| 77 | `word.hopsOf.mp3` | hops of |  |
-| 78 | `word.minus.mp3` | minus |  |
-| 79 | `word.plus.mp3` | plus |  |
-| 80 | `word.times.mp3` | times |  |
+| 76 | `voice.workshop.by.mp3` | by |  |
+| 77 | `voice.workshop.walkRound.mp3` | Walk all the way round a rectangle |  |
+| 78 | `word.dividedBy.mp3` | divided by |  |
+| 79 | `word.hopsOf.mp3` | hops of |  |
+| 80 | `word.minus.mp3` | minus |  |
+| 81 | `word.plus.mp3` | plus |  |
+| 82 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 81 clips, 0 recorded
+## Македонски (mk) — 83 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -175,10 +177,12 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 73 | `voice.weekly.done.mp3` | Сите камчиња светат! Те чека подарок. |  |
 | 74 | `voice.weekly.intro.mp3` | Ова е играта на неделата! Играј ја за да ги запалиш камчињата. |  |
 | 75 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 76 | `word.and.mp3` | и |  |
-| 77 | `word.dividedBy.mp3` | поделено со |  |
-| 78 | `word.hopsOf.mp3` | скока по |  |
-| 79 | `word.minus.mp3` | минус |  |
-| 80 | `word.plus.mp3` | плус |  |
-| 81 | `word.times.mp3` | пати |  |
+| 76 | `voice.workshop.by.mp3` | на |  |
+| 77 | `voice.workshop.walkRound.mp3` | Прошетај околу правоаголник |  |
+| 78 | `word.and.mp3` | и |  |
+| 79 | `word.dividedBy.mp3` | поделено со |  |
+| 80 | `word.hopsOf.mp3` | скока по |  |
+| 81 | `word.minus.mp3` | минус |  |
+| 82 | `word.plus.mp3` | плус |  |
+| 83 | `word.times.mp3` | пати |  |
 

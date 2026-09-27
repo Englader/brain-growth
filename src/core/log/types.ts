@@ -139,6 +139,7 @@ export const EVENTS = {
   // ── slot: puzzle ──
   PUZZLE: 'puzzle',
   // ── slot: workshop ──
+  WORKSHOP_SHAPE: 'workshop_shape',
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

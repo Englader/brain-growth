@@ -11,6 +11,7 @@ import './metrics/target';
 // ── slot: puzzle ──
 import './metrics/puzzle';
 // ── slot: workshop ──
+import './metrics/workshop';
 // ── slot: balance ──
 import './metrics/balance';
 // ── slot: coord ──

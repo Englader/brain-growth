@@ -26,6 +26,7 @@ import { fracLineGen } from './fractions';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
+import { perimeterHopsGen } from './perimeterHops';
 // ── slot: balance ──
 import { eqBondGen } from './eqBond';
 // ── slot: coord ──
@@ -58,6 +59,8 @@ const BUILTIN = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  // Hop serves geo.perimeter as "walk the sides" (no walls), so this one is eager.
+  perimeterHopsGen,
   // ── slot: balance ──
   // Hop serves al.eq.onestep as a missing number (no walls), so this one is eager.
   eqBondGen,
@@ -85,6 +88,13 @@ const ON_DEMAND: OnDemandGenerators[] = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  {
+    declared: [
+      { id: 'fracBar', capabilities: ['build'] },
+      { id: 'rectBuild', capabilities: ['build'] },
+    ],
+    load: () => import('./workshop').then((m) => [m.fracBarGen, m.rectGen]),
+  },
   // ── slot: balance ──
   { declared: [{ id: 'equation', capabilities: ['build'] }], load: () => import('./equation').then((m) => [m.equationGen]) },
   // ── slot: coord ──

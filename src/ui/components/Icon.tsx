@@ -76,6 +76,7 @@ const PATHS = {
   grid: 'M4 4h16v16H4zM4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16',
   key: 'M8 16a4 4 0 110-8 4 4 0 010 8zM12 12h9M18 12v3M21 12v2',
   // ── slot: workshop ──
+  shapes: 'M4 4h16v16H4zM4 12h16M12 4v16M4 4h8v8H4z',
   // ── slot: balance ──
   // (Balance uses `scale` from the puzzle slot and `undo` from the target slot.)
   // ── slot: coord ──

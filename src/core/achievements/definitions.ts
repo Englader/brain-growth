@@ -73,6 +73,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'puzzle.aboveLevel', category: 'exploration', bands: ['B', 'C'], icon: 'mountain', on: ON_ITEM, when: { metric: 'puzzle.solvedHarder', gte: 1 } },
   { id: 'puzzle.estimator', category: 'exploration', bands: ['B', 'C'], icon: 'ruler', on: ON_ITEM, when: { metric: 'puzzle.estimatesSolved', gte: 10 } },
   // ── slot: workshop ──
+  { id: 'workshop.shapes', category: 'exploration', bands: ['B', 'C'], icon: 'shapes', on: ON_ITEM, when: { metric: 'workshop.otherShapes', gte: 3 } },
   // ── slot: balance ──
   { id: 'balance.recovered', category: 'resilience', bands: ['B', 'C'], icon: 'scale', on: ON_ITEM, when: { metric: 'balance.recovered', gte: 1 } },
   // ── slot: coord ──
