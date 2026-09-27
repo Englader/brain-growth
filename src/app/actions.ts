@@ -23,6 +23,7 @@ import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../c
 import { EVENTS } from '../core/log/types';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
 import { questsForDay } from '../core/quests';
+import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
 import { createRng } from '../core/rng';
@@ -35,7 +36,7 @@ import { defaultPlannedItems, getMode } from '../modes/registry';
 import type { ModeDef } from '../modes/types';
 import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
-import { nextSeed, now, repo, testOverrides } from './services';
+import { nextSeed, now, repo, storage, testOverrides } from './services';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
 
 export { evalCtx, recentLog } from './persist';
@@ -47,11 +48,15 @@ export function toast(msg: string): void {
 
 // ── boot & profiles ────────────────────────────────────────────────────────
 export function boot(): void {
-  repo.init();
+  // Single writer (Web Locks): while another tab has Hopa open, this one only reads.
+  // It neither migrates nor writes (its log mirror would clobber the writer's), and shows a notice.
+  const otherTab = storage?.writer.status === 'busy';
+  if (otherTab) repo.readOnly = true;
+  else repo.init();
   repo.maintain();
   const meta = repo.meta();
   const profiles = repo.listProfiles();
-  setState({ meta, profiles, readOnly: repo.readOnly, booted: true });
+  setState({ meta, profiles, readOnly: repo.readOnly, otherTab, booted: true });
   const active = profiles.find((p) => p.id === meta.activeProfileId);
   if (active) openProfile(active);
 }
@@ -231,7 +236,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   };
   const rec: SessionRecord = {
     type: 'session', ts: t, sid, phase: 'start', mode: modeId, band: p.band, locale: p.locale,
-    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null,
+    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null, lastCorrect: null, exitIndex: null,
   };
   appendLog(p.id, [rec]);
   return session;
@@ -329,7 +334,8 @@ export function recordAnswer(
 }
 
 /**
- * Close `session` for `profile`: end record, session count, sprint personal
+ * Close `session` for `profile`: end record (including how it ended: whether
+ * the last answer was right and, if left early, the exit point), session count, sprint personal
  * best, achievements, quest reward. Saves the profile and returns the result
  * for the results screen (the caller decides where it goes).
  */
@@ -340,6 +346,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const rec: SessionRecord = {
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
     items: s.firstAttempts, firstCorrect: s.firstCorrect, durationMs: t - s.startedAt, completed,
+    lastCorrect: lastAnswerCorrect(recentLog(p.id), s.id), exitIndex: exitIndex(completed, s.engine.stats.firstPresented),
   };
   appendLog(p.id, [rec]);
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };
@@ -546,6 +553,8 @@ export function exportBackup(): { name: string; text: string } {
 export function importBackup(text: string): ReturnType<typeof repo.importBackup> {
   const r = repo.importBackup(text);
   if (r.ok) {
+    // Commit the imported log months to IndexedDB now rather than on the next idle flush.
+    void repo.flush().catch(() => undefined);
     forgetLog();
     const profiles = repo.listProfiles();
     const active = getState().profile;

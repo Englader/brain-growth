@@ -1,0 +1,17 @@
+/* Storage notices (§4 step 11). Colours come from the shared .warn class. */
+.other-tab {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: calc(100% - 32px);
+  max-width: 528px;
+  margin: max(10px, env(safe-area-inset-top)) auto 0;
+  box-sizing: border-box;
+}
+.other-tab svg {
+  flex: none;
+  margin-top: 1px;
+}
+.storage-card .row {
+  margin-top: 6px;
+}
