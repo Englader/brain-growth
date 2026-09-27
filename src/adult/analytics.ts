@@ -139,18 +139,9 @@ export function calibration(log: readonly LogRecord[]): { bins: CalBin[]; flagge
     b.meanP /= b.n;
     b.observed /= b.n;
   }
-  const bySkill = new Map<SkillId, { p: number; o: number; n: number }>();
-  for (const r of fa) {
-    const e = bySkill.get(r.skill) ?? { p: 0, o: 0, n: 0 };
-    e.p += r.p;
-    e.o += r.correct ? 1 : 0;
-    e.n++;
-    bySkill.set(r.skill, e);
-  }
-  const flagged = [...bySkill.entries()]
-    .map(([skill, e]) => ({ skill, p: e.p / e.n, o: e.o / e.n, n: e.n }))
-    .filter((x) => x.n >= 15 && Math.abs(x.o - x.p) > 0.15)
-    .sort((a, b) => Math.abs(b.o - b.p) - Math.abs(a.o - a.p));
+  const flagged = calibrationBias(log, Infinity)
+    .filter((x) => Math.abs(x.bias) > 0.15)
+    .map(({ skill, p, o, n }) => ({ skill, p, o, n }));
   return { bins: bins.filter((b) => b.n > 0), flagged };
 }
 
@@ -174,4 +165,145 @@ export function unusualErrors(log: readonly LogRecord[]): Array<{ skill: SkillId
     if (Math.abs(z) > 2) out.push({ skill, expected, observed, n: rs.length, z });
   }
   return out.sort((a, b) => Math.abs(b.z) - Math.abs(a.z));
+}
+
+// ── pilot readout (DESIGN §5.2, I-1) ───────────────────────────────────────
+
+/** Top skills by |observed − predicted| first-try success (≥ `minN` first attempts, placement excluded). */
+export function calibrationBias(log: readonly LogRecord[], top = 3, minN = 15): Array<{ skill: SkillId; p: number; o: number; n: number; bias: number }> {
+  const by = new Map<SkillId, { p: number; o: number; n: number }>();
+  for (const r of firstAttempts(log)) {
+    if (r.source === 'placement') continue;
+    const e = by.get(r.skill) ?? { p: 0, o: 0, n: 0 };
+    e.p += r.p;
+    e.o += r.correct ? 1 : 0;
+    e.n++;
+    by.set(r.skill, e);
+  }
+  return [...by.entries()]
+    .filter(([, e]) => e.n >= minN)
+    .map(([skill, e]) => ({ skill, p: e.p / e.n, o: e.o / e.n, n: e.n, bias: (e.o - e.p) / e.n }))
+    .sort((a, b) => Math.abs(b.bias) - Math.abs(a.bias))
+    .slice(0, top);
+}
+
+export interface ExitStats {
+  /** Sessions left early after at least one answer. */
+  exits: number;
+  /** …of which the last answer was wrong (P-4: "exits cluster right after errors"). */
+  afterError: number;
+  share: number | null;
+  /** Median number of items shown when the child quit. */
+  medianIndex: number | null;
+}
+
+/**
+ * Early exits and how many came right after a wrong answer. Uses the session
+ * record's lastCorrect; for records written before it existed, the last item
+ * record of that session.
+ */
+export function exitsAfterError(log: readonly LogRecord[]): ExitStats {
+  const lastBySid = new Map<string, boolean>();
+  for (const r of log) if (r.type === 'item') lastBySid.set(r.sid, r.correct);
+  let exits = 0;
+  let afterError = 0;
+  const idx: number[] = [];
+  for (const r of log) {
+    if (r.type !== 'session' || r.phase !== 'end' || r.completed !== false || !r.items) continue;
+    const last = r.lastCorrect ?? lastBySid.get(r.sid) ?? null;
+    if (last === null) continue;
+    exits++;
+    if (!last) afterError++;
+    if (typeof r.exitIndex === 'number') idx.push(r.exitIndex);
+  }
+  return { exits, afterError, share: exits ? afterError / exits : null, medianIndex: median(idx) };
+}
+
+/**
+ * Hint tier of a response: 0 none, 1 strategy prompt, 2 first hop / worked
+ * step, 3 full solution. Until the hint ladder (§4 step 5) logs its tier, the
+ * single hint the game has counts as tier 2.
+ */
+export const hintTier = (r: ItemRecord): number => (r.hint ? 2 : 0);
+
+export interface HintStats {
+  /** Untimed Band B/C first attempts (Band A has no hint button). */
+  n: number;
+  used: number;
+  share: number | null;
+  /** First attempts per tier 0–3. */
+  byTier: number[];
+}
+
+export function hintUsage(log: readonly LogRecord[]): HintStats {
+  const fa = firstAttempts(log).filter((r) => r.band !== 'A');
+  const byTier = [0, 0, 0, 0];
+  for (const r of fa) byTier[Math.min(3, hintTier(r))]!++;
+  const used = fa.length - byTier[0]!;
+  return { n: fa.length, used, share: fa.length ? used / fa.length : null, byTier };
+}
+
+/** Time spent on the feedback after a wrong answer (EVENTS.FEEDBACK), in ms. */
+export function feedbackTime(log: readonly LogRecord[]): { n: number; medianMs: number | null } {
+  const ms: number[] = [];
+  for (const r of log) {
+    if (r.type !== 'event' || r.name !== EVENTS.FEEDBACK) continue;
+    const v = r.data?.ms;
+    if (typeof v === 'number' && Number.isFinite(v)) ms.push(v);
+  }
+  return { n: ms.length, medianMs: median(ms) };
+}
+
+export type StrategyStage = 'counting' | 'mixed' | 'retrieval';
+
+export interface StrategyRow {
+  skill: SkillId;
+  /** Band A first attempts answered on the pads. */
+  n: number;
+  /** Answered with the hop buttons (counting on) vs by tapping the pad directly. */
+  hops: number;
+  taps: number;
+  hopShare: number;
+  /** Median time of correct answers in the earlier and later half of the attempts (null below 4 attempts). */
+  latency: { early: number | null; late: number | null };
+  /** Heuristic reading of the later half; null below 6 attempts. */
+  stage: StrategyStage | null;
+}
+
+/**
+ * Band A strategy per skill (Siegler's overlapping waves): the share of
+ * answers made by pressing hop buttons (counting on) versus tapping the pad
+ * directly, and whether answers get faster. Counting while the later half
+ * still uses hops at least 60% of the time; retrieval once it is at most 20%
+ * hops and correct answers are no slower than in the earlier half; mixed in
+ * between. A reading for the adult, never used by the engine.
+ */
+export function strategyA(log: readonly LogRecord[]): StrategyRow[] {
+  const by = new Map<SkillId, ItemRecord[]>();
+  for (const r of firstAttempts(log)) {
+    if (r.band !== 'A' || (r.input !== 'hops' && r.input !== 'tap')) continue;
+    const list = by.get(r.skill);
+    if (list) list.push(r);
+    else by.set(r.skill, [r]);
+  }
+  const hopShare = (rs: ItemRecord[]): number => (rs.length ? rs.filter((r) => r.input === 'hops').length / rs.length : 0);
+  const speed = (rs: ItemRecord[]): number | null => median(rs.filter((r) => r.correct).map((r) => r.latency));
+  return [...by.entries()]
+    .map(([skill, rs]) => {
+      const sorted = [...rs].sort((a, b) => a.ts - b.ts);
+      const half = Math.ceil(sorted.length / 2);
+      const early = sorted.slice(0, half);
+      const late = sorted.slice(half);
+      const hops = sorted.filter((r) => r.input === 'hops').length;
+      const split = sorted.length >= 4;
+      const latency = { early: split ? speed(early) : null, late: split ? speed(late) : null };
+      let stage: StrategyStage | null = null;
+      if (sorted.length >= 6) {
+        const lateHops = hopShare(late);
+        const notSlower = latency.early === null || latency.late === null || latency.late <= latency.early;
+        stage = lateHops >= 0.6 ? 'counting' : lateHops <= 0.2 && notSlower ? 'retrieval' : 'mixed';
+      }
+      return { skill, n: sorted.length, hops, taps: sorted.length - hops, hopShare: hops / sorted.length, latency, stage };
+    })
+    .sort((a, b) => b.n - a.n);
 }

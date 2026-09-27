@@ -24,6 +24,8 @@ npm run build    # → dist/ (not committed; CI builds and deploys)
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 
-The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, backups, per-child feature flags and which speech voices each device has.
+The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, hint use, time on feedback, Band A counting vs recall), backups, per-child feature flags and which speech voices each device has.
+
+**Adding voice recordings:** save each clip named in [the recording script](design/audio-recording-script.md) as `public/audio/<locale>/<clip-id>.mp3`, run `npm run gen:clips` (the build also does it) and commit the files with the regenerated manifest; Grown-ups → Voices lists what is still missing.
 
 Fonts: Nunito and Inter (SIL Open Font License), self-hosted.

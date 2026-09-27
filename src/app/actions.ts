@@ -22,6 +22,7 @@ import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../c
 import { EVENTS } from '../core/log/types';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
 import { questsForDay } from '../core/quests';
+import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
 import { createRng } from '../core/rng';
@@ -228,7 +229,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   };
   const rec: SessionRecord = {
     type: 'session', ts: t, sid, phase: 'start', mode: modeId, band: p.band, locale: p.locale,
-    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null,
+    opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null, lastCorrect: null, exitIndex: null,
   };
   appendLog(p.id, [rec]);
   return session;
@@ -325,7 +326,8 @@ export function recordAnswer(
 }
 
 /**
- * Close `session` for `profile`: end record, session count, sprint personal
+ * Close `session` for `profile`: end record (including how it ended: whether
+ * the last answer was right and, if left early, the exit point), session count, sprint personal
  * best, achievements, quest reward. Saves the profile and returns the result
  * for the results screen (the caller decides where it goes).
  */
@@ -336,6 +338,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const rec: SessionRecord = {
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
     items: s.firstAttempts, firstCorrect: s.firstCorrect, durationMs: t - s.startedAt, completed,
+    lastCorrect: lastAnswerCorrect(recentLog(p.id), s.id), exitIndex: exitIndex(completed, s.engine.stats.firstPresented),
   };
   appendLog(p.id, [rec]);
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };

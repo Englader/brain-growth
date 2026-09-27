@@ -21,8 +21,9 @@ import { numberText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
 import { Icon } from '../ui/components/Icon';
 import { useT } from '../ui/hooks';
-import { calibration, misconceptions, overview, skillRows, unusualErrors } from './analytics';
+import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors } from './analytics';
 import { BarChart, Reliability, StepLines } from './charts';
+import { MissingClips, PilotReadout, StrategyStat } from './Pilot';
 
 type Tab = 'overview' | 'skills' | 'calibration' | 'errors' | 'data' | 'features' | 'voices' | 'profile';
 const TABS: Tab[] = ['overview', 'skills', 'calibration', 'errors', 'data', 'features', 'voices', 'profile'];
@@ -71,6 +72,7 @@ export function Adult(): JSX.Element {
       <div class="adult-body">
         {tab === 'data' ? <DataTab /> : tab === 'voices' ? <VoicesTab /> : !p ? <p class="muted">{t('adult.overview.noData')}</p> : null}
         {p && tab === 'overview' && <OverviewTab p={p} />}
+        {p && tab === 'skills' && p.band === 'A' && <p class="muted">{t('pilot.strategy.help')}</p>}
         {p && tab === 'skills' && <SkillsTab p={p} />}
         {p && tab === 'calibration' && <CalibrationTab p={p} />}
         {p && tab === 'errors' && <ErrorsTab p={p} />}
@@ -133,6 +135,7 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
         <p>{o.freeChoice === null ? t('adult.overview.freeChoiceNone') : t('adult.overview.freeChoice', { pct: Math.round(o.freeChoice * 100) })}</p>
         <p class="muted">{t('adult.overview.freeChoiceHelp')}</p>
       </section>
+      <PilotReadout p={p} />
     </div>
   );
 }
@@ -140,6 +143,8 @@ function OverviewTab({ p }: { p: Profile }): JSX.Element {
 function SkillsTab({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const rows = useMemo(() => skillRows(p, recentLog(p.id), now(), glickoElo, GRAPH), [p]);
+  // Band A: counting (hop buttons) vs direct taps per skill (pilot, DESIGN §5.2).
+  const strategy = useMemo(() => (p.band === 'A' ? new Map(strategyA(recentLog(p.id)).map((s) => [s.skill, s])) : null), [p]);
   const n1 = (v: number): string => numberText(Math.round(v * 10) / 10, t.locale, 1);
   // Cards rather than a 9-column table: this view is used on phones too.
   return (
@@ -184,6 +189,7 @@ function SkillsTab({ p }: { p: Profile }): JSX.Element {
               <dt>{t('adult.skills.bias')}</dt>
               <dd class={r.bias !== null && Math.abs(r.bias) > 0.15 ? 'flag' : ''}>{r.bias === null ? '—' : `${r.bias > 0 ? '+' : ''}${pct(r.bias, t.locale)}`}</dd>
             </div>
+            {strategy && <StrategyStat row={strategy.get(r.id)} />}
           </dl>
         </li>
       ))}
@@ -400,6 +406,7 @@ function VoicesTab(): JSX.Element {
             <button type="button" class="btn small" onClick={() => speaker.say('voice.welcome', {}, r.locale)}>
               <Icon name="speaker" /> {t('adult.voices.test')}
             </button>
+            <MissingClips locale={r.locale} />
           </section>
         );
       })}
