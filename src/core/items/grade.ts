@@ -52,8 +52,12 @@ export function gradeResponse(item: Item, response: Response, conv: NumberConven
       delta: c.delta ?? null,
     };
   }
-  const misFor = (v: Rational): string | null =>
-    v.d === 1 ? item.misconceptions.find((m) => m.value === v.n)?.code ?? null : null;
+  // Predicted wrong answers are numbers (3, 0.45, 2/3 as a double): match within
+  // float noise, so a fraction or decimal answer maps to its code too.
+  const misFor = (v: Rational): string | null => {
+    const x = toNumber(v);
+    return item.misconceptions.find((m) => Math.abs(m.value - x) < 1e-9)?.code ?? null;
+  };
 
   if (response.kind === 'typed') {
     const parsed = parseNumberInput(response.raw, conv);
@@ -91,11 +95,15 @@ export function gradeResponse(item: Item, response: Response, conv: NumberConven
     return { correct: ok, invalid: false, given: key(v), misconception: ok ? null : misFor(v), altReading: false, delta: toNumber(v) - toNumber(expected) };
   }
 
-  const value = response.kind === 'hops' ? rat(response.count) : rat(Math.round(response.value * 1000), 1000);
+  // A landing on a rational line is exactly k/den (1/3 stays 1/3); elsewhere thousandths.
+  const den = item.line.den;
+  const value =
+    response.kind === 'hops' ? rat(response.count) : den ? rat(Math.round(response.value * den), den) : rat(Math.round(response.value * 1000), 1000);
   let correct: boolean;
   if (item.line.answerMode === 'count' && response.kind === 'landed') {
     // Count items answered by landing: correct if the hops taken reach the flag exactly.
-    correct = response.value === item.line.flag;
+    const flag = item.line.flag ?? NaN;
+    correct = den ? Math.round(response.value * den) === Math.round(flag * den) : response.value === flag;
     const hopsTaken = response.hops ?? Math.round((response.value - item.line.start) / (item.line.hopSize ?? 1));
     return {
       correct,

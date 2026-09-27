@@ -7,6 +7,8 @@ import { hasGenerator, registerGenerator } from './registry';
 import { wordGen } from './word';
 // Feature generator imports, each under its own anchor:
 // ── slot: frac ──
+import { decAddSubGen, decLineGen, percentOfGen } from './decimals';
+import { fracLineGen } from './fractions';
 // ── slot: hint ──
 // ── slot: pilot ──
 // ── slot: storage ──
@@ -34,6 +36,10 @@ const BUILTIN = [
   wordGen,
   // Feature generators, each under its own anchor:
   // ── slot: frac ──
+  fracLineGen,
+  decLineGen,
+  decAddSubGen,
+  percentOfGen,
   // ── slot: hint ──
   // ── slot: pilot ──
   // ── slot: storage ──

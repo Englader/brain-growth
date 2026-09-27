@@ -23,14 +23,15 @@ import type { Response } from '../../core/items/grade';
 import type { Item, SolutionStep } from '../../core/items/types';
 import type { InputMethod } from '../../core/log/types';
 import { parseKey, toNumber } from '../../core/rational';
+import { tk } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
-import { answerText, customVoice, numberText, promptText, solutionText, spokenPrompt } from '../../i18n/render';
+import { answerText, lineValueText, numberText, percentText, promptText, promptVoice, solutionText, spokenPrompt } from '../../i18n/render';
 import { animateHops, unitHops, type HopFrame } from '../../ui/anim';
 import { LangToggle } from '../../ui/components/common';
 import { Icon } from '../../ui/components/Icon';
-import { PadsLine, RulerLine } from '../../ui/components/NumberLine';
+import { labelParts, PadsLine, RulerLine, snapToLine, StackedLabel } from '../../ui/components/NumberLine';
 import { Numpad } from '../../ui/components/Numpad';
-import { Blocks, Dots, ExprView, Groups } from '../../ui/components/Prompts';
+import { Blocks, CompareView, Dots, ExprView, Groups, PercentOf } from '../../ui/components/Prompts';
 import { lookFor, useT } from '../../ui/hooks';
 
 type Phase = 'input' | 'moving' | 'correct' | 'wrong' | 'errorless' | 'explain';
@@ -93,21 +94,12 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
   const speakPrompt = (p: PresentedItem): void => {
     if (!profile.settings.voice) return;
     const it = p.item;
-    const pr = it.prompt;
-    if (pr.kind === 'word') speaker.sayText(spokenPrompt(it, locale), locale);
-    else if (pr.kind === 'custom') {
-      const v = customVoice(it);
-      if (v) speaker.say(v.key, v.params ?? {}, locale);
+    if (it.prompt.kind === 'word') {
+      speaker.sayText(spokenPrompt(it, locale), locale);
+      return;
     }
-    else if (pr.kind === 'expr' && pr.expr.k === 'op') {
-      const a = pr.expr.a.k === 'num' ? pr.expr.a.v : 0;
-      const b = pr.expr.b.k === 'num' ? pr.expr.b.v : 0;
-      if (pr.rhs && pr.rhs.k === 'num') speaker.say('voice.bond', { a, total: pr.rhs.v }, locale);
-      else speaker.say(({ '+': 'voice.add', '-': 'voice.sub', '*': 'voice.mul', '/': 'voice.div' } as const)[pr.expr.op], { a, b }, locale);
-    } else if (pr.kind === 'locate') speaker.say('voice.locate', { n: pr.target }, locale);
-    else if (pr.kind === 'groups') speaker.say('voice.groups', { n: pr.groups, size: pr.size }, locale);
-    else if (pr.kind === 'count') speaker.say('voice.count', {}, locale);
-    else speaker.say('voice.blocks', {}, locale);
+    const v = promptVoice(it);
+    if (v) speaker.say(v.key, v.params, locale);
   };
 
   const load = (): void => {
@@ -154,6 +146,8 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
   const item = cur.item;
   const line = item.line;
   const isEstimate = item.answer.tolerance !== undefined;
+  /** The answer is tapped on the ruler: estimates, and exact picks snapped to 1/den (fractions, decimals). */
+  const tapPick = isEstimate || line.pick === 'tap';
   const usesHops = band.input === 'hops';
   const answerValue = toNumber(item.answer.value);
   const glowTarget = line.answerMode === 'count' ? line.flag ?? null : answerValue;
@@ -161,7 +155,8 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
   // ── Band A input: hop buttons and pad taps ─────────────────────────────
   const moveTo = (to: number, counted: boolean): void => {
     unlockAudio();
-    const target = clampTo(to, line.min, line.max);
+    // Rational lines: every hop lands exactly on k/den (+1/3 three times is 1, not 0.9999…).
+    const target = line.den ? snapToLine(to, line) : clampTo(to, line.min, line.max);
     if (target === logical.current) return;
     logical.current = target;
     if (counted) setHops((h) => h + 1);
@@ -176,7 +171,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
 
   const onPadPick = (v: number): void => {
     if (phase === 'errorless') {
-      if (v === glowTarget) {
+      if (glowTarget !== null && Math.abs(v - glowTarget) < 1e-9) {
         sfx('yes');
         load();
       }
@@ -267,7 +262,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
 
   const submit = (raw?: string): void => {
     if (usesHops) answer({ kind: 'landed', value: logical.current, hops }, hops > 0 ? 'hops' : 'tap');
-    else if (isEstimate) {
+    else if (tapPick) {
       if (pick !== null) answer({ kind: 'landed', value: pick }, 'tap');
     } else {
       const v = raw ?? typed;
@@ -275,9 +270,9 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
     }
   };
 
-  // Live magnitude preview while typing (land items only; never for count items, which it would give away).
+  // Live magnitude preview while typing (land items only; never for count items or a flag to read, which it would give away).
   const typedValue = (() => {
-    if (!typed || line.answerMode !== 'land' || isEstimate) return null;
+    if (!typed || line.answerMode !== 'land' || tapPick || item.prompt.kind === 'read') return null;
     const v = Number(typed.replace('−', '-').replace(',', '.'));
     return Number.isFinite(v) ? v : null;
   })();
@@ -330,7 +325,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
         {usesHops ? (
           <PadsLine {...lineProps} pickable={phase === 'input' || phase === 'errorless'} onPick={onPadPick} />
         ) : (
-          <RulerLine {...lineProps} preview={isEstimate ? pick : typedValue} pickable={isEstimate && phase === 'input'} onPick={setPick} />
+          <RulerLine {...lineProps} preview={tapPick ? pick : typedValue} pickable={tapPick && phase === 'input'} onPick={setPick} />
         )}
         {usesHops && hops > 0 && phase === 'input' && (
           <div class="hop-count" aria-live="polite">
@@ -351,7 +346,7 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
             <p>
               {line.answerMode === 'count' || ghost === null
                 ? t('play.answerIs', { answer: answerText(item, locale) })
-                : t('play.youLanded', { given: numberText(ghost, locale), answer: answerText(item, locale) })}
+                : t('play.youLanded', { given: lineValueText(ghost, line, locale), answer: answerText(item, locale) })}
             </p>
             {shownLines.map((s) => (
               <p class="step">{solutionText(s, locale, profile.band)}</p>
@@ -370,23 +365,28 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
           </button>
         ) : usesHops ? (
           <div class="hop-controls">
-            {line.steps.map((s) => (
-              <div class="hop-pair">
-                <button type="button" class="hop-btn back" disabled={phase !== 'input'} aria-label={t('play.hopBack', { n: s })} onClick={() => moveTo(logical.current - s, true)}>
-                  <Icon name="arrowL" size={28} />
-                  <span>{numberText(s, locale)}</span>
-                </button>
-                <button type="button" class="hop-btn fwd" disabled={phase !== 'input'} aria-label={t('play.hopForward', { n: s })} onClick={() => moveTo(logical.current + s, true)}>
-                  <span>{numberText(s, locale)}</span>
-                  <Icon name="arrowR" size={28} />
-                </button>
-              </div>
-            ))}
+            {line.steps.map((s) => {
+              // A step is written like the line's own positions (a stacked 1/4 on a fraction line).
+              const label = line.den ? <StackedLabel parts={labelParts(Math.round(s * line.den), line, locale)} /> : <span>{numberText(s, locale)}</span>;
+              const n = line.den ? lineValueText(s, line, locale) : s;
+              return (
+                <div class="hop-pair">
+                  <button type="button" class="hop-btn back" disabled={phase !== 'input'} aria-label={t('play.hopBack', { n })} onClick={() => moveTo(logical.current - s, true)}>
+                    <Icon name="arrowL" size={28} />
+                    {label}
+                  </button>
+                  <button type="button" class="hop-btn fwd" disabled={phase !== 'input'} aria-label={t('play.hopForward', { n })} onClick={() => moveTo(logical.current + s, true)}>
+                    {label}
+                    <Icon name="arrowR" size={28} />
+                  </button>
+                </div>
+              );
+            })}
             <button type="button" class="btn go big" disabled={phase !== 'input'} aria-label={t('play.done')} onClick={() => submit()}>
               <Icon name="check" size={40} />
             </button>
           </div>
-        ) : isEstimate ? (
+        ) : tapPick ? (
           <div class="estimate-controls">
             <p class="note">{t('play.tapLine')}</p>
             <button type="button" class="btn primary big" disabled={pick === null || phase !== 'input'} onClick={() => submit()}>
@@ -412,7 +412,8 @@ export function PlayView(props: PlayViewProps): JSX.Element | null {
               }}
               onSubmit={submit}
               decimal={conv.decimal}
-              allowDecimal={!Number.isInteger(answerValue)}
+              // On a decimal or percent line the comma key is always there: its absence would reveal a whole-number answer.
+              allowDecimal={!Number.isInteger(answerValue) || line.labelStyle === 'decimal' || line.labelStyle === 'percent'}
               allowNegative={line.min < 0}
               submitLabel={t('play.hop')}
               labels={{ backspace: t('play.backspace'), negative: t('play.negative') }}
@@ -437,7 +438,15 @@ function PromptVisual({ item, locale, label, bandA }: { item: Item; locale: stri
     case 'expr':
       return <ExprView expr={p.expr} rhs={p.rhs} locale={locale} />;
     case 'locate':
+      // A fraction or decimal to place is the problem itself: shown big in every band.
+      if (p.display) return p.display.k === 'num' ? <div class="big-num">{numberText(p.display.v, locale)}</div> : <ExprView expr={p.display} locale={locale} />;
       return bandA ? <div class="big-num">{numberText(p.target, locale)}</div> : null;
+    case 'compare':
+      return <CompareView a={p.a} b={p.b} locale={locale} />;
+    case 'percentOf':
+      return <PercentOf text={tk(locale, 'frac.pctOf', { pct: percentText(p.pct, locale), of: p.of })} />;
+    case 'read':
+      return null;
     case 'word':
       return null;
     case 'custom':

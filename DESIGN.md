@@ -36,7 +36,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 
 | # | Assumption / decision | Why | If wrong |
 |---|---|---|---|
-| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **89 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
+| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **98 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
 | A-6 | **Deploy = GitHub Actions.** Pages' source is set to "GitHub Actions" (your change). On every push to `main`, CI typechecks, tests, builds to `dist/`, runs the end-to-end check against that build, and only then publishes **the same `dist/`** with `actions/deploy-pages`. Build output is no longer committed. | Nobody runs a build step to deploy: merging is deploying. A red CI can never reach the site, and diffs no longer carry hashed bundle files. | To go back to "Deploy from a branch": set `outDir: 'docs'` in `vite.config.ts`, commit the build, and drop the `deploy` job. The build is byte-deterministic, so CI can check a committed copy is fresh. |
 | A-8 | **All progress lives in localStorage** (as required), namespaced `bg:`. The session log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item). When the namespace passes a 3.5 MB soft budget, raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not). | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month, so **two daily players keep ≈5 months of per-item history on-device**. Backups always contain everything still stored. | Raw item history is the substrate for every future improvement, so moving the log to **IndexedDB** behind the existing `KV` interface is scheduled in v1 (§4 step 11) before compaction would start. |
 | A-9 | **iOS Safari may evict localStorage after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
@@ -51,7 +51,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | A-12 | **MK operators: `·` for multiplication and `:` for division**; EN: `×` `÷`. | Macedonian school convention. | Per-locale in `locales.ts` → `ops`. |
 | A-13 | **"a × b" is drawn as *a* hops of size *b*.** | One consistent visual model. Commutativity makes the answer identical. | Swap in the generators' hop steps. |
 | A-14 | **Speech synthesis for mk-MK is effectively absent** on the devices children use. To my knowledge: no Macedonian voice on iOS/iPadOS, macOS or desktop Chrome; Android depends on the installed engine (Google's has not offered it; eSpeak-NG does, robotically); **Edge** exposes Azure's online Macedonian neural voices, network required. **I could not test real devices here.** The adult view's **Voices** tab reports exactly what each device has. | You said not to design around TTS that doesn't exist. Band A is fully usable from pictures and animation. Every spoken line is defined as recordable clips, and a Serbian or Bulgarian voice is **never** substituted. | If your devices do have a good mk voice, it is used automatically as the fallback. |
-| A-15 | **Recording budget: 51 clips per locale for the slice** (generated, not guessed), ~130 for full v1 Band A. That is one ~2-hour session with a native speaker. English can ship on TTS. | Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only 29 number words are recorded. | More modes mean more instruction lines. Re-run `npm run gen:audio-script`. |
+| A-15 | **Recording budget: 56 clips per locale for the slice** (generated, not guessed), ~130 for full v1 Band A. That is one ~2-hour session with a native speaker. English can ship on TTS. | Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only 29 number words are recorded. | More modes mean more instruction lines. Re-run `npm run gen:audio-script`. |
 
 ### Engine and data model
 
@@ -118,7 +118,7 @@ Rules the graph obeys (tested in `tests/skills.test.ts`):
   - B→C: `num.line.1000 → int.intro → int.addsub`.
 - A child's band never restricts unlocking. A strong 11-year-old walks into Band C content as soon as its prerequisites are Solid; the scheduler just prefers earlier gaps first.
 
-Playable in the slice: **30 skills** through 12 generators.
+Playable: **37 skills** through 16 generators (the seven fraction, decimal and percent skills since §4 step 3).
 
 ### 1.4 Game modes: "is the maths the verb?"
 
@@ -126,7 +126,7 @@ The test I applied: if you removed the maths, would there be no game left? Is th
 
 | Mode | Core verb | Why the maths is the verb | A | B | C | Status |
 |---|---|---|---|---|---|---|
-| **Number Trail (Hop)** | Land the frog on the answer | The answer *is* a position. Counting on is literally pressing "hop" and knowing when to stop. Typed digits move a marker, so place value has magnitude. A wrong landing shows *how far off* (10 too far = a tens slip). The worked solution is the strategy replayed as hops. Linear number boards are among the best-evidenced early-number interventions (Siegler & Ramani 2008/2009). | 0–20/100 pads, hop buttons (+1, +10, +size), counting, bonds, groups | Ruler to 1000, numpad with live marker, estimation by tapping, facts, multi-digit | Negative numbers, rationals | **Built** |
+| **Number Trail (Hop)** | Land the frog on the answer | The answer *is* a position. Counting on is literally pressing "hop" and knowing when to stop. Typed digits move a marker, so place value has magnitude. A wrong landing shows *how far off* (10 too far = a tens slip). The worked solution is the strategy replayed as hops. Linear number boards are among the best-evidenced early-number interventions (Siegler & Ramani 2008/2009). | 0–20/100 pads, hop buttons (+1, +10, +size), counting, bonds, groups; unit fractions on pads at k/den with a +1/den button | Ruler to 1000, numpad with live marker, estimation by tapping, facts, multi-digit; fractions and decimals by exact taps snapped to 1/den, percent on a double number line | Negative numbers, rationals | **Built** |
 | **Target ("Make it")** | Combine dealt numbers with operators to hit a target | Many solutions; the child searches the space of expressions. That is number sense and order of operations. A solver shows the other solutions afterwards. The deal is the luck. | Make 10 with dot cards | + − × ÷ with 4 numbers | Brackets, powers, fractions, negatives | Designed |
 | **Sieve (tower-defence-ish)** | Place sieves defined by mathematical properties; numbers flow through | Placing the right property ("multiples of 3", "> ½", "factors of 24") *is* classification. A number that slips through shows exactly which property you misjudged. Turn-based in A (no clock). | More/less than 5, even/odd | Factors, multiples, primes, fraction size | Inequalities, integer sets, function values | Designed |
 | **Workshop (spatial)** | Cut, shade, stack and resize shapes | Fractions and geometry by direct manipulation: split a bar into equal parts, fill with ½+⅓+⅙ strips, resize a rectangle to area 24 and perimeter 20, stack cubes for volume, build squares on triangle sides (Pythagoras). The constructed object is checked, not a typed number. | Shapes, patterns, halves | Fractions, area/perimeter | Volume, Pythagoras, coordinate plotting | Designed |
@@ -188,15 +188,19 @@ This is Elo, θ ← θ + K(y − p), with **K = s²' derived rather than tuned**
 - **Mastered:** P ≥ 0.80, ≥ 8 observations, and ≥ 6 of the last 8 correct. A lucky streak cannot master a skill.
 - **Hysteresis:** keep Mastered while P ≥ 0.60 and Solid while P ≥ 0.35.
 
-**Evidence from simulated learners.** The simulation deliberately misspecifies the engine's assumptions: per-child slope 1.3–2.3 vs the engine's 1.8, per-skill offsets with SD 0.6, 3% slips, and learning from practice. Results from `npm run sim` (300 children):
+**Evidence from simulated learners.** The simulation deliberately misspecifies the engine's assumptions: per-child slope 1.3–2.3 vs the engine's 1.8, per-skill offsets with SD 0.6, 3% slips, and learning from practice. Results from `npm run sim` (300 children placed across grades 0.3–6.5; 120 per four-week population):
 
 | Measure | Result |
 |---|---|
-| Realised first-try success over 4 weeks | **0.852** (p10 0.818, p90 0.886) vs target 0.85 |
-| Placement error | **0.41 grades** (94% within one grade) in **7.8 items** |
-| Tracking error on skills practised ≥10× | 0.68 logits |
+| Realised first-try success over 4 weeks (grades 0.5–3.5) | **0.863** (p10 0.827, p90 0.895) vs target 0.85 |
+| Placement error, grades 0.3–6.5 | **0.42 grades** (93% within one grade) in **7.9 items**, 2.6 wrong answers |
+| Placement error, grades 4–6.5 | **0.46 grades** (92% within one grade); resolvable since the fraction and decimal generators (§4 step 3) |
+| Tracking error on skills practised ≥10× (grades 0.5–3.5) | 0.69 logits |
+| Realised first-try success over 4 weeks (grades 4–6.5) | 0.912 (p10 0.880, p90 0.935): see below |
 
-Tests pin these (`tests/engine.sim.test.ts`).
+Tests pin these (`tests/engine.sim.test.ts`: placement over grades 0.3–6.5 with error < 0.6 overall and < 0.7 for grades 4–6.5; success 0.80–0.90 over four weeks).
+
+Children at grades 4–6.5 sit near the top of the playable graph. Their fraction and decimal items land near target (f.equiv 0.84, f.compare 0.86, f.unit 0.89), but 43% of their items are placement-Solid skills three or more grades below them, served as consolidation (0.96 success). The sim runs without the band review floor (Band B's is grade 1), so this overstates what a real child sees. It is the next engine question: whether consolidation should skip placement-Solid skills far below the child, as review already does (A-20).
 
 Two design changes came from the simulation:
 
@@ -341,11 +345,13 @@ On a wrong answer, the child's landing stays as a dashed "ghost". The line then 
 - repeated addition / derived facts (×9 = ×10 − one group; ×4 = double double; 5+rest)
 - distributive partial products
 - integer moves, including "minus a negative is plus"
+- fractions as hops of 1/b from 0 (3/4 is three hops of 1/4); equivalence by multiplying numerator and denominator; comparison over a common denominator
+- decimals as tenth and hundredth hops across a zoomed window; sums split into whole, tenths and hundredths; percent as hops of 10 %
 
 The item **comes back 3 items later**. Feedback by band:
 
 - **A: purely visual, no text.** The frog replays the counted hops, the correct pad glows, and the child taps it to continue (errorless completion). Voice says "Let's look together."
-- **B:** "You landed on 120. The answer is 110." plus up to 4 worked lines, plus a *misconception-specific tip* when the wrong answer matches a known bug (24 codes, e.g. `sub.smaller_from_larger`: "If the top digit is smaller, borrow a ten first.").
+- **B:** "You landed on 120. The answer is 110." plus up to 4 worked lines, plus a *misconception-specific tip* when the wrong answer matches a known bug (35 codes, e.g. `sub.smaller_from_larger`: "If the top digit is smaller, borrow a ten first."; `frac.biggerDen`: "A bigger denominator means smaller parts: 1/8 is less than 1/4."; `frac.dec.longerIsLarger`, `frac.pct.asNumber`).
 - **C:** the full worked steps in neutral tone ("Queued for retry").
 
 Input that can't be read is **never** a wrong answer; it just asks again.
@@ -370,8 +376,17 @@ Input that can't be read is **never** a wrong answer; it just asks again.
 
 - Display: `Intl.NumberFormat` for digits and rounding, with separators forced from locale config (browsers with thin ICU data for `mk` would otherwise print "3.14").
 - Parser: hand-written. It returns **every plausible reading**, locale-preferred first: "1,234" is 1234 in en and 1.234 in mk. It also handles "1.234,5", "1 234", NBSP, U+2212 minus, fractions, mixed numbers and percent.
-- The grader accepts any reading that is correct.
-- 63 parser/formatter tests cover both locales.
+- The grader accepts any reading that is correct: "0,5", "0.5", ".5", "1/2" and "2/4" are all right for one half, in either locale.
+- A landing on a fraction or decimal line is exact: it snaps to k/den and grades as the rational k/den, so a tap near 1/3 is 1/3, never 0.333.
+- 63 parser/formatter tests cover both locales, plus 36 fraction and decimal tests (`tests/fractions.test.ts`).
+
+**Fractions, decimals and percent** (§4 step 3)
+
+- A fraction is never shown as a decimal. Items carry the form they were written in (`display`), so the answer to "hop to 3/4" is "3/4", not "0,75". Positions on a fraction line are written unreduced, like its ticks ("8/12" on a line in twelfths).
+- Fractions are drawn **stacked** (numerator over a bar): in prompts, on Band A pads and hop buttons, and as SVG tick labels on the ruler. Tick labels are thinned to at least 28 px apart. In a sentence, a fraction is inline text, "3/4".
+- Decimals use the locale's mark: "0,75" in Macedonian, "0.75" in English.
+- **Percent is part of the locale config** (`numbers.percent`). English writes "25%". Macedonian orthography separates the sign from the number, so Macedonian writes "25 %" with a **no-break space** (U+00A0, already in both fonts), which never leaves the sign alone on a new line. Maths content formats every percentage through `formatPercent`. Four older adult and results strings still write `{pct}%` and should follow.
+- Terms: дропка, броител, именител, заеднички именител, содржател, децимален број, децимална запирка, десетинка, стотинка, процент.
 
 **Operator glyphs** are per locale (`·` and `:` in MK).
 
@@ -419,7 +434,7 @@ src/
     rng.ts rational.ts time.ts hash.ts types.ts
     skills/                catalog.ts (THE DAG), graph.ts, types.ts
     items/                 types.ts (Item, Prompt, LineSpec…), grade.ts, checkers.ts, customPrompts.ts, util.ts
-      generators/          number.ts addsub.ts muldiv.ts integers.ts word.ts registry.ts index.ts
+      generators/          number.ts addsub.ts muldiv.ts integers.ts word.ts fractions.ts decimals.ts registry.ts index.ts
     engine/                model.ts (LearnerModel interface) glicko.ts memory.ts placement.ts
                            scheduler.ts observe.ts session.ts replay.ts params.ts
     achievements/          types.ts metrics.ts (registry) definitions.ts (data) evaluator.ts
@@ -437,7 +452,7 @@ src/
   app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
   styles/                  fonts.css app.css
-tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (236 tests)
+tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (279 tests)
 sim/                       simulated learners + harness + report (npm run sim)
 e2e/                       run.mjs harness, lib.mjs helpers, flows/NN-<name>.mjs (MK, 360px, screenshots; npm run e2e)
 scripts/                   gen-skill-doc, gen-audio-script, gen-icons, level-report
@@ -638,6 +653,7 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **One game mode (Number Trail) rendered in three bands.** A (pads, hop buttons, voice, errorless correction), B (ruler, numpad, live marker, estimation, word problems), C (dark, marker, integers, full worked steps).
 - **The full adaptive engine:** Glicko-Elo model, invisible placement, spacing, interleaving scheduler, retries, success-rate controller, challenge path, replay.
 - **One skill branch across a band boundary.** In fact two: A→B arithmetic, and B→C via `num.line.1000 → int.intro → int.addsub`.
+- **Fractions, decimals and percent on the number line** (§4 step 3): unit fractions, equivalent fractions, comparing fractions, tenths and hundredths, comparing decimals, adding and subtracting decimals, percent of an amount. Answers are exact taps snapped to 1/den, or typed whole numbers and decimals. Labels are stacked fractions, and percent uses a double number line. There are 11 misconception codes with tips, and Band A meets unit fractions on lily pads with a 1/den hop button, errorless as ever.
 - **Persistence:** versioned schema, migrations with rollback, compact append-only log, compaction, backup export/import with merge.
 - **Streaks** with silent freezes and the 7-stone establishment path.
 - **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
@@ -652,10 +668,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Check | Result |
 |---|---|
-| `npm test` | **236 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
-| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). **35 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
+| `npm test` | **279 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 43 generator bindings, fractions and decimals (exact landings, both decimal conventions, misconception codes, MK formatting, label thinning, pads per k/den), engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
+| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `20-frac`: a Band B child at grade 5.5 on f.equiv, f.compare (wrong → misconception tip), d.compare and d.percent (with an English spot-check), then a Band A child on f.unit pads with the errorless step (9 screenshots). **44 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
 | Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache |
-| Size | 89 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| Size | 98 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -690,7 +706,7 @@ Useful URL switches:
 - Macedonian voice clips are not recorded yet (A-14/A-15). Band A MK is silent until they are, unless the device has an mk voice.
 - Only the number-line mode exists, so Band C content is limited to integers.
 - The weekly themed challenge, hint ladder and puzzle track are designed, not built.
-- Placement accuracy is bounded by the playable graph: it cannot resolve grade 5–6 positions until fraction and decimal generators exist.
+- Fractions are trimmed for v1: no typed fractions (answers are taps or whole numbers), denominators ≤ 12, no mixed numbers, and no fraction arithmetic (`f.add.*`, `f.mult`, `f.div` stay planned nodes).
 
 ---
 
@@ -706,9 +722,9 @@ Useful URL switches:
 
 | Step | Work | Effort | Why now |
 |---|---|---|---|
-| 1 | **Record MK Band A audio** (51 clips now, ~130 by v1) and drop the files into `public/audio/mk/` | 1–2 days incl. editing | A Macedonian-only 5-year-old can't hear instructions without it |
+| 1 | **Record MK Band A audio** (56 clips now, ~130 by v1) and drop the files into `public/audio/mk/` | 1–2 days incl. editing | A Macedonian-only 5-year-old can't hear instructions without it |
 | 2 | **Two-week real-play pilot** with the two children. Read the adult dashboard: calibration, misconceptions, free-choice, session length | 2 weeks elapsed, ~0 dev | Every parameter in §1.5 is a prior; real logs are the first ground truth |
-| 3 | **Fraction and decimal generators on the number line** (`f.unit`, `f.equiv`, `f.compare`, `d.tenths`, `d.compare`, `d.addsub`, `d.percent`), with rational tick labels | 4–5 days | Fills the B graph (grades 4–6); placement can then resolve B positions |
+| 3 | **Done.** **Fraction and decimal generators on the number line** (`f.unit`, `f.equiv`, `f.compare`, `d.tenths`, `d.compare`, `d.addsub`, `d.percent`), with rational tick labels | 4–5 days | Fills the B graph (grades 4–6); placement now resolves B positions (0.46 grades for grades 4–6.5) |
 | 4 | **Target mode** ("Make it"): solver, deal generator, multi-solution reveal; B first, then A (make 10) and C (brackets and powers) | 5 days | The second mode, maximum reasoning per minute, and it introduces the deal-luck element |
 | 5 | **Adaptive hint ladder** (strategy prompt → first hop → worked step; credit y = 1 − 0.25·tier) replacing the single hint | 2 days | B children will need scaffolds on multi-digit work |
 | 6 | **Weekly themed challenge** (5-session set, cosmetic set piece) | 2 days | Gives the week a shape |

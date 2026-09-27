@@ -1,0 +1,85 @@
+/* Fractions and decimals on the number line (DESIGN §4 step 3). Stacked
+   fractions everywhere a fraction is shown: prompts, pads, hop buttons and
+   ruler labels (SVG). Theme colours come from app.css tokens. */
+
+/* Stacked fraction (HTML): numerator over a bar over the denominator. */
+.stacked {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  vertical-align: middle;
+}
+.stacked-n {
+  padding: 0 0.12em 0.08em;
+  border-bottom: 0.1em solid currentColor;
+}
+.stacked-d {
+  padding-top: 0.08em;
+}
+
+/* In an expression ("2/3 = ?/12"): as big as the digits around it. */
+.expr-frac {
+  font-size: 0.8em;
+}
+.expr-frac .stacked-n.expr-blank {
+  min-width: 1.2em;
+  height: 1.1em;
+  margin-bottom: 0.08em;
+  border-width: 3px;
+}
+
+/* Compare: two numbers and an empty circle between them, as in the textbook exercise. */
+.compare-vs {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border: 3px dashed var(--primary);
+  border-radius: 50%;
+  margin: 0 0.15em;
+}
+
+/* "25 % of 80" */
+.pct-of {
+  font-size: 2.2em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* Pads: a stacked label fits the 56 px pad; longer decimals shrink. */
+.pad .stacked {
+  font-size: 15px;
+  font-weight: 900;
+  color: #1c3324;
+}
+.pad-num-long {
+  font-size: 14px;
+}
+
+/* Hop buttons carrying a fraction step (Band A "+1/4"). */
+.hop-btn .stacked {
+  font-size: 0.8em;
+}
+
+/* Ruler: stacked SVG labels. */
+.tick-frac text {
+  fill: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font);
+}
+.tick-frac line {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+.tick-pct {
+  fill: var(--primary);
+}
+.preview-dot {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3;
+}

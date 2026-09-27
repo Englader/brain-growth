@@ -5,7 +5,7 @@ Record each line as a separate mono MP3 (44.1 kHz, ~48 kbps), ~200 ms of silence
 friendly and unhurried. Save as `public/audio/<locale>/<clip-id>.mp3` and list the id in `src/audio/clips.ts`.
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 50 clips, 0 recorded
+## English (en) — 55 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -44,23 +44,28 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 33 | `num.90.mp3` | ninety |  |
 | 34 | `voice.blocks.mp3` | Hop to the number the blocks show! |  |
 | 35 | `voice.count.mp3` | How many dots? Hop there! |  |
-| 36 | `voice.gift.mp3` | A present for you! |  |
-| 37 | `voice.lookTogether.mp3` | Let's look together. |  |
-| 38 | `voice.praise1.mp3` | Nice! |  |
-| 39 | `voice.praise2.mp3` | Yes! |  |
-| 40 | `voice.praise3.mp3` | Great hop! |  |
-| 41 | `voice.praise4.mp3` | Spot on! |  |
-| 42 | `voice.sessionDone.mp3` | Great playing today! |  |
-| 43 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
-| 44 | `voice.trophy.mp3` | You found a trophy! |  |
-| 45 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 46 | `word.dividedBy.mp3` | divided by |  |
-| 47 | `word.hopsOf.mp3` | hops of |  |
-| 48 | `word.minus.mp3` | minus |  |
-| 49 | `word.plus.mp3` | plus |  |
-| 50 | `word.times.mp3` | times |  |
+| 36 | `voice.frac.bigger.mp3` | Land on the bigger number! |  |
+| 37 | `voice.frac.flag.mp3` | Hop to the flag! |  |
+| 38 | `voice.frac.outOf.mp3` | out of |  |
+| 39 | `voice.frac.parts.mp3` | parts |  |
+| 40 | `voice.frac.smaller.mp3` | Land on the smaller number! |  |
+| 41 | `voice.gift.mp3` | A present for you! |  |
+| 42 | `voice.lookTogether.mp3` | Let's look together. |  |
+| 43 | `voice.praise1.mp3` | Nice! |  |
+| 44 | `voice.praise2.mp3` | Yes! |  |
+| 45 | `voice.praise3.mp3` | Great hop! |  |
+| 46 | `voice.praise4.mp3` | Spot on! |  |
+| 47 | `voice.sessionDone.mp3` | Great playing today! |  |
+| 48 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
+| 49 | `voice.trophy.mp3` | You found a trophy! |  |
+| 50 | `voice.welcome.mp3` | Hi! Let's play! |  |
+| 51 | `word.dividedBy.mp3` | divided by |  |
+| 52 | `word.hopsOf.mp3` | hops of |  |
+| 53 | `word.minus.mp3` | minus |  |
+| 54 | `word.plus.mp3` | plus |  |
+| 55 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 51 clips, 0 recorded
+## Македонски (mk) — 56 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -99,20 +104,25 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 33 | `num.90.mp3` | деведесет |  |
 | 34 | `voice.blocks.mp3` | Скокни до бројот што го покажуваат коцките! |  |
 | 35 | `voice.count.mp3` | Колку точки има? Скокни до тој број! |  |
-| 36 | `voice.gift.mp3` | Подарок за тебе! |  |
-| 37 | `voice.lookTogether.mp3` | Ајде да погледнеме заедно. |  |
-| 38 | `voice.praise1.mp3` | Браво! |  |
-| 39 | `voice.praise2.mp3` | Да! |  |
-| 40 | `voice.praise3.mp3` | Одличен скок! |  |
-| 41 | `voice.praise4.mp3` | Точно така! |  |
-| 42 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
-| 43 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
-| 44 | `voice.trophy.mp3` | Најде трофеј! |  |
-| 45 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 46 | `word.and.mp3` | и |  |
-| 47 | `word.dividedBy.mp3` | поделено со |  |
-| 48 | `word.hopsOf.mp3` | скока по |  |
-| 49 | `word.minus.mp3` | минус |  |
-| 50 | `word.plus.mp3` | плус |  |
-| 51 | `word.times.mp3` | пати |  |
+| 36 | `voice.frac.bigger.mp3` | Слетај на поголемиот број! |  |
+| 37 | `voice.frac.flag.mp3` | Скокни до знамето! |  |
+| 38 | `voice.frac.outOf.mp3` | од |  |
+| 39 | `voice.frac.parts.mp3` | дела |  |
+| 40 | `voice.frac.smaller.mp3` | Слетај на помалиот број! |  |
+| 41 | `voice.gift.mp3` | Подарок за тебе! |  |
+| 42 | `voice.lookTogether.mp3` | Ајде да погледнеме заедно. |  |
+| 43 | `voice.praise1.mp3` | Браво! |  |
+| 44 | `voice.praise2.mp3` | Да! |  |
+| 45 | `voice.praise3.mp3` | Одличен скок! |  |
+| 46 | `voice.praise4.mp3` | Точно така! |  |
+| 47 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
+| 48 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
+| 49 | `voice.trophy.mp3` | Најде трофеј! |  |
+| 50 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
+| 51 | `word.and.mp3` | и |  |
+| 52 | `word.dividedBy.mp3` | поделено со |  |
+| 53 | `word.hopsOf.mp3` | скока по |  |
+| 54 | `word.minus.mp3` | минус |  |
+| 55 | `word.plus.mp3` | плус |  |
+| 56 | `word.times.mp3` | пати |  |
 
