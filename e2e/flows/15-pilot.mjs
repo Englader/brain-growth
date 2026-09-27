@@ -9,9 +9,8 @@
 import { readFileSync } from 'node:fs';
 import { forceSkill, recentLog, seed, waitNext } from '../lib.mjs';
 
-/** The mk clips still to record, from the generated recording script (kept current by tests/generated-docs). */
-const [, MK_TOTAL, MK_RECORDED] = /## Македонски \(mk\) — (\d+) clips, (\d+) recorded/.exec(readFileSync(new URL('../../design/audio-recording-script.md', import.meta.url), 'utf8'));
-const MK_CLIPS = Number(MK_TOTAL) - Number(MK_RECORDED);
+/** Clips the mk recording script lists (design/audio-recording-script.md, kept current by tests/generated-docs.test.ts). */
+const MK_CLIPS = Number(/## Македонски \(mk\) — (\d+) clips/.exec(readFileSync(new URL('../../design/audio-recording-script.md', import.meta.url), 'utf8'))[1]);
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);

@@ -42,12 +42,25 @@ export const bin = (op: Op, a: number | Expr, b: number | Expr): Expr => ({
   b: typeof b === 'number' ? num(b) : b,
 });
 export const BLANK: Expr = { k: 'blank' };
+/** A fraction as written (never reduced): frac(6, 8) shows 6/8. `n = null` is a blank numerator. */
+export const frac = (n: number | null, d: number): Expr => ({ k: 'frac', n, d });
+
+export function gcd(a: number, b: number): number {
+  a = Math.abs(a);
+  b = Math.abs(b);
+  while (b) [a, b] = [b, a % b];
+  return a;
+}
+export const lcm = (a: number, b: number): number => (a && b ? Math.abs(a * b) / gcd(a, b) : 0);
 
 /** Evaluate an expression with no blanks (tests use this to verify answers). */
 export function evalExpr(e: Expr): number {
   switch (e.k) {
     case 'num':
       return e.v;
+    case 'frac':
+      if (e.n === null) throw new Error('cannot evaluate a blank numerator');
+      return e.n / e.d;
     case 'blank':
       throw new Error('cannot evaluate blank');
     case 'op': {

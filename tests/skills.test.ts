@@ -52,22 +52,46 @@ function checkItem(item: GeneratedItem, label: string): void {
     expect(ans, `${label} answer inside line`).toBeLessThanOrEqual(line.max);
   } else {
     expect(line.flag, label).toBeDefined();
-    expect(line.start + ans * (line.hopSize ?? 1), `${label} count reaches flag`).toBe(line.flag);
+    expect(line.start + ans * (line.hopSize ?? 1), `${label} count reaches flag`).toBeCloseTo(line.flag!, 9);
+  }
+  if (line.den) {
+    // Rational line: every length is a whole number of 1/den steps, and so is a landing answer.
+    const onGrid = (x: number): boolean => Math.abs(x * line.den! - Math.round(x * line.den!)) < 1e-6;
+    for (const x of [line.min, line.max, line.start, line.major, line.minor, line.labelEvery, ...line.steps]) expect(onGrid(x), `${label} ${x} on 1/${line.den}`).toBe(true);
+    if (line.answerMode === 'land') expect(onGrid(ans), `${label} answer on the grid`).toBe(true);
+    if (line.pick === 'tap') expect(Math.round((line.max - line.min) * line.den), `${label} tap parts`).toBeLessThanOrEqual(12);
   }
   // The answer must follow from the prompt.
   switch (prompt.kind) {
     case 'expr':
-      if (prompt.rhs) {
+      if (prompt.rhs?.k === 'frac' && prompt.rhs.n === null) {
+        // "2/3 = ?/12": the missing numerator.
+        expect(evalExpr(prompt.expr) * prompt.rhs.d, label).toBeCloseTo(ans, 9);
+      } else if (prompt.rhs) {
         const rhs = evalExpr(prompt.rhs);
         const e = prompt.expr;
         if (e.k === 'op' && e.a.k === 'num' && e.b.k === 'blank') expect(e.a.v + ans, label).toBe(rhs);
       } else expect(evalExpr(prompt.expr), label).toBeCloseTo(ans, 9);
+      break;
+    case 'compare': {
+      const [a, b] = [evalExpr(prompt.a), evalExpr(prompt.b)];
+      expect(a, `${label} two different numbers`).not.toBeCloseTo(b, 9);
+      expect(ans, label).toBeCloseTo(prompt.pick === 'max' ? Math.max(a, b) : Math.min(a, b), 9);
+      break;
+    }
+    case 'read':
+      expect(prompt.value, label).toBeCloseTo(ans, 9);
+      expect(line.flag, label).toBeCloseTo(ans, 9);
+      break;
+    case 'percentOf':
+      expect((prompt.pct * prompt.of) / 100, label).toBeCloseTo(ans, 9);
       break;
     case 'count':
       expect(prompt.count).toBe(ans);
       break;
     case 'locate':
       expect(prompt.target).toBe(ans);
+      if (prompt.display) expect(evalExpr(prompt.display), label).toBeCloseTo(ans, 9);
       break;
     case 'blocks':
       expect(prompt.hundreds * 100 + prompt.tens * 10 + prompt.ones).toBe(ans);

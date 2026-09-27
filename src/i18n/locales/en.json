@@ -183,6 +183,12 @@
     "sessionDone": "Great playing today!",
     "trophy": "You found a trophy!",
     "frac": {
+      "hopTo": "Hop to {n} out of {d} parts!",
+      "outOf": "out of",
+      "parts": "parts",
+      "bigger": "Land on the bigger number!",
+      "smaller": "Land on the smaller number!",
+      "flag": "Hop to the flag!"
     },
     "weekly": {
       "intro": "This is this week's game! Play it to light up the stones.",
@@ -421,7 +427,7 @@
   "flag": {
     "mode.sprint": "Timed “race your shadow” on Solid facts (a card the child chooses; Bands B and C).",
     "quests.daily": "Daily quest card with 2–3 varied objectives.",
-    "hints": "Hint button (Bands B and C). Hinted answers count as half evidence.",
+    "hints": "Hint ladder (Bands B and C): a strategy, then the first hop, then a worked step. The more help used, the less the answer counts as evidence.",
     "league.family": "Family board and card sharing.",
     "audio.tts": "Use the device's speech voice when no recorded clip exists.",
     "debug.shortSessions": "Four-problem sessions (for testing)."
@@ -570,6 +576,34 @@
     "addNeg": "Adding a negative is taking away: {a} + (−{b}) = {a} − {b}.",
     "intMove": "Start at {a} and move {n} to the {dir, select, left {left} other {right}}: {r}.",
     "frac": {
+      "unitSplit": "One whole, from 0 to 1, is split into {d} equal parts.",
+      "unitHops": "{n}/{d} is {n, plural, one {# hop} other {# hops}} of 1/{d} from 0.",
+      "equivDen": "The denominator {b} becomes {bn}: {b} {op} {m} = {bn}.",
+      "equiv": "{a}/{b} = {an}/{bn}: multiply the numerator and the denominator by {m}.",
+      "commonDen": "Use the common denominator {l}: it is a multiple of both {b} and {d}.",
+      "common": "With denominator {l}: {a}/{b} = {a2}/{l} and {c}/{d} = {c2}/{l}.",
+      "sameDen": "Same denominator {d}: the one with more parts is bigger.",
+      "sameNum": "Same numerator {n}: the more parts a whole is cut into, the smaller each part.",
+      "bigger": "{n1}/{d1} is bigger than {n2}/{d2}.",
+      "smaller": "{n1}/{d1} is smaller than {n2}/{d2}.",
+      "tenthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one tenth.",
+      "hundredthsWindow": "From {lo} to {hi} there are {n} equal parts: each is one hundredth.",
+      "tenthsHops": "From {lo}, {n, plural, one {# hop of one tenth reaches} other {# hops of one tenth reach}} {x}.",
+      "hundredthsHops": "From {lo}, {n, plural, one {# hop of one hundredth reaches} other {# hops of one hundredth reach}} {x}.",
+      "decPlaces": "Compare the tenths first, then the hundredths.",
+      "decTenths": "{a} is {an, plural, one {# tenth} other {# tenths}} and {b} is {bn, plural, one {# tenth} other {# tenths}}.",
+      "decHundredths": "{a} is {an, plural, one {# hundredth} other {# hundredths}} and {b} is {bn, plural, one {# hundredth} other {# hundredths}}.",
+      "decBigger": "{a} is bigger than {b}.",
+      "decSmaller": "{a} is smaller than {b}.",
+      "decSplit2": "Split it up: {b} = {p1} + {p2}.",
+      "decSplit3": "Split it up: {b} = {p1} + {p2} + {p3}.",
+      "pctTen": "{p}% of {of} is {ten}: that is one hop.",
+      "pctHalf": "50% is one half: {of} {op} 2 = {r}.",
+      "pctQuarter": "25% is one quarter: {of} {op} 4 = {r}.",
+      "pctThreeQuarters": "75% is three quarters: {of} {op} 4 = {q}, and three of those make {r}.",
+      "pctHops": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10%: {r}.",
+      "pctFive": "5% is half of 10%: half of {ten} is {r}.",
+      "pctHopsHalf": "{pct}% is {n, plural, one {# hop} other {# hops}} of 10% and half a hop: {r}."
     },
     "target": {
     },
@@ -680,6 +714,54 @@
       "tip": "From a negative number, adding moves you right, toward 0."
     },
     "frac": {
+      "biggerDen": {
+        "name": "Thought a bigger denominator means a bigger fraction",
+        "tip": "A bigger denominator means smaller parts: 1/8 is less than 1/4."
+      },
+      "countedTicks": {
+        "name": "Counted the tick marks instead of the parts",
+        "tip": "Count the hops between the ticks, not the ticks themselves."
+      },
+      "addSame": {
+        "name": "Added the same number to the numerator and the denominator",
+        "tip": "Multiply the numerator and the denominator by the same number; adding changes the fraction."
+      },
+      "numeratorOnly": {
+        "name": "Looked only at the numerator",
+        "tip": "The denominator matters too: it tells you how big each part is."
+      },
+      "wholeLine": {
+        "name": "Split the whole line instead of one whole",
+        "tip": "One whole is the space from 0 to 1. Split that, not the whole line."
+      },
+      "dec": {
+        "longerIsLarger": {
+          "name": "Thought more digits means a bigger number",
+          "tip": "Compare the tenths first: 0.5 = 0.50, which is more than 0.45."
+        },
+        "shorterIsLarger": {
+          "name": "Thought fewer digits means a bigger number",
+          "tip": "Give both the same number of decimals: 0.3 = 0.30, which is less than 0.45."
+        },
+        "misaligned": {
+          "name": "Lined up the last digits instead of the decimal points",
+          "tip": "Line up the decimal points: tenths under tenths, hundredths under hundredths."
+        },
+        "tenthsAsHundredths": {
+          "name": "Mixed up tenths and hundredths",
+          "tip": "The first digit after the point is tenths, the second is hundredths. Ten tenths make one whole."
+        }
+      },
+      "pct": {
+        "asNumber": {
+          "name": "Gave the percent itself as the answer",
+          "tip": "A percent is a part of 100. Find 10% first, then build up."
+        },
+        "dividedBy": {
+          "name": "Divided by the percent",
+          "tip": "Percent means out of 100: 10% of 80 is 80 ÷ 10 = 8."
+        }
+      }
     },
     "target": {
     },
@@ -1041,8 +1123,81 @@
     }
   },
   "frac": {
+    "locate": "Where is this fraction?",
+    "locateDec": "Where is this decimal?",
+    "biggerFrac": "Which fraction is bigger? Land on it.",
+    "smallerFrac": "Which fraction is smaller? Land on it.",
+    "biggerDec": "Which number is bigger? Land on it.",
+    "smallerDec": "Which number is smaller? Land on it.",
+    "read": "Which number is at the flag? Type it.",
+    "equiv": "Which number goes in the numerator?",
+    "percent": "How much is that? Type the number.",
+    "pctOf": "{pct} of {of}"
   },
   "hint": {
+    "nextHop": "Show me the first hop",
+    "nextStep": "Show me the first step",
+    "nextHop@C": "Show the first hop",
+    "nextStep@C": "Show the first step",
+    "hop": "The first hop goes from {from} to {to}.",
+    "hop@C": "First hop: from {from} to {to}.",
+    "s": {
+      "count": "Count each dot exactly once. Small groups make it easier.",
+      "locateTens": "Jump in tens first, then in ones.",
+      "locateHundreds": "Jump in hundreds first, then in tens, then in ones.",
+      "locateNeg": "Negative numbers are to the left of zero, positive numbers to the right.",
+      "blocks2": "Count the tens first, then the ones.",
+      "blocks3": "Count the hundreds first, then the tens, then the ones.",
+      "bond": "Count on from the first number until you reach the total.",
+      "makeTen": "Make a ten first, then add what is left.",
+      "makeTen@C": "Bridge through ten: complete the ten, then add the remainder.",
+      "backThroughTen": "Go back to ten first, then take away what is left.",
+      "backThroughTen@C": "Bridge back through ten: subtract down to ten, then subtract the remainder.",
+      "countOn": "Start at the bigger number and count on.",
+      "countBack": "Start at the first number and count back.",
+      "split": {
+        "add": "Split the second number by place value, then add one part at a time.",
+        "add@C": "Decompose the second addend by place value and add the parts one at a time.",
+        "sub": "Split the number you take away by place value, then subtract one part at a time.",
+        "sub@C": "Decompose the subtrahend by place value and subtract the parts one at a time.",
+        "mul": "Split one number by place value, multiply each part, then add the results.",
+        "mul@C": "Distributive law: split one factor by place value, multiply each part, then add the products."
+      },
+      "step": {
+        "add": "Start at the first number and hop forward by the second.",
+        "sub": "Start at the first number and hop back by the second."
+      },
+      "times9": "Nines: work out ten groups, then take one group away.",
+      "times9@C": "Nines: ten groups minus one group.",
+      "doubleDouble": "Times four: double, then double again.",
+      "fivePlus": "Do five groups first, then the rest of the groups, and add them together.",
+      "fivePlus@C": "Split the first factor into five plus the rest, then add the two products.",
+      "repeatedAdd": "Multiplying is adding equal groups: make equal hops, one after another.",
+      "divAsHops": "Think times tables: what do you multiply the second number by to get the first?",
+      "divAsHops@C": "Division undoes multiplication: find the missing factor.",
+      "timesTen": "Multiplying by ten moves every digit one place to the left; by a hundred, two places.",
+      "zeros": "Set the zeros aside, multiply what is left, then put all the zeros back.",
+      "addPartials": "Work out each part, then add the parts together.",
+      "subNeg": "Taking away a negative number is the same as adding the positive number.",
+      "subNeg@C": "Subtracting a negative number means adding its opposite.",
+      "addNeg": "Adding a negative number is the same as taking away the positive number.",
+      "addNeg@C": "Adding a negative number means subtracting its opposite.",
+      "intMove": "On the number line, adding takes you to the right and taking away to the left.",
+      "generic": "Picture it on the number line: where do you start, and which way do you hop?",
+      "frac": {
+        "unit": "The denominator says how many equal parts the whole from zero to one has; the numerator says how many parts to hop.",
+        "unit@C": "The denominator is the number of equal parts in one whole; the numerator is how many of them to count.",
+        "equiv": "Write the fraction with the new denominator: multiply the numerator and the denominator by the same number.",
+        "sameNum": "Same numerator: the more parts the whole is cut into, the smaller each part.",
+        "sameDen": "Same denominator: compare the numerators. More parts of the same size is more.",
+        "commonDen": "Give both fractions the same denominator, then compare the numerators.",
+        "tenths": "Each small part is one tenth: count the parts from the start of the line.",
+        "hundredths": "Each small part is one hundredth: count the parts from the start of the line.",
+        "decCompare": "Compare the whole numbers first, then the tenths, then the hundredths.",
+        "decParts": "Split the second number into wholes, tenths and hundredths, then hop one part at a time.",
+        "pct": "Find ten percent first: it is one tenth of the whole. Then build the rest from it."
+      }
+    }
   },
   "pilot": {
     "title": "Pilot readout",

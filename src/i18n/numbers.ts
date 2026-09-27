@@ -20,6 +20,11 @@ export interface NumberConventions {
   minimumGroupingDigits: number;
   /** Minus glyph for display. U+2212 renders at the same width as '+'. */
   minus: string;
+  /**
+   * What follows a percentage: '%' in en ("25%"); in mk a no-break space and
+   * then '%' ("25 %"), as Macedonian orthography separates the sign. Default '%'.
+   */
+  percent?: string;
 }
 
 export type ParsedNumber =
@@ -243,6 +248,17 @@ export function formatNumber(value: number, conv: NumberConventions, opts: Forma
     }
   }
   return out;
+}
+
+/** A fraction as written, never reduced: "6/8", "−3/4" (inline text; the UI draws it stacked). */
+export function formatFraction(n: number, d: number, conv: NumberConventions): string {
+  const sign = n < 0 ? conv.minus : '';
+  return `${sign}${formatNumber(Math.abs(n), conv)}/${formatNumber(d, conv)}`;
+}
+
+/** A percentage: "25%" (en), "25 %" with a no-break space (mk); decimals use the locale's mark ("12,5 %"). */
+export function formatPercent(p: number, conv: NumberConventions): string {
+  return `${formatNumber(p, conv)}${conv.percent ?? '%'}`;
 }
 
 /** Format a Rational: integers and terminating decimals as numbers, else "a/b". */

@@ -22,7 +22,7 @@ import type { SkillDef } from '../skills/types';
 import type { BandId, LocaleId, ModeId, SkillId } from '../types';
 import { difficultyToLevel, levelToDifficulty } from './glicko';
 import type { LearnerModel, SkillState, SkillStatus } from './model';
-import { applyFirstAttempt } from './observe';
+import { applyFirstAttempt, hintTierOf } from './observe';
 import { modeEvidence, SELECTION } from './params';
 import {
   nextPlacementItem,
@@ -76,6 +76,11 @@ export interface AnswerInput {
   response: Response;
   latencyMs: number;
   hint: boolean;
+  /**
+   * Highest hint-ladder tier used on this attempt (0 = none, 1–3). Omitted by
+   * modes without a ladder: `hint` then counts as the legacy single hint.
+   */
+  hintTier?: number;
   locale: LocaleId;
   conv: NumberConventions;
   input: InputMethod;
@@ -293,9 +298,10 @@ export class SessionEngine {
     let unlocked: SkillId[] = [];
     let placementFinished: AnswerResult['placementFinished'] = null;
     let memoryReview: AnswerResult['memoryReview'] = null;
+    const tier = hintTierOf(input.hint, input.hintTier);
 
     if (first) {
-      if (correct && !input.hint) this.firstCorrect++;
+      if (correct && tier === 0) this.firstCorrect++;
       this.ewma = (1 - SELECTION.EWMA_ALPHA) * this.ewma + SELECTION.EWMA_ALPHA * (correct ? 1 : 0);
       const unlockedBefore = this.unlockedSet();
       this.stateFor(skill, now);
@@ -304,6 +310,7 @@ export class SessionEngine {
       const effect = applyFirstAttempt(this.ctx, this.states, skill.id, {
         correct,
         hint: input.hint,
+        hintTier: tier,
         difficulty: presented.difficulty,
         ts: now,
         timed: this.cfg.timed,
@@ -313,9 +320,9 @@ export class SessionEngine {
       statusChange = effect.statusChange;
       memoryReview = effect.memoryReview;
 
-      // Placement posterior; finishing it rewrites priors for every skill.
+      // Placement posterior (an answer counts as correct only without any hint); finishing it rewrites priors for every skill.
       if (presented.source === 'placement' && this.placement.state) {
-        const ps = updatePlacement(this.placement.state, skill, presented.item.level, correct && !input.hint);
+        const ps = updatePlacement(this.placement.state, skill, presented.item.level, correct && tier === 0);
         this.placement = { ...this.placement, state: ps };
         if (ps.done) placementFinished = this.finishPlacement(now);
       }
@@ -345,7 +352,7 @@ export class SessionEngine {
       correct,
       attempt: presented.attempt,
       latency: Math.round(input.latencyMs),
-      hint: input.hint,
+      hint: input.hint || tier > 0,
       answer: grade.given,
       expected: ratKey(presented.item.answer.value),
       mis: grade.misconception,
@@ -357,6 +364,8 @@ export class SessionEngine {
       input: input.input,
       hops: input.response.kind === 'landed' ? input.response.hops ?? null : input.response.kind === 'hops' ? input.response.count : null,
       alt: grade.altReading,
+      // Unknown (null) when a mode reports a hint without a tier: replay then applies the legacy rule.
+      tier: input.hintTier !== undefined ? tier : input.hint ? null : 0,
     };
     return { ...base, record, statusChange, unlocked, willReturn, placementFinished, memoryReview };
   }
