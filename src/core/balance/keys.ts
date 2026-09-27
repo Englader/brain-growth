@@ -81,6 +81,7 @@ export const BALANCE_UI_KEYS = [
   'balance.op.sub',
   'balance.op.div',
   'balance.apply', // {move}: "− 4 on both pans"
+  'balance.choose', // the Apply button until an operation and an amount are chosen (nothing is preselected)
   'balance.undo',
   'balance.showMe',
   'balance.moves', // aria label of the move history

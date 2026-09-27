@@ -126,8 +126,9 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
   const [blocked, setBlocked] = useState<BlockReason | null>(null);
   const [tip, setTip] = useState<'left' | 'right' | null>(null);
   const [penalised, setPenalised] = useState(0);
-  const [op, setOp] = useState<Op>('sub');
-  const [amount, setAmount] = useState<Amount>({ n: 1, term: 'k' });
+  // The composer starts empty: the child chooses the operation and the amount (nothing preselected).
+  const [op, setOp] = useState<Op | null>(null);
+  const [amount, setAmount] = useState<Amount | null>(null);
   const [typed, setTyped] = useState('');
   const [tier, setTier] = useState(0);
   const [phase, setPhase] = useState<Phase>('input');
@@ -172,8 +173,8 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     setBlocked(null);
     setTip(null);
     setPenalised(0);
-    setOp('sub');
-    setAmount(suggestions(d.eq, 'sub', balloons)[0] ?? { n: 1, term: 'k' });
+    setOp(null);
+    setAmount(null);
     setTyped('');
     setTier(0);
     setPhase('input');
@@ -220,6 +221,9 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     setTokens((ts) => [...ts, moveToken(m)]);
     setStack((s) => [...s, r]);
     setBlocked(null);
+    // The next move is chosen afresh.
+    setOp(null);
+    setAmount(null);
   };
 
   const undo = (): void => {
@@ -228,6 +232,8 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     setStack((s) => s.slice(0, -1));
     setBlocked(null);
     setTyped('');
+    setOp(null);
+    setAmount(null);
   };
 
   /** The engine's credit tier: one per refused unbalancing move and per hint tier, so y = balanceY(refusals + tiers). */
@@ -291,11 +297,12 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
 
   const planned = session.engine.planned;
   const firstPresented = session.engine.stats.firstPresented;
-  // The offered amounts follow the scale; a choice that is no longer on offer falls back to the first.
-  const amounts = suggestions(state.eq, op, state.balloons);
-  const same = (a: Amount): boolean => a.n === amount.n && (op === 'div' || a.term === amount.term);
-  const chosen = amounts.find(same) ?? amounts[0] ?? { n: 1, term: 'k' as const };
-  const current = toMove(op, chosen);
+  // The offered amounts follow the scale (before an operation is chosen: those for + and −, which are the same).
+  // A choice that is no longer on offer is dropped, never replaced: Apply waits for both choices.
+  const amounts = suggestions(state.eq, op ?? 'sub', state.balloons);
+  const same = (a: Amount): boolean => !!amount && a.n === amount.n && (op === 'div' || a.term === amount.term);
+  const chosen = amounts.find(same) ?? null;
+  const current = op && chosen ? toMove(op, chosen) : null;
   const opGlyph = (o: Op): string => getLocale(locale).ops[o === 'add' ? '+' : o === 'sub' ? '-' : '/'];
   const sayLines = item.solution.filter((s): s is Extract<SolutionStep, { k: 'say' }> => s.k === 'say');
   const shownLines = band.feedback === 'worked' ? sayLines : sayLines.slice(0, 4);
@@ -403,11 +410,7 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
                   class={`balance-op${op === o ? ' on' : ''}`}
                   data-op={o}
                   aria-label={t(`balance.op.${o}`)}
-                  onClick={() => {
-                    setOp(o);
-                    const first = suggestions(state.eq, o, state.balloons)[0];
-                    if (first) setAmount(first);
-                  }}
+                  onClick={() => setOp(o)}
                 >
                   {opGlyph(o)}
                 </button>
@@ -427,8 +430,8 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
                 </button>
               ))}
             </div>
-            <button type="button" class="btn primary big balance-apply" data-apply onClick={() => attempt(current)}>
-              <span dir="ltr">{t('balance.apply', { move: moveText(current, locale) })}</span>
+            <button type="button" class="btn primary big balance-apply" data-apply disabled={!current} onClick={() => current && attempt(current)}>
+              {current ? <span dir="ltr">{t('balance.apply', { move: moveText(current, locale) })}</span> : t('balance.choose')}
             </button>
             <div class="row wrap balance-aux">
               <button type="button" class="btn small ghost" disabled={stack.length < 2} onClick={undo}>
