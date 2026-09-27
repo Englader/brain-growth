@@ -21,6 +21,8 @@ const ITEM_FIELDS_V1 = [
   'ts', 'sid', 'key', 'skill', 'gen', 'genV', 'seed', 'level', 'diff', 'p', 'mu', 's2',
   'correct', 'attempt', 'latency', 'hint', 'answer', 'expected', 'mis', 'mode', 'band',
   'locale', 'source', 'timed', 'input', 'hops', 'alt',
+  // Appended (no version bump): older records decode with tier = null.
+  'tier',
 ] as const;
 const SESSION_FIELDS_V1 = [
   'ts', 'sid', 'phase', 'mode', 'band', 'locale', 'opts', 'items', 'firstCorrect', 'durationMs', 'completed',

@@ -71,7 +71,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | A-22 | **Daily quests are on by default, but are flagged as a risk** and instrumented. The adult view shows the share of play *after* the quest completes (the free-choice measure from the overjustification literature). | You asked for quests. An announced task→reward pairing is the textbook overjustification set-up. The mitigations are in §1.9. | If free-choice play collapses toward 0, turn off `quests.daily` per child. |
 | A-23 | **Head-to-head shared state = URL-fragment "rival cards"** (option **a**), plus automatic same-device boards. | Reasoning in §1.10. | If you later accept a backend, §5 T-5 describes an end-to-end-encrypted sync that reuses the existing merge rules. |
 | A-24 | **The luck component in the slice is the league's weekly wildcard.** Every device picks the same category for the week by hashing the week id, with no server. The **Dice Race** mode (designed, §1.4) adds in-game luck. | The wildcard gives a weaker player a real chance in the only head-to-head that exists today. | Build Dice Race (§4 step 7). |
-| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the weekly themed challenge, the adaptive hint ladder. | Scope boundary of deliverable 3. | See §4 for order and effort. |
+| A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the weekly themed challenge. (The adaptive hint ladder has since been built: §1.11, §4 step 5.) | Scope boundary of deliverable 3. | See §4 for order and effort. |
 | A-26 | **Features ship ON by default.** The owner wants the complete product live, so new modes and features are enabled once their e2e flow passes. Flags remain as per-child switches in the adult view. Readiness gating still applies: a mode's card shows but stays locked until it can be played well (Sprint needs a Solid fluency skill; new modes need placement done), and the Band A home simply omits it until then. Sprint is the first mode switched on under this rule. | With n = 2 known children and an adult who can see and toggle every flag, "dark until proven" mostly hides finished work. The per-child switch keeps the escape hatch the flags were for. | If a feature turns out to hurt a child (e.g. timed play stresses them), switch its flag off for that child in Grown-ups → Features; to ship a future feature dark instead, set its `default: false`. |
 
 ---
@@ -146,7 +146,7 @@ The raw difficulty features are logged per item so the scorers can be re-fitted 
 
 **Belief per (child, skill):** a Gaussian N(μ, s²) over ability.
 
-**Update after a first attempt** with outcome y (1 correct, 0.5 correct after a hint, 0 wrong):
+**Update after a first attempt** with outcome y (1 correct; 1 − 0.25·t correct after hint tier t; 0 wrong):
 
 ```
 μ̃    = μ + 0.03                              expected learning per practice opportunity (AFM/PFA);
@@ -156,6 +156,17 @@ p    = σ(μ̃ − 1.0·(1 − R) − d)                R = predicted recall fro
 s²'  = max(0.05, 1 / (1/s²₀ + p(1 − p)))
 μ'   = μ̃ + s²'·(y − p)
 ```
+
+**Hint credit by tier.** The hint ladder (§1.11) has three tiers, and t is the highest one the child used before answering:
+
+| Tier used | Help given | y if correct |
+|---|---|---|
+| 0 | none | 1 |
+| 1 | strategy prompt | 0.75 |
+| 2 | first hop drawn on the line | 0.5 |
+| 3 | first worked step | 0.25 |
+
+`MODEL.HINT_TIER_PENALTY = 0.25`. A wrong answer is 0 whatever the tier. Only t = 0 counts as a *clean* success: for the memory model, the session's first-try tally and the placement posterior (a hinted placement answer counts as not correct). Records from before the ladder carry `hint` but no `tier`; they count as tier 2 (`MODEL.LEGACY_HINT_TIER`), so their credit is exactly the old single hint's 0.5. Replaying an old log gives bit-identical states, and `tests/hints.test.ts` pins this against states captured from the single-hint engine.
 
 This is Elo, θ ← θ + K(y − p), with **K = s²' derived rather than tuned**. K ≈ 1.2 for a fresh skill (fast cold start), ≈0.3–0.5 at steady state (keeps tracking a learning child). Retries (attempt > 1) do not update ability; they feed resilience metrics.
 
@@ -356,6 +367,16 @@ The item **comes back 3 items later**. Feedback by band:
 
 Input that can't be read is **never** a wrong answer; it just asks again.
 
+**Before a mistake: the hint ladder (built, §4 step 5).** Bands B and C get one hint button that climbs three tiers. Band A is errorless already and gets none, and Sprint gets none. The tiers are derived per item from its worked solution (`src/core/items/hints.ts`):
+
+1. **Strategy prompt**, mapped from the item's solution key. For example, make-ten gives "Make a ten first, then add what is left", ×9 gives "work out ten groups, then take one group away", place-value splits depend on the operation, and Band C gets the distributive law by name. It never contains a number. A key without a prompt gets a generic one.
+2. **First hop** of the worked solution, drawn as a dashed trail on the number line, with its start and end in words.
+3. **First worked step**: the first worked line that does not contain the answer (the old single hint).
+
+A tier that would reveal the answer is skipped: a hop that starts or ends on it (or on a count item's flag), or a step that carries the answer or its negation. `tests/hints.test.ts` renders every tier of 200 items per playable binding, in both languages and both tones, and checks that none shows the answer.
+
+The button **pulses** gently after a pause longer than 1.5× the child's median latency on that skill (clamped to 8–60 s), or after unreadable input. Under reduced motion the pulse is a static highlight. The highest tier used is logged as `tier` and sets the credit (§1.5). The per-child `hints` flag switches the ladder off.
+
 ### 1.12 Internationalisation
 
 **Bundles and parity**
@@ -546,7 +567,8 @@ ts, sid, key (presentation id; retries share it), skill, gen, genV, seed, level,
 p (model prediction BEFORE the response), mu, s2, correct, attempt, latency, hint,
 answer (canonical given), expected, mis (misconception code), mode, band, locale,
 source (placement|warmup|frontier|review|maintain|retry), timed, input (typed|tap|hops),
-hops (button presses — counting vs retrieval strategy signal), alt (right only under the other locale's separators)
+hops (button presses — counting vs retrieval strategy signal), alt (right only under the other locale's separators),
+tier (highest hint-ladder tier used, 0–3; null in records written before the ladder)
 ```
 
 Also: session start/end records with options, duration and completion; and events (`locale_switch`, `status_change`, `unlock`, `placement_done`, `achievement`, `drop`, `streak_freeze`, `quest_done`, `sprint_result`, `flag_change`, `band_change`, `app_open`, …).
@@ -669,6 +691,7 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
 - **Sprint timed mode** (on by default, per-child flag; A-26).
+- **Adaptive hint ladder** (Bands B/C; on by default, per-child `hints` flag): strategy prompt, then first hop on the line, then first worked step. It pulses after a long pause, and credit is 1 − 0.25·tier (§1.5, §1.11).
 - **Feature flags.**
 - **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, storage use and a "keep data safe" button, flags, voice report.
 - **Both locales**, fully wired.
@@ -715,7 +738,7 @@ Useful URL switches:
 
 - Macedonian voice clips are not recorded yet (A-14/A-15). Band A MK is silent until they are, unless the device has an mk voice.
 - Only the number-line mode exists, so Band C content is limited to integers.
-- The weekly themed challenge, hint ladder and puzzle track are designed, not built.
+- The weekly themed challenge and puzzle track are designed, not built.
 - Fractions are trimmed for v1: no typed fractions (answers are taps or whole numbers), denominators ≤ 12, no mixed numbers, and no fraction arithmetic (`f.add.*`, `f.mult`, `f.div` stay planned nodes).
 - Browsers without the Web Locks API (Safari before 15.4) cannot tell a second tab apart, so two tabs playing at once can overwrite each other's newest log month. The whole log is held in memory (≈0.35 MB per child per month); above ~10 MB it should load older months on demand.
 
@@ -737,7 +760,7 @@ Useful URL switches:
 | 2 | **Two-week real-play pilot** with the two children. Read the adult dashboard: calibration, misconceptions, free-choice, session length | 2 weeks elapsed, ~0 dev | Every parameter in §1.5 is a prior; real logs are the first ground truth |
 | 3 | **Done.** **Fraction and decimal generators on the number line** (`f.unit`, `f.equiv`, `f.compare`, `d.tenths`, `d.compare`, `d.addsub`, `d.percent`), with rational tick labels | 4–5 days | Fills the B graph (grades 4–6); placement now resolves B positions (0.46 grades for grades 4–6.5) |
 | 4 | **Target mode** ("Make it"): solver, deal generator, multi-solution reveal; B first, then A (make 10) and C (brackets and powers) | 5 days | The second mode, maximum reasoning per minute, and it introduces the deal-luck element |
-| 5 | **Adaptive hint ladder** (strategy prompt → first hop → worked step; credit y = 1 − 0.25·tier) replacing the single hint | 2 days | B children will need scaffolds on multi-digit work |
+| 5 | **Done: adaptive hint ladder** (strategy prompt → first hop → worked step; credit y = 1 − 0.25·tier) replacing the single hint (§1.11) | 2 days | B children will need scaffolds on multi-digit work |
 | 6 | **Weekly themed challenge** (5-session set, cosmetic set piece) | 2 days | Gives the week a shape |
 | 7 | **Dice Race pass-and-play** on one device, each child on their own adaptive items | 4 days | Real-time head-to-head with luck, zero shared state |
 | 8 | **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** | 8–10 days | The separate reasoning product |
@@ -756,10 +779,10 @@ The ordering assumes n = 2 children. **A/B tests are impossible at n = 2.** The 
 | # | Item | Effort | Expected impact | Build it when real play shows… |
 |---|---|---|---|---|
 | P-1 | **Record MK audio** (see §4) | S | High for any MK pre-reader | Immediately for a Band A child |
-| I-1 | **Instrumentation additions**: time-on-feedback, hint-tier usage, exit points (item index at quit), and a counting-vs-retrieval classifier from `hops` and latency | S | Makes everything below decidable | Before the pilot ends |
+| I-1 | **Instrumentation additions**: time-on-feedback, hint-tier usage (logged per item as `tier` since §4 step 5; not yet charted), exit points (item index at quit), and a counting-vs-retrieval classifier from `hops` and latency | S | Makes everything below decidable | Before the pilot ends |
 | P-2 | **Refit difficulty from logs.** A per-generator logistic model on logged `features` → calibrated level mapping, plus per-skill offsets. Fit offline in a notebook, ship the coefficients as data | M | Removes systematic mis-targeting; the adult view already flags it | ≥300 first attempts on a generator *and* \|bias\| > 0.15 in the calibration tab |
 | P-3 | **Per-child misconception detection.** Bayesian rate per `mis` code (Beta prior from generator base rates). Generators accept a `probe` parameter to produce items that discriminate the bug (e.g. borrow-across-zero). Targeted tip plus a short remediation sequence | M | Moves from "wrong" to "wrong in *this* recurring way" | A code appears ≥3 times in 2 weeks for a child |
-| P-4 | **Adaptive hint ladder** (as §4 step 5), with hint-credit in the model | M | Fewer abandon points on hard items | Hint use > 10% of B/C items, or exits cluster right after errors |
+| P-4 | **Adaptive hint ladder** (as §4 step 5), with hint-credit in the model. **Built in v1** (§1.5, §1.11); what remains is tuning the pulse and the credit from real hint use | M | Fewer abandon points on hard items | Hint use > 10% of B/C items, or exits cluster right after errors |
 | P-5 | **Worked-example fading** (Renkl & Atkinson): first exposures to a new skill show a completed example, then a partially completed one (child makes the last hop), then the full problem | M | Faster acquisition of new procedures | First-5-attempt accuracy on newly unlocked skills < 60% |
 | P-6 | **Self-explanation prompts** after a corrected mistake. B/C choose the reason from 3 options, never free text | S–M | Durable fixes of recurring bugs | The same misconception survives feedback twice |
 | P-7 | **Weekly adult summary**: a local, shareable image or text (Viber) with skills gained, misconceptions and effort | S | Keeps the adult in the loop without dashboards | The adult opens the dashboard less than weekly |

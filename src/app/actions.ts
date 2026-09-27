@@ -13,6 +13,7 @@
  */
 import { getBand } from '../bands/registry';
 import { glickoElo } from '../core/engine/glicko';
+import { hintTierOf } from '../core/engine/observe';
 import { replay } from '../core/engine/replay';
 import { SessionEngine, type AnswerResult, type PresentedItem } from '../core/engine/session';
 import { uid } from '../core/hash';
@@ -155,6 +156,8 @@ export function setUiLocale(locale: LocaleId): void {
 export interface SubmitMeta {
   latencyMs: number;
   hint: boolean;
+  /** Highest hint-ladder tier used (0 = none, 1–3); credit 1 − 0.25·tier. Omit when the mode has no ladder. */
+  hintTier?: number;
   input: InputMethod;
   hops: number;
 }
@@ -257,6 +260,7 @@ export function recordAnswer(
     response,
     latencyMs: meta.latencyMs,
     hint: meta.hint,
+    ...(meta.hintTier !== undefined ? { hintTier: meta.hintTier } : {}),
     locale: p.locale,
     conv: getLocale(p.locale).numbers,
     input: meta.input,
@@ -315,7 +319,7 @@ export function recordAnswer(
   const next: ActiveSession = {
     ...s,
     firstAttempts: s.firstAttempts + (first ? 1 : 0),
-    firstCorrect: s.firstCorrect + (first && correct && !meta.hint ? 1 : 0),
+    firstCorrect: s.firstCorrect + (first && correct && hintTierOf(meta.hint, meta.hintTier) === 0 ? 1 : 0),
     fixed: s.fixed + (!first && correct ? 1 : 0),
     unlocked: res.placementFinished ? s.unlocked : [...s.unlocked, ...res.unlocked],
     mastered: res.statusChange?.to === 'mastered' ? [...s.mastered, res.statusChange.skillId] : s.mastered,
