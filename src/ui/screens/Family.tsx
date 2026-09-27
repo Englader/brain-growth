@@ -6,7 +6,7 @@
 import type { JSX } from 'preact';
 import { acceptRival, myCard, removeRival, rivalLink, toast } from '../../app/actions';
 import { navigate } from '../../app/router';
-import { repo } from '../../app/services';
+import { now, repo } from '../../app/services';
 import { getState, setState, useStore } from '../../app/store';
 import { wildcardForWeek, type LeagueParts, type RivalCard } from '../../core/league';
 import { getCosmetic } from '../../core/rewards/cosmetics';
@@ -32,7 +32,7 @@ function CardAvatar({ c }: { c: RivalCard }): JSX.Element {
 
 function Row({ c, first, local, onRemove }: { c: RivalCard; first: boolean; local: boolean; onRemove?: () => void }): JSX.Element {
   const t = useT();
-  const stale = c.week !== weekKey(Date.now());
+  const stale = c.week !== weekKey(now());
   return (
     <li class={`league-row${first ? ' first' : ''}${stale ? ' stale' : ''}`}>
       <CardAvatar c={c} />
@@ -80,7 +80,7 @@ export function Family(): JSX.Element | null {
     await navigator.clipboard?.writeText(`${text} ${url}`).catch(() => undefined);
     toast(t('family.copied'));
   };
-  const wild = wildcardForWeek(weekKey(Date.now()));
+  const wild = wildcardForWeek(weekKey(now()));
   return (
     <div class="screen family">
       <TopBar title={t('family.title')} onBack={() => navigate('/')} />

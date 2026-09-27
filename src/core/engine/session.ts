@@ -23,7 +23,7 @@ import type { BandId, LocaleId, ModeId, SkillId } from '../types';
 import { difficultyToLevel, levelToDifficulty } from './glicko';
 import type { LearnerModel, SkillState, SkillStatus } from './model';
 import { applyFirstAttempt } from './observe';
-import { SELECTION } from './params';
+import { modeEvidence, SELECTION } from './params';
 import {
   nextPlacementItem,
   placementMemory,
@@ -55,6 +55,8 @@ export interface SessionConfig {
   plannedItems: number;
   stretch: boolean;
   timed: boolean;
+  /** Serve only these skills (round-robin), skipping scheduling and placement. Test hook (SessionOptions.only). */
+  only?: readonly SkillId[];
 }
 
 export interface PresentedItem {
@@ -135,8 +137,9 @@ export class SessionEngine {
     return this.cfg.plannedItems;
   }
 
+  /** Placement items will be served (not done, and this session was given the placement state). */
   get placementRunning(): boolean {
-    return !this.placement.done;
+    return !this.placement.done && !!this.placement.state;
   }
 
   private eligibility(): Eligibility {
@@ -220,7 +223,12 @@ export class SessionEngine {
     let level = 0;
     let source: ItemSource = 'frontier';
 
-    if (!this.placement.done && this.placement.state) {
+    const forced = this.forcedSkill(elig);
+    if (forced) {
+      skill = forced;
+      const st = this.stateFor(skill, now);
+      level = difficultyToLevel(this.ctx.model.difficultyFor(st, this.targetP(), now)) + this.rng.normal() * SELECTION.JITTER;
+    } else if (!this.placement.done && this.placement.state) {
       const cands = this.ctx.graph
         .playableSkills()
         .filter((s) => compatibleBindings(s, elig).length > 0 && (!elig.filter || elig.filter(s, this.states[s.id])));
@@ -296,6 +304,7 @@ export class SessionEngine {
         difficulty: presented.difficulty,
         ts: now,
         timed: this.cfg.timed,
+        weight: modeEvidence(this.cfg.mode.id),
       });
       this.states = effect.states;
       statusChange = effect.statusChange;
@@ -347,6 +356,12 @@ export class SessionEngine {
       alt: grade.altReading,
     };
     return { ...base, record, statusChange, unlocked, willReturn, placementFinished, memoryReview };
+  }
+
+  /** With `only`, the next forced skill this mode can serve (round-robin); null otherwise. */
+  private forcedSkill(elig: Eligibility): SkillDef | null {
+    const ids = (this.cfg.only ?? []).filter((id) => this.ctx.graph.has(id) && compatibleBindings(this.ctx.graph.get(id), elig).length > 0);
+    return ids.length ? this.ctx.graph.get(ids[this.firstPresented % ids.length]!) : null;
   }
 
   private unlockedSet(): Set<SkillId> {

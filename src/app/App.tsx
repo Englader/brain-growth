@@ -3,8 +3,7 @@ import { useEffect } from 'preact/hooks';
 import { Adult } from '../adult/Adult';
 import { getBand } from '../bands/registry';
 import { getLocale } from '../i18n/locales';
-import { SprintIntro } from '../modes/sprint/SprintMode';
-import { getMode } from '../modes/registry';
+import { getMode, modesFor } from '../modes/registry';
 import { Toast } from '../ui/components/common';
 import { accentFor, useT } from '../ui/hooks';
 import { Create } from '../ui/screens/Create';
@@ -24,23 +23,26 @@ function Screen(): JSX.Element | null {
   const profile = useStore((s) => s.profile);
   const profiles = useStore((s) => s.profiles);
   const session = useStore((s) => s.session);
+  const meta = useStore((s) => s.meta);
 
   if (route.startsWith('/rival/')) return <RivalImport payload={route.slice(7)} />;
   if (route === '/adult') return <Adult />;
   if (route === '/new' || (!profile && profiles.length === 0)) return <Create />;
   if (!profile) return <Profiles />;
-  if (route.startsWith('/play/')) {
-    const mode = getMode(route.slice(6));
-    if (!mode || !session) {
+  // Generic mode routes: /intro/<id> (the mode's pre-session screen) and /play/<id>.
+  // Engine modes need the store's session; standalone modes (engine: false) run their own.
+  const [, section, id] = route.split('/');
+  if (section === 'intro' || section === 'play') {
+    const mode = getMode(id ?? '');
+    const visible = !!mode && modesFor(profile, meta?.deviceFlags ?? {}).includes(mode);
+    const C = !mode || !visible ? null : section === 'intro' ? mode.intro ?? null : mode.engine === false || session?.modeId === mode.id ? mode.Component : null;
+    if (!C) {
       navigate('/', true);
       return null;
     }
-    const C = mode.Component;
-    return <C key={session.id} />;
+    return <C key={section === 'play' ? session?.id ?? mode!.id : mode!.id} />;
   }
   switch (route) {
-    case '/intro/sprint':
-      return <SprintIntro />;
     case '/results':
       return <Results />;
     case '/trophies':

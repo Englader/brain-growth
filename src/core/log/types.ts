@@ -52,6 +52,8 @@ export interface SessionOptions {
   timed?: boolean;
   noClock?: boolean;
   quick?: boolean;
+  /** Serve only these skills, bypassing scheduling and placement (e2e `__hopa.forceSkill`; never set by the UI). */
+  only?: SkillId[];
 }
 
 export interface SessionRecord {
@@ -103,4 +105,17 @@ export const EVENTS = {
   SPRINT_RESULT: 'sprint_result',
   FLAG_CHANGE: 'flag_change',
   BAND_CHANGE: 'band_change',
+  // Feature events (names `<feature>_<what>`), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 } as const;
