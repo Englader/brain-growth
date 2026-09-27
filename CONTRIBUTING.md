@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 827 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 867 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
@@ -55,6 +55,8 @@ Since the polish wave, the start-up bundle is budgeted and every screenshot is c
 3. **Add the flag** under your anchor in `FLAGS` (`src/core/flags.ts`) with `default: true` and `labelKey: '<feature>.flag'`.
 4. **Add strings** `<id>.title`, `<id>.desc`, `<id>.flag` (plus optional `@C` tone variants) in your own top-level block of **every** bundle in `src/i18n/locales/`.
 5. **Add an e2e flow** `e2e/flows/NN-<id>.mjs` and **run `npm run check`**. The home screens, routes, "again" and the "tried every mode" achievement pick the mode up automatically.
+
+**The year bar (DESIGN A-29).** Every home follows the school year on its bar, and so does your mode, with no code of its own: a session started from a card gets `SessionOptions.year`, and the scheduler serves only that year's skills (no walls inside it). An engine mode shows as a card in a year where one of its skills lives (its `requires`, `filter` and the band's reading rule decide) and is ready there once placement is done; in other years it becomes a chip in "In other school years" that jumps to the nearest year that has some. A standalone mode (`engine: false`) reads the year from `getState().launchOpts` (or `selectedYear(profile)` after a reload), as the puzzle track does. To be one of today's challenges, add its kind to `EXTRA_KINDS` in `src/core/challenges.ts` and to `EXTRA_MODE` in `src/app/yearActions.ts`. In e2e, `showMode(t, id)` brings the card onto the home (it taps the chip when the child's own year has nothing for it).
 
 ## (b) Add a skill
 
@@ -191,7 +193,9 @@ New modes and features are enabled by default once their e2e flow passes (DESIGN
 
 Service workers are blocked, so every flow runs against the network, unless the flow module exports `serviceWorkers = 'allow'` (as `90-offline` does).
 
-Helpers in `e2e/lib.mjs`: `seed`, `forceSkill`, `recentLog`, `hopa` (call any hook), `state`, `waitNext`, `answer`, `playSession`, `createPlayer`.
+Helpers in `e2e/lib.mjs`: `seed`, `forceSkill`, `recentLog`, `hopa` (call any hook), `state`, `waitNext`, `answer`, `playSession`, `createPlayer`, `showMode` (the card of a mode whose content is in another school year, A-29).
+
+A fresh context starts on the new-player form, and with players on "Who's playing?" (A-29). The child who plays is remembered per tab (`sessionStorage`), so `t.goto` and a reload in the same page stay on that child, and `seed` opens the child's home directly, as before.
 
 Hooks exist only with `?e2e` (`src/app/testHooks.ts`, `window.__hopa`):
 
@@ -206,6 +210,7 @@ Flow numbers:
 
 | Feature | Flow |
 |---|---|
+| (start: picker, year bar, today's challenges) | `05-start` |
 | (core) | `10-core` |
 | (hooks) | `11-hooks` |
 | pilot | `15-pilot` |

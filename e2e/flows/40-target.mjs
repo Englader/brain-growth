@@ -6,7 +6,7 @@
  * and its errorless completion. Checks the log: item records graded by the
  * checker, the hint tier, and extra ways as events (not item records).
  */
-import { forceSkill, recentLog, seed, state } from '../lib.mjs';
+import { forceSkill, recentLog, seed, showMode, state } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -102,6 +102,7 @@ export default async function target(t) {
 
   // ── Band B: solve, hint, another way, other ways ──────────────────────────
   const pidB = await seed(t, { name: 'Марко', age: 9, g: 3.5, flags: { 'debug.shortSessions': true } });
+  await showMode(t, 'target'); // Target's deals live in years 1, 3 and 7 (A-29)
   assert(await page.locator('.mode-target .btn:not([disabled])').count(), 'Target is ready on the Band B home');
   await page.locator('.mode-target').scrollIntoViewIfNeeded();
   await t.shot('home-B');
@@ -157,6 +158,7 @@ export default async function target(t) {
 
   // ── Band C: "show me" ends the deal as not solved ─────────────────────────
   const pidC = await seed(t, { name: 'Стефан', age: 13, g: 7.5, flags: { 'debug.shortSessions': true } });
+  await showMode(t, 'target');
   await forceSkill(t, 'int.addsub');
   await page.locator('.mode-target .btn').click();
   await page.waitForSelector('.target-play .tcard');
@@ -188,10 +190,13 @@ export default async function target(t) {
   await page.waitForSelector('.results');
 
   // ── Band A: make 10 with dot cards, text-free ─────────────────────────────
-  // Not ready yet (make 10 is still locked for this child): no tile at all, never a locked state in Band A.
-  await seed(t, { name: 'Лена', age: 6, g: 1.2 });
-  assert((await page.locator('.mode-tray .mode-target').count()) === 0, 'no Target tile before make 10 is unlocked');
+  // Not ready yet (placement still to come): no tile at all, never a locked state in Band A.
+  await seed(t, { name: 'Лена', age: 6 });
+  assert((await page.locator('.mode-tray .mode-target').count()) === 0, 'no Target tile before placement');
+  // In year 1, where make 10 lives, the tile is there: a chosen year has no walls (A-29).
   const pidA = await seed(t, { name: 'Ана', age: 7, g: 2.5, flags: { 'debug.shortSessions': true } });
+  assert((await page.locator('.mode-tray .mode-target').count()) === 0, 'no make-10 deals in year 2');
+  await page.locator('.year-bar .yb-prev').click();
   await forceSkill(t, 'as.bonds.10');
   const tile = page.locator('.mode-tray .mode-target');
   assert(await tile.count(), 'Target is a big tile on the Band A home');

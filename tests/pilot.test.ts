@@ -33,7 +33,7 @@ const item = (over: Partial<ItemRecord> = {}): ItemRecord => {
 };
 const end = (over: Partial<SessionRecord> = {}): SessionRecord => ({
   type: 'session', ts: T + 100_000, sid: 's1', phase: 'end', mode: 'hop', band: 'B', locale: 'mk', opts: {},
-  items: 5, firstCorrect: 4, durationMs: 300_000, completed: true, lastCorrect: true, exitIndex: null, ...over,
+  items: 5, firstCorrect: 4, durationMs: 300_000, completed: true, lastCorrect: true, exitIndex: null, year: null, ...over,
 });
 const ev = (name: string, data: Record<string, unknown> | null, sid: string | null = 's1'): EventRecord => ({ type: 'event', ts: T, sid, name, data });
 
@@ -157,7 +157,9 @@ describe('session record pilot fields', () => {
       expect(enc[1]).toBe(1);
       expect(decodeRecord(JSON.parse(JSON.stringify(enc)))).toEqual(r);
     }
-    expect(encodeRecord(end({ completed: false, lastCorrect: false, exitIndex: 4 })).slice(-3)).toEqual([0, 0, 4]);
+    // …followed by the school year (A-29), appended after them the same way.
+    expect(encodeRecord(end({ completed: false, lastCorrect: false, exitIndex: 4 })).slice(-4)).toEqual([0, 0, 4, null]);
+    expect(encodeRecord(end({ year: 5 })).slice(-1)).toEqual([5]);
   });
 
   it('old session records (written before the fields existed) decode with null', () => {
@@ -166,8 +168,9 @@ describe('session record pilot fields', () => {
     expect(r).toMatchObject({ type: 'session', sid: 's9', completed: false, items: 10 });
     expect(r).toHaveProperty('lastCorrect', null);
     expect(r).toHaveProperty('exitIndex', null);
+    expect(r).toHaveProperty('year', null);
     // A record from before the fields, missing from memory as `undefined`, encodes to the same nulls.
-    expect(encodeRecord(end({ lastCorrect: undefined, exitIndex: undefined })).slice(-2)).toEqual([null, null]);
+    expect(encodeRecord(end({ lastCorrect: undefined, exitIndex: undefined, year: undefined })).slice(-3)).toEqual([null, null, null]);
   });
 
   it('lastAnswerCorrect reads only this session, back to its start; exitIndex only for early exits', () => {

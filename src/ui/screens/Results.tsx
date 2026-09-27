@@ -86,7 +86,8 @@ export function Results(): JSX.Element | null {
   const bandA = band.id === 'A';
   const again = (): void => {
     const mode = getMode(r.modeId);
-    if (mode) launchMode(mode, { ...(r.opts.stretch ? { stretch: true } : {}), ...(r.opts.theme ? { theme: r.opts.theme } : {}) }, true);
+    // The same mode in the same school year (a challenge's own options are not repeated: "again" is free play).
+    if (mode) launchMode(mode, { ...(r.opts.stretch ? { stretch: true } : {}), ...(r.opts.theme ? { theme: r.opts.theme } : {}), ...(r.opts.year !== undefined ? { year: r.opts.year } : {}) }, true);
     else navigate('/', true);
   };
   const achIcon = (id: string): string => ACHIEVEMENTS.find((a) => a.id === id)?.icon ?? 'star';

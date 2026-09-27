@@ -59,8 +59,15 @@ export interface StartedPuzzle<P> {
   ts: number;
   puzzle: P;
   features: Record<string, number>;
+  /** School year it was chosen for (set by the app layer; logged on the event). */
+  year?: number;
 }
 
+/**
+ * Generate a puzzle for `target` success from the type's rating. `shift` is a
+ * level offset for a school year above or below the child's own (DESIGN A-29,
+ * src/core/years.ts puzzleLevelShift): 0 by default, so nothing else moves.
+ */
 export function startPuzzle<P, A>(
   def: PuzzleTypeDef<P, A>,
   band: BandId,
@@ -68,8 +75,9 @@ export function startPuzzle<P, A>(
   target: number,
   now: number,
   seed: number,
+  shift = 0,
 ): StartedPuzzle<P> {
-  const req = clamp01(puzzleLevelFor(rating, target, now, band) + levelJitter(seed));
+  const req = clamp01(puzzleLevelFor(rating, target, now, band) + shift + levelJitter(seed));
   const g = def.generate(createRng(seed), band, req);
   return {
     type: def.id,

@@ -13,17 +13,20 @@ import type { LocaleId } from '../core/types';
 import { allLocales, isLocaleLoaded, loadAllLocales, loadedLocales, loadLocale, onLocaleLoaded } from '../i18n/locales';
 import { guessLocale } from '../ui/hooks';
 import { repo } from './services';
+import { tabChild } from './tab';
 import { getState, setState } from './store';
 
 /**
- * The language of the first screen: the active child's, else the one chosen
- * on this device before any child existed, else the browser's. Profiles and
- * meta live in localStorage (A-8), so this is known before storage init ends.
+ * The language of the first screen: the child playing in this tab (a reload),
+ * else the one chosen on this device for "Who's playing?" and the new-player
+ * form, else the browser's. Profiles and meta live in localStorage (A-8), so
+ * this is known before storage init ends.
  */
 export function startLocale(): LocaleId {
   try {
     const meta = repo.meta();
-    const active = meta.activeProfileId ? repo.loadProfile(meta.activeProfileId) : null;
+    const pid = tabChild();
+    const active = pid ? repo.loadProfile(pid) : null;
     return active?.locale ?? meta.uiLocale ?? guessLocale();
   } catch {
     return guessLocale();

@@ -29,7 +29,7 @@ export default async function core(t) {
   await t.shot('picker');
 
   // ── Band B (age 9) ────────────────────────────────────────────────────
-  await page.locator('.player-tile.add').click();
+  await page.locator('.add-player').click();
   await createPlayer(t, 'Марко', 9);
   await t.shot('home-B');
   await page.locator('.mode-hop .btn.primary.big').click();
@@ -58,7 +58,9 @@ export default async function core(t) {
   await t.goto('/');
   await page.waitForSelector('.home');
   await t.shot('home-B-sprint');
-  const sprintBtn = page.locator('.mode-sprint .btn:not([disabled])');
+  // The year bar (A-29): Sprint's Solid facts may sit in another school year; its card offers that year.
+  if (await page.locator('.yb-elsewhere.mode-sprint').count()) await page.locator('.yb-elsewhere.mode-sprint').click();
+  const sprintBtn = page.locator('.mode-card.mode-sprint .btn:not([disabled])');
   if (await sprintBtn.count()) {
     await sprintBtn.click();
     await t.shot('sprint-intro');
@@ -80,7 +82,7 @@ export default async function core(t) {
   // ── Band C (age 13) ───────────────────────────────────────────────────
   await t.goto('/settings');
   await page.getByRole('button', { name: 'Смени играч' }).click();
-  await page.locator('.player-tile.add').click();
+  await page.locator('.add-player').click();
   await createPlayer(t, 'Стефан', 13);
   await t.shot('home-C');
   await page.locator('.mode-hop .btn.primary.big').click();

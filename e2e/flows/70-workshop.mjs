@@ -15,7 +15,7 @@
  * the swapped rectangle comes back (attempt 2) and is solved; results.
  * Then the Hop "walk the sides" item on geo.perimeter: typed wrong, worked hops.
  */
-import { answer, forceSkill, recentLog, seed, state, waitNext } from '../lib.mjs';
+import { answer, forceSkill, recentLog, seed, showMode, state, waitNext } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -105,6 +105,7 @@ export default async function workshop(t) {
 
   // ── Home: the Workshop card, ready after placement ─────────────────────
   const pid = await seed(t, { name: 'Лука', age: 10, g: 4.6, flags: { 'debug.shortSessions': true } });
+  await showMode(t, 'workshop'); // fraction bars and rectangles live in years 3 and 4 (A-29)
   const card = page.locator('.mode-card.mode-workshop');
   assert((await card.count()) === 1, 'the Workshop card is on the Band B home');
   assert(await card.locator('.btn:not([disabled])').count(), 'the Workshop is ready after placement');
@@ -263,6 +264,7 @@ export default async function workshop(t) {
   await seed(t, { name: 'Сара', age: 13, g: 5, flags: { 'debug.shortSessions': true } });
   assert((await state(t)).band === 'C', 'a 13-year-old is Band C');
   await forceSkill(t, 'geo.area.rect');
+  await showMode(t, 'workshop');
   await page.locator('.mode-card.mode-workshop .btn').click();
   s = await nextBoard(t, 'none');
   {

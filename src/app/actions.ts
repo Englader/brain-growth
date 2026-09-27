@@ -23,7 +23,6 @@ import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../c
 import { EVENTS } from '../core/log/types';
 import { isEnabled } from '../core/flags';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
-import { questsForDay } from '../core/quests';
 import { exitIndex, lastAnswerCorrect } from '../core/pilot/exits';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
@@ -38,12 +37,14 @@ import { preloadMode } from '../modes/lazy';
 import { defaultPlannedItems, getMode } from '../modes/registry';
 import type { ModeDef } from '../modes/types';
 import { whenLocaleReady } from './localeActions';
-import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
+import { appendLog, event, forgetLog, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
 import { nextSeed, now, repo, storage, testOverrides } from './services';
 import { seasonalDropDate } from './seasonActions';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
+import { rememberTabChild, tabChild } from './tab';
 import { pinWeeklyFor, settleWeekly, weeklyBoostFor } from './weeklyActions';
+import { focusFilter, settleChallenge } from './yearActions';
 
 export { evalCtx, recentLog } from './persist';
 
@@ -63,7 +64,9 @@ export function boot(): void {
   const meta = repo.meta();
   const profiles = repo.listProfiles();
   setState({ meta, profiles, readOnly: repo.readOnly, otherTab, booted: true });
-  const active = profiles.find((p) => p.id === meta.activeProfileId);
+  // A fresh open starts on "Who's playing?" (two children share one computer, DESIGN A-29); a reload in the
+  // same tab keeps the child who was playing (src/app/tab.ts).
+  const active = profiles.find((p) => p.id === tabChild());
   if (active) openProfile(active);
 }
 
@@ -77,13 +80,13 @@ export function openProfile(p: Profile): void {
     next = { ...next, streak };
     recs.push(event(EVENTS.STREAK_FREEZE, { days: frozen }, null));
   }
-  if (questsOn(next) && next.quests?.day !== today) {
-    next = { ...next, quests: { day: today, ids: questsForDay(p.id, today, p.band), done: [], rewarded: false } };
-  }
+  // Today's challenges replaced the daily quest card (A-29): no new quests are drawn; old ones stay as data.
   next = pinWeeklyFor(next, t);
   setState({ profile: next });
   appendLog(p.id, recs);
   next = unlockAchievements(next, 'open', null).profile;
+  rememberTabChild(p.id);
+  // Still recorded as the device's last child (an older cached build reopens it); a fresh open no longer does.
   repo.saveMeta({ activeProfileId: p.id });
   setState({ meta: repo.meta() });
   saveProfile(next);
@@ -97,6 +100,7 @@ export function selectProfile(id: string): void {
 }
 
 export function signOut(): void {
+  rememberTabChild(null);
   repo.saveMeta({ activeProfileId: null });
   setState({ profile: null, meta: repo.meta(), session: null, lastResult: null });
   navigate('/', true);
@@ -128,6 +132,7 @@ export function updateProfile(pid: string, patch: Partial<Profile>): void {
 }
 
 export function deleteProfile(pid: string): void {
+  if (tabChild() === pid) rememberTabChild(null);
   repo.deleteProfile(pid);
   forgetLog(pid);
   setState((s) => ({
@@ -219,10 +224,13 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   const sid = uid('s');
   const only = opts.only ?? testOverrides.only ?? undefined;
   const o: SessionOptions = only ? { ...opts, only } : opts;
-  let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
+  let planned = o.items ?? (mode.plannedItems ?? defaultPlannedItems)(band, o);
   if (shortSessions(p, deviceFlags)) planned = Math.min(planned, 4);
   const timed = !!mode.timed && !o.noClock;
   const boost = weeklyBoostFor(p, o.theme);
+  // A chosen school year's focus (today's fraction/decimal challenge) narrows the mode's own filter.
+  const focus = focusFilter(o.focus);
+  const filter: ModeDef['filter'] = focus ? (skill, st) => focus(skill) && (!mode.filter || mode.filter(skill, st)) : mode.filter;
   const engine = new SessionEngine(
     { graph: GRAPH, model: glickoElo, now },
     { skills: p.skills, placement: mode.placement ? p.placement : { ...p.placement, state: null } },
@@ -236,12 +244,13 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
         maxReturns: mode.maxReturns ? mode.maxReturns(band) : band.maxReturns,
         reviewFloor: band.reviewFloorGrade,
       },
-      mode: { id: mode.id, requires: mode.requires, ...(mode.filter ? { filter: mode.filter } : {}) },
+      mode: { id: mode.id, requires: mode.requires, ...(filter ? { filter } : {}) },
       plannedItems: planned,
       stretch: !!o.stretch,
       timed,
       ...(only ? { only } : {}),
       ...(boost ? { boost } : {}),
+      ...(o.year !== undefined ? { year: o.year } : {}),
     },
   );
   const masteryStart: Record<string, number> = {};
@@ -270,6 +279,7 @@ export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionO
   const rec: SessionRecord = {
     type: 'session', ts: t, sid, phase: 'start', mode: modeId, band: p.band, locale: p.locale,
     opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null, lastCorrect: null, exitIndex: null,
+    year: o.year ?? null,
   };
   appendLog(p.id, [rec]);
   return session;
@@ -382,6 +392,7 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
     items: s.firstAttempts, firstCorrect: s.firstCorrect, durationMs: t - s.startedAt, completed,
     lastCorrect: lastAnswerCorrect(recentLog(p.id), s.id), exitIndex: exitIndex(completed, s.engine.stats.firstPresented),
+    year: s.opts.year ?? null,
   };
   appendLog(p.id, [rec]);
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };
@@ -415,7 +426,11 @@ export function finishSession(profile: Profile, session: ActiveSession, complete
   const weekly = settleWeekly(p, s.id, t, s.rng);
   p = weekly.profile;
   gifts.push(...weekly.gifts);
-  const extras = [...(extra.extras ?? []), ...weekly.extras];
+  // Today's challenge (A-29): ticked when the session ran to its end; the day's first full set brings a gift.
+  const challenge = settleChallenge(p, s.opts, completed, s.firstAttempts, s.id, t, s.rng);
+  p = challenge.profile;
+  gifts.push(...challenge.gifts);
+  const extras = [...(extra.extras ?? []), ...weekly.extras, ...challenge.extras];
   const final = p;
   const skills = s.skillsSeen
     .filter((id) => final.skills[id])
@@ -457,6 +472,8 @@ export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
 export function launchMode(mode: ModeDef, opts: SessionOptions = {}, replace = false): void {
   // Lazy screens (modes/lazy.tsx) start fetching now, so the chunk is usually in before the route renders.
   preloadMode(mode);
+  // Intro screens and standalone modes start their own sessions: they read the year and challenge from here.
+  setState({ launchOpts: opts });
   if (mode.launch) mode.launch(opts);
   else if (mode.intro) navigate(`/intro/${mode.id}`, replace);
   else startSession(mode.id, opts);

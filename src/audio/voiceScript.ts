@@ -36,6 +36,8 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.gift': ['voice.gift'],
   'voice.sessionDone': ['voice.sessionDone'],
   'voice.trophy': ['voice.trophy'],
+  // Today's challenges on the Band A home (DESIGN A-29): the speaker button next to the tiles.
+  'voice.today': ['voice.today'],
   // Feature voice lines (keys `voice.<feature>.*`), each under its own anchor:
   // ── slot: frac ──
   // "Hop to 3 out of 4 parts": grammatical with plain number words in both languages

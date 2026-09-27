@@ -8,7 +8,7 @@
  * Hop products written with the Macedonian ·), switches period, and renders
  * the list in English too.
  */
-import { answer, forceSkill, hopa, recentLog, seed, waitNext } from '../lib.mjs';
+import { answer, forceSkill, hopa, recentLog, seed, showMode, waitNext } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -82,6 +82,7 @@ export default async function help(t) {
 
   // ── Target: "show me" on the first deal ──
   await forceSkill(t, 'md.mult.facts');
+  await showMode(t, 'target'); // Target's deals live in years 1, 3 and 7 (A-29)
   await page.locator('.mode-target').scrollIntoViewIfNeeded();
   await page.locator('.mode-target .btn').click();
   await page.waitForSelector('.target-play .tcard');

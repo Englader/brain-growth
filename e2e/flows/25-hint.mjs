@@ -7,7 +7,7 @@
  * English mid-item. The answer is logged with tier 3. A Band C child sees
  * the teen tone; Sprint offers no hints.
  */
-import { answer, forceSkill, recentLog, seed, state, waitNext } from '../lib.mjs';
+import { answer, forceSkill, recentLog, seed, showMode, state, waitNext } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -39,7 +39,8 @@ export default async function hint(t) {
   await page.waitForSelector('.create');
   const pid = await seed(t, { name: 'Марко', age: 9, g: 3.5 });
 
-  // Sprint never offers hints.
+  // Sprint never offers hints. (Its Solid facts sit in another school year than his own: A-29.)
+  await showMode(t, 'sprint');
   const sprint = page.locator('.mode-sprint .btn:not([disabled])');
   assert(await sprint.count(), 'Sprint is ready for a placed Band B child');
   await sprint.click();
@@ -113,6 +114,7 @@ export default async function hint(t) {
 
   // Band C: the teen tone (@C), on multi-digit multiplication (distributive law).
   await seed(t, { name: 'Стефан', age: 13, g: 7 });
+  await showMode(t, 'hop'); // his own year 8 has nothing on the number line yet
   await forceSkill(t, 'md.mult.multi');
   await page.locator('.mode-hop .btn.primary.big').click();
   await waitNext(t, 'none');

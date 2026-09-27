@@ -3,6 +3,7 @@
  * document per child. Cheap to load, cheap to merge, and derivable in large
  * part from the log (replay) if it is ever lost or reshaped.
  */
+import type { ChallengeDay } from './challenges';
 import { glickoElo } from './engine/glicko';
 import type { SkillState } from './engine/model';
 import type { PlacementState } from './engine/placement';
@@ -45,7 +46,12 @@ export interface Profile {
   flags: Record<string, boolean>;
   settings: { sound: boolean; voice: boolean; noClock: boolean; petName: string | null };
   sprint: { best: SprintRun | null; history: Array<Omit<SprintRun, 'splits'>> };
+  /** Daily quest (kept for old data; today's challenges replaced its card, DESIGN A-29). */
   quests: { day: string; ids: string[]; done: string[]; rewarded: boolean } | null;
+  /** School year last chosen on the year bar (DESIGN A-29); null = the child's own year from age. */
+  year: number | null;
+  /** Today's challenges: pinned sets and ticks per year, and the day's gift (src/core/challenges.ts). */
+  challenges: ChallengeDay | null;
   // Feature fields (add a default in createProfile and a rule in data/merge.ts), each under its own anchor:
   // ── slot: frac ──
   // ── slot: hint ──
@@ -103,6 +109,8 @@ export function createProfile(input: NewProfileInput, now: number): Profile {
     settings: { sound: true, voice: true, noClock: false, petName: null },
     sprint: { best: null, history: [] },
     quests: null,
+    year: null,
+    challenges: null,
     // Feature defaults, each under its own anchor:
     // ── slot: frac ──
     // ── slot: hint ──

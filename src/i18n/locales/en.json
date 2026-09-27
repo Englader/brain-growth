@@ -28,9 +28,6 @@
     "loading": "{lang}: loading…",
     "failed": "That language could not be loaded just now. Check the connection and try again."
   },
-  "grade": {
-    "label": "{g, select, 0 {Preschool} other {Grade {g}}}"
-  },
   "profiles": {
     "title": "Who's playing?",
     "add": "New player",
@@ -187,6 +184,7 @@
     "gift": "A present for you!",
     "sessionDone": "Great playing today!",
     "trophy": "You found a trophy!",
+    "today": "Today's challenges! Tap a picture to play.",
     "frac": {
       "hopTo": "Hop to {n} out of {d} parts!",
       "outOf": "out of",
@@ -378,10 +376,10 @@
       "mastery": "Skills solid and mastered over time",
       "masteredSeries": "Mastered",
       "proficientSeries": "Solid",
-      "freeChoice": "Play after the daily quest was complete: {pct, percent} of problems",
-      "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, quests may be replacing interest — consider turning them off.",
+      "freeChoice": "Play after today's challenges were complete: {pct, percent} of problems",
+      "freeChoiceHelp": "A free-choice measure of intrinsic motivation. If it drops toward 0, the challenges may be replacing interest — consider turning them off.",
       "noData": "No play recorded yet.",
-      "freeChoiceNone": "No completed daily quests yet."
+      "freeChoiceNone": "No completed set of today's challenges yet."
     },
     "skills": {
       "skill": "Skill",
@@ -460,7 +458,7 @@
   },
   "flag": {
     "mode.sprint": "Timed “race your shadow” on Solid facts (a card the child chooses; Bands B and C).",
-    "quests.daily": "Daily quest card with 2–3 varied objectives.",
+    "quests.daily": "Today's challenges, in place of the daily quest: a short set of games for the school year chosen on the child's home, and a surprise gift once a set is done.",
     "hints": "Hint ladder (Bands B and C): a strategy, then the first hop, then a worked step. The more help used, the less the answer counts as evidence.",
     "league.family": "Family board and card sharing.",
     "audio.tts": "Use the device's speech voice when no recorded clip exists.",
@@ -1308,6 +1306,46 @@
       "100": "one hundred"
     }
   },
+  "year": {
+    "label": "{n, select, 0 {Pre-school} other {Year {n}}}",
+    "bar": "School year",
+    "prev": "Previous: {year}",
+    "next": "Next: {year}",
+    "own": "your year",
+    "own@C": "your school year",
+    "elsewhere": "In other school years",
+    "modeIn": "{mode} in {year}",
+    "switchAs": "{name}: switch player",
+    "today": {
+      "title": "Today's challenges",
+      "how": "Short games for {year}: tap one to play.",
+      "how@C": "A short set for {year}.",
+      "progress": "{done} of {total} done",
+      "progress@C": "{done}/{total} done",
+      "complete": "All of today's challenges are done. Great work!",
+      "complete@C": "Today's set is complete.",
+      "gift": "All of today's challenges are done — there's a gift for you!",
+      "gift@C": "Today's challenges complete: new reward unlocked.",
+      "ticked": "Today's challenge done: {done} of {total}",
+      "ticked@C": "Today's challenges: {done}/{total}",
+      "locked": "Opens after your first practice",
+      "locked@C": "Available after your first practice",
+      "off": "Not available now",
+      "practice": "Practice",
+      "puzzle": "Puzzle",
+      "fracdec": "Fractions and decimals",
+      "spark": "Quick spark",
+      "spark@C": "Quick 3",
+      "items": "{n, plural, one {# problem} other {# problems}}",
+      "done": "Done: {name}"
+    },
+    "adult": {
+      "title": "Years tried",
+      "row": "{year}: {n, plural, one {# session} other {# sessions}}",
+      "none": "No sessions in a chosen school year yet.",
+      "help": "Sessions started from the year bar on the child's home, per school year."
+    }
+  },
   "help": {
     "intro": "Where your child needed help: a hint (the Hint button in the games) or “Show me”, which shows the whole answer. It tells you what to practise together. Children never see this page.",
     "period": "Period",
@@ -1460,9 +1498,9 @@
     "feedback": "Time on feedback",
     "feedbackOf": "median of {n, plural, one {# mistake} other {# mistakes}}",
     "feedbackNone": "No mistakes yet",
-    "freeChoice": "Play after the quest",
+    "freeChoice": "Play after today's challenges",
     "freeChoiceOf": "of that day's problems",
-    "freeChoiceNone": "No quest completed",
+    "freeChoiceNone": "No set of today's challenges completed",
     "session": "last 30 days",
     "calTitle": "Largest calibration gaps",
     "calNone": "Shown after 15 first tries on a skill.",

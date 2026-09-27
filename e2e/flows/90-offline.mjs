@@ -8,7 +8,7 @@
  *    (a lazy screen), Target (a lazy screen and lazy generators) and the
  *    grown-ups' view (a lazy chunk that brings every language).
  */
-import { seed, waitNext } from '../lib.mjs';
+import { seed, showMode, waitNext } from '../lib.mjs';
 
 export const serviceWorkers = 'allow';
 
@@ -47,7 +47,8 @@ export default async function offline(t) {
   assert(await page.locator('.home').getByText(/[A-Za-z]{4}/).count(), 'English text after an offline switch');
   await t.shot('home-en-offline');
 
-  // Sprint: its intro and race screen are one lazy chunk.
+  // Sprint: its intro and race screen are one lazy chunk. (Its Solid facts are in another school year: A-29.)
+  await showMode(t, 'sprint');
   await page.locator('.mode-sprint .btn:not([disabled])').click();
   await page.waitForSelector('.screen .btn.primary.big');
   await page.locator('.screen .btn.primary.big').click();
@@ -65,6 +66,7 @@ export default async function offline(t) {
   await page.waitForSelector('.home');
 
   // Target: a lazy board, and its deal generator and solver load on demand before the first deal.
+  await showMode(t, 'target');
   await page.locator('.mode-target .btn:not([disabled])').click();
   await page.waitForSelector('.target-play .tcard');
   assert(await page.evaluate(() => window.__hopa.getState().session?.current?.item.genId?.startsWith('make')), 'a deal from the on-demand generator');

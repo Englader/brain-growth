@@ -8,7 +8,7 @@ import { useEffect } from 'preact/hooks';
 import { speaker } from '../../app/services';
 import { getBand } from '../../bands/registry';
 import type { Profile } from '../../core/profile';
-import { puzzleTypesFor } from '../../puzzles';
+import { getPuzzleType } from '../../puzzles';
 import { TopBar } from '../../ui/components/common';
 import { Icon, type IconName } from '../../ui/components/Icon';
 import { useT } from '../../ui/hooks';
@@ -41,15 +41,18 @@ function PictureA({ type }: { type: string }): JSX.Element {
   );
 }
 
-export function Shelf({ profile, harder, setHarder, onPick, onExit }: {
+export function Shelf({ profile, types: typeIds, year, harder, setHarder, onPick, onExit }: {
   profile: Profile;
+  /** Types offered (the school year's, DESIGN A-29), in shelf order. */
+  types: readonly string[];
+  year: number | undefined;
   harder: boolean;
   setHarder: (v: boolean) => void;
   onPick: (type: string) => void;
   onExit: () => void;
 }): JSX.Element {
   const t = useT();
-  const types = puzzleTypesFor(profile.band);
+  const types = typeIds.map(getPuzzleType);
   const bandA = profile.band === 'A';
   const voiceOn = profile.settings.voice && getBand(profile.band).audio !== 'off';
   useEffect(() => {
@@ -73,6 +76,7 @@ export function Shelf({ profile, harder, setHarder, onPick, onExit }: {
   return (
     <div class="screen puzzle-shelf">
       <TopBar title={t('puzzle.title')} onBack={onExit} />
+      {year !== undefined && <p class="pz-year">{t('year.label', { n: String(year) })}</p>}
       <p class="muted">{t('puzzle.desc')}</p>
       <div class="row wrap">
         <button type="button" class={`chip pz-harder${harder ? ' on' : ''}`} aria-pressed={harder} onClick={() => setHarder(!harder)}>

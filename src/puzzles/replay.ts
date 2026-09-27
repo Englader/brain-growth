@@ -40,6 +40,8 @@ export interface PuzzleEvent {
   target?: number;
   /** Time spent (ms). Logged for analysis only; never read by the rating. */
   ms?: number;
+  /** School year the puzzle was chosen for (DESIGN A-29); absent when none was. Never read by the rating. */
+  year?: number;
   /**
    * Violated-constraint ids of each failed check, joined by '+', in order
    * (e.g. ["below", "wide+above"]). Precise here even where the child only
@@ -75,6 +77,7 @@ export function finishPuzzle(
     ts: started.ts,
     req: started.req,
     target: started.target,
+    ...(started.year !== undefined ? { year: started.year } : {}),
     ...(outcome.ms !== undefined ? { ms: outcome.ms } : {}),
     ...(outcome.fails?.length ? { fails: [...outcome.fails] } : {}),
   };
@@ -108,6 +111,7 @@ export function parsePuzzleEvent(data: unknown, fallbackTs?: number): PuzzleEven
     ts,
     ...(finite(d.req) ? { req: d.req } : {}),
     ...(finite(d.target) ? { target: d.target } : {}),
+    ...(finite(d.year) ? { year: d.year } : {}),
     ...(finite(d.ms) ? { ms: d.ms } : {}),
     ...(Array.isArray(d.fails) ? { fails: d.fails.map(String) } : {}),
   };

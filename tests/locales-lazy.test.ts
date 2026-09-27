@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { startLocale, whenLocaleReady } from '../src/app/localeActions';
 import { saveProfile } from '../src/app/persist';
 import { repo } from '../src/app/services';
+import { rememberTabChild } from '../src/app/tab';
 import { getState, setState } from '../src/app/store';
 import { createProfile } from '../src/core/profile';
 import { makeT, speakingLocale, tk } from '../src/i18n/i18n';
@@ -131,13 +132,25 @@ describe('a language switch waits for its bundle', () => {
 });
 
 describe('the first screen’s language', () => {
-  it('is the active child’s, else the device’s choice before any child, else the browser’s', () => {
+  it('is the language of the child playing in this tab, else the device’s choice for the picker, else the browser’s', () => {
+    const store = new Map<string, string>();
+    vi.stubGlobal('sessionStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+      removeItem: (k: string) => void store.delete(k),
+    });
     repo.init();
     repo.saveMeta({ activeProfileId: null, uiLocale: 'mk' });
     expect(startLocale()).toBe('mk');
     const kid = saveProfile(createProfile({ name: 'Ema', age: 9, locale: 'en', avatar: 'color.green' }, Date.now()));
+    // The device's last child alone does not reopen on a fresh visit ("Who's playing?" shows, in the device's language).
     repo.saveMeta({ activeProfileId: kid.id });
+    expect(startLocale()).toBe('mk');
+    // A reload while she plays in this tab: her language.
+    rememberTabChild(kid.id);
     expect(startLocale()).toBe('en');
+    rememberTabChild(null);
+    vi.unstubAllGlobals();
   });
 });
 

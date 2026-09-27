@@ -17,6 +17,13 @@
  * of its items straight from those theme candidates (still never the same
  * skill three times in a row). Maintenance is never boosted. Sessions
  * without a boost consume the RNG exactly as before.
+ *
+ * A session for a chosen school year (Eligibility.year, DESIGN A-29) sees
+ * only that year's skills (grade ∈ [year, year + 1)). Inside it there are no
+ * walls: a locked skill counts as available (the engine starts it from its
+ * prior, low), and the band's review floor does not apply, because the child
+ * chose the year. Warm-up, the new-skill cap and "never three in a row" work
+ * as before, within the year. Without a year nothing changes.
  */
 import type { Capability } from '../items/types';
 import type { Rng } from '../rng';
@@ -25,6 +32,7 @@ import type { GeneratorBinding, SkillDef } from '../skills/types';
 import type { SkillId } from '../types';
 import { getGenerator } from '../items/generators/registry';
 import { boostedWeight, type ThemeBoost } from '../weekly';
+import { inYear } from '../years';
 import { isDue, retrievability } from './memory';
 import type { LearnerModel, SkillState } from './model';
 import { SELECTION } from './params';
@@ -40,6 +48,8 @@ export interface Eligibility {
   filter?: (skill: SkillDef, state: SkillState | undefined) => boolean;
   /** Weekly theme boost: frontier and review weights of these skills ×factor; maintenance untouched. */
   boost?: ThemeBoost;
+  /** School year browsed (DESIGN A-29): only skills with grade ∈ [year, year + 1); locked ones count as available; no review floor. */
+  year?: number;
 }
 
 export function compatibleBindings(skill: SkillDef, elig: Eligibility): GeneratorBinding[] {
@@ -83,14 +93,17 @@ export function classify(input: ScheduleInput): { frontier: Cand[]; review: Cand
   const frontier: Cand[] = [];
   const review: Cand[] = [];
   const maintain: Cand[] = [];
+  const year = eligibility.year;
   for (const skill of graph.playableSkills()) {
+    if (year !== undefined && !inYear(skill, year)) continue;
     const st = states[skill.id];
     if (!compatibleBindings(skill, eligibility).length) continue;
     if (eligibility.filter && !eligibility.filter(skill, st)) continue;
-    const unlocked = isUnlocked(graph, skill.id, states);
+    // A chosen year has no walls: every one of its skills may be tried.
+    const unlocked = year !== undefined || isUnlocked(graph, skill.id, states);
     const status = input.model.status(st, skill, unlocked, now);
     if (status === 'locked') continue;
-    const reviewable = skill.grade >= (eligibility.reviewFloor ?? 0);
+    const reviewable = year !== undefined || skill.grade >= (eligibility.reviewFloor ?? 0);
     if (st && reviewable && isDue(st, now)) review.push({ skill, weight: 1 - retrievability(st, now) + 0.05 });
     else if (status === 'mastered' && reviewable) maintain.push({ skill, weight: 1 });
     if (status === 'available' || status === 'learning') {
