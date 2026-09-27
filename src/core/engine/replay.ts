@@ -10,7 +10,7 @@ import type { SkillId } from '../types';
 import type { SkillState } from './model';
 import { applyFirstAttempt } from './observe';
 import { placementMemory, placementPriors, startPlacement, type PlacementState } from './placement';
-import { PLACEMENT } from './params';
+import { modeEvidence, PLACEMENT } from './params';
 import type { EngineContext } from './session';
 import { isUnlocked } from './scheduler';
 
@@ -53,6 +53,7 @@ export function replay(ctx: Pick<EngineContext, 'graph' | 'model'>, records: rea
       difficulty: r.diff,
       ts: r.ts,
       timed: r.timed,
+      weight: modeEvidence(r.mode),
     }).states;
   }
   return states;

@@ -5,7 +5,7 @@
  */
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { openGift, startSession } from '../../app/actions';
+import { launchMode, openGift } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { speaker } from '../../app/services';
 import { useStore, type SessionResult } from '../../app/store';
@@ -13,6 +13,7 @@ import { play as sfx } from '../../audio/sfx';
 import { getBand } from '../../bands/registry';
 import { ACHIEVEMENTS } from '../../core/achievements';
 import { getCosmetic } from '../../core/rewards/cosmetics';
+import { getMode } from '../../modes/registry';
 import { numberText } from '../../i18n/render';
 import type { Translator } from '../../i18n/i18n';
 import { Frog } from '../components/Frog';
@@ -84,8 +85,9 @@ export function Results(): JSX.Element | null {
   const look = lookFor(profile);
   const bandA = band.id === 'A';
   const again = (): void => {
-    if (r.modeId === 'sprint') navigate('/intro/sprint', true);
-    else startSession(r.modeId, r.opts.stretch ? { stretch: true } : {});
+    const mode = getMode(r.modeId);
+    if (mode) launchMode(mode, r.opts.stretch ? { stretch: true } : {}, true);
+    else navigate('/', true);
   };
   const achIcon = (id: string): string => ACHIEVEMENTS.find((a) => a.id === id)?.icon ?? 'star';
 
@@ -112,6 +114,9 @@ export function Results(): JSX.Element | null {
             </p>
           )}
           {r.sprint && <p class="big-line">{sprintMessage(r.sprint, t)}</p>}
+          {r.extras?.map((e) => (
+            <p class="extra">{t.dyn(e.key, e.params)}</p>
+          ))}
         </section>
       )}
       {bandA && r.sparkLit && (

@@ -56,6 +56,19 @@ const PATHS = {
   backspace: 'M21 5H8l-6 7 6 7h13zM12 9l6 6M18 9l-6 6',
   user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
   question: 'M9 9a3 3 0 115 2c-1 .8-2 1.4-2 3M12 18h.01',
+  // Feature icons (24×24 stroke paths), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 } as const;
 
 export type IconName = keyof typeof PATHS;

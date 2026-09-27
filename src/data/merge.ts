@@ -56,5 +56,18 @@ export function mergeProfiles(a: Profile, b: Profile): Profile {
     },
     stats,
     sprint: { best: bestOf(a.sprint.best, b.sprint.best), history },
+    // Feature merge rules (idempotent and monotone), each under its own anchor:
+    // ── slot: frac ──
+    // ── slot: hint ──
+    // ── slot: pilot ──
+    // ── slot: storage ──
+    // ── slot: weekly ──
+    // ── slot: target ──
+    // ── slot: dice ──
+    // ── slot: puzzle ──
+    // ── slot: workshop ──
+    // ── slot: balance ──
+    // ── slot: coord ──
+    // ── slot: season ──
   };
 }

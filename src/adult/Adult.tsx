@@ -12,7 +12,7 @@ import { useStore } from '../app/store';
 import { RECORDED_CLIPS } from '../audio/clips';
 import { requiredClips } from '../audio/voiceScript';
 import { glickoElo } from '../core/engine/glicko';
-import { FLAGS, isEnabled } from '../core/flags';
+import { FLAGS, flagLabelKey, isEnabled, type FlagDef } from '../core/flags';
 import { defaultBandForAge, type Profile } from '../core/profile';
 import { GRAPH } from '../core/skills';
 import { BAND_IDS, type BandId } from '../core/types';
@@ -211,7 +211,7 @@ function CalibrationTab({ p }: { p: Profile }): JSX.Element {
                 <tr>
                   <th>{t('adult.calibration.predicted')}</th>
                   <th>{t('adult.calibration.observed')}</th>
-                  <th>n</th>
+                  <th>{t('adult.calibration.n')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -346,11 +346,11 @@ function DataTab(): JSX.Element {
 function FeaturesTab({ p }: { p: Profile | null }): JSX.Element {
   const t = useT();
   const meta = useStore((s) => s.meta);
-  const row = (id: string, on: boolean, change: (v: boolean) => void): JSX.Element => (
+  const row = (f: FlagDef, on: boolean, change: (v: boolean) => void): JSX.Element => (
     <label class="switch-row">
       <input type="checkbox" checked={on} onChange={(e) => change((e.currentTarget as HTMLInputElement).checked)} />
       <span>
-        <code>{id}</code> — {t.dyn(`flag.${id}`)}
+        <code>{f.id}</code> — {t.dyn(flagLabelKey(f))}
       </span>
     </label>
   );
@@ -360,12 +360,12 @@ function FeaturesTab({ p }: { p: Profile | null }): JSX.Element {
       {p && (
         <section class="card">
           <h3>{t('adult.features.profile', { name: p.name })}</h3>
-          {FLAGS.filter((f) => f.scope === 'profile').map((f) => row(f.id, isEnabled(f.id, p.flags, meta?.deviceFlags), (v) => setFlag('profile', f.id, v, p.id)))}
+          {FLAGS.filter((f) => f.scope === 'profile').map((f) => row(f, isEnabled(f.id, p.flags, meta?.deviceFlags), (v) => setFlag('profile', f.id, v, p.id)))}
         </section>
       )}
       <section class="card">
         <h3>{t('adult.features.device')}</h3>
-        {FLAGS.filter((f) => f.scope === 'device').map((f) => row(f.id, isEnabled(f.id, undefined, meta?.deviceFlags), (v) => setFlag('device', f.id, v)))}
+        {FLAGS.filter((f) => f.scope === 'device').map((f) => row(f, isEnabled(f.id, undefined, meta?.deviceFlags), (v) => setFlag('device', f.id, v)))}
       </section>
     </div>
   );

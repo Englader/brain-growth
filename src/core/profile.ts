@@ -45,6 +45,19 @@ export interface Profile {
   settings: { sound: boolean; voice: boolean; noClock: boolean; petName: string | null };
   sprint: { best: SprintRun | null; history: Array<Omit<SprintRun, 'splits'>> };
   quests: { day: string; ids: string[]; done: string[]; rewarded: boolean } | null;
+  // Feature fields (add a default in createProfile and a rule in data/merge.ts), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 }
 
 export function defaultBandForAge(age: number): BandId {
@@ -85,6 +98,19 @@ export function createProfile(input: NewProfileInput, now: number): Profile {
     settings: { sound: true, voice: true, noClock: false, petName: null },
     sprint: { best: null, history: [] },
     quests: null,
+    // Feature defaults, each under its own anchor:
+    // ── slot: frac ──
+    // ── slot: hint ──
+    // ── slot: pilot ──
+    // ── slot: storage ──
+    // ── slot: weekly ──
+    // ── slot: target ──
+    // ── slot: dice ──
+    // ── slot: puzzle ──
+    // ── slot: workshop ──
+    // ── slot: balance ──
+    // ── slot: coord ──
+    // ── slot: season ──
   };
 }
 

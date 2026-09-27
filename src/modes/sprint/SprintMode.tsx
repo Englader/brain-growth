@@ -8,6 +8,7 @@ import type { JSX } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { endSession, recentLog, startSession, updateSettings } from '../../app/actions';
 import { navigate } from '../../app/router';
+import { now } from '../../app/services';
 import { useStore } from '../../app/store';
 import type { AnswerResult, PresentedItem } from '../../core/engine/session';
 import type { SprintRun } from '../../core/profile';
@@ -115,8 +116,8 @@ export function SprintMode(): JSX.Element {
   };
   const finish = (completed: boolean): void => {
     const d = done.current;
-    const run: SprintRun = { at: Date.now(), totalMs: Math.round(d.total), correct: d.correct, items: d.items, splits: d.splits };
-    endSession(completed && d.items > 0, { run, noClock });
+    const run: SprintRun = { at: now(), totalMs: Math.round(d.total), correct: d.correct, items: d.items, splits: d.splits };
+    endSession(completed && d.items > 0, { sprint: { run, noClock } });
     const answered = d.items;
     navigate(answered > 0 ? '/results' : '/', true);
   };
