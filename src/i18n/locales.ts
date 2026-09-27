@@ -12,6 +12,7 @@
  */
 import type { LocaleId } from '../core/types';
 import { POINT_NOTATIONS, type PointNotation } from '../core/coord/notation';
+import type { DateConventions } from './dates';
 import type { NumberConventions } from './numbers';
 
 export interface WordProblemBank {
@@ -38,6 +39,8 @@ export interface LocaleConfig {
   numbers: NumberConventions;
   /** How a point is written, "(3, −2)" or "(3; −2)" (src/core/coord/notation.ts); default by locale id. */
   point?: PointNotation;
+  /** Numeric dates written by the app (./dates.ts), for a locale whose Intl date data browsers lack; absent = Intl. */
+  dates?: DateConventions;
   ops: OperatorGlyphs;
   /** Speech-synthesis languages to accept, in preference order. Never a different language. */
   speech: readonly string[];
@@ -148,6 +151,8 @@ registerLocale({
   numbers: { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−', percent: '\u00A0%' },
   // Macedonian schooling writes multiplication as · and division as :
   ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
+  // Chrome has no Macedonian date patterns (it writes "2026 M09 27"): dates are numeric, "27.9.2026".
+  dates: { order: 'dmy', sep: '.' },
   // "(3, −2)" as in the МОН одделение 6 textbook; "(1,5; −2)" once a decimal comma appears.
   point: POINT_NOTATIONS.mk,
   speech: ['mk-MK', 'mk'],
