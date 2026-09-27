@@ -27,7 +27,19 @@ export type Prompt =
   /** "3 hops of 4": equal groups on the number line. */
   | { kind: 'groups'; groups: number; size: number }
   /** Word problem rendered from a per-locale template with shared structure. */
-  | { kind: 'word'; templateId: string; vars: Record<string, number>; nameSeed: number };
+  | { kind: 'word'; templateId: string; vars: Record<string, number>; nameSeed: number }
+  /**
+   * A mode-specific prompt (e.g. a Target deal). `type` names a definition in
+   * the custom-prompt registry (./customPrompts.ts), which renders its text and
+   * spoken line and validates it in tests; `data` is its locale-agnostic payload.
+   */
+  | CustomPrompt;
+
+export interface CustomPrompt {
+  kind: 'custom';
+  type: string;
+  data: Record<string, unknown>;
+}
 
 /** Number-line geometry. All slice skills are number-line capable. */
 export interface LineSpec {
@@ -51,9 +63,15 @@ export interface LineSpec {
 }
 
 export interface Answer {
+  /** The canonical answer (logged as `expected`; the value a checker's correct response should represent). */
   value: Rational;
   /** Absolute tolerance for estimation items (number-line placement). */
   tolerance?: number;
+  /**
+   * Grade with a registered checker instead of comparing to `value` (items with
+   * many correct answers: an expression, a construction). See ./checkers.ts.
+   */
+  check?: { id: string; params?: Record<string, number> };
 }
 
 export type SolutionStep =
@@ -85,7 +103,24 @@ export interface Item extends GeneratedItem {
   seed: number;
 }
 
-export type Capability = 'numberLine' | 'numeric' | 'reading';
+/** What a generator's items need from a mode. One member per line; features add theirs under their slot. */
+export type Capability =
+  | 'numberLine'
+  | 'numeric'
+  | 'reading'
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
+  ;
 
 export interface GeneratorDef<C = Record<string, unknown>> {
   id: string;

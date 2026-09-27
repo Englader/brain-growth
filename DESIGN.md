@@ -36,7 +36,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 
 | # | Assumption / decision | Why | If wrong |
 |---|---|---|---|
-| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **87 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
+| A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **89 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
 | A-6 | **Deploy = GitHub Actions.** Pages' source is set to "GitHub Actions" (your change). On every push to `main`, CI typechecks, tests, builds to `dist/`, runs the end-to-end check against that build, and only then publishes **the same `dist/`** with `actions/deploy-pages`. Build output is no longer committed. | Nobody runs a build step to deploy: merging is deploying. A red CI can never reach the site, and diffs no longer carry hashed bundle files. | To go back to "Deploy from a branch": set `outDir: 'docs'` in `vite.config.ts`, commit the build, and drop the `deploy` job. The build is byte-deterministic, so CI can check a committed copy is fresh. |
 | A-8 | **All progress lives in localStorage** (as required), namespaced `bg:`. The session log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item). When the namespace passes a 3.5 MB soft budget, raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not). | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month, so **two daily players keep ≈5 months of per-item history on-device**. Backups always contain everything still stored. | Raw item history is the substrate for every future improvement, so moving the log to **IndexedDB** behind the existing `KV` interface is scheduled in v1 (§4 step 11) before compaction would start. |
 | A-9 | **iOS Safari may evict localStorage after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
@@ -72,6 +72,7 @@ Each row is a guess or a choice I made for you. The last column says what change
 | A-23 | **Head-to-head shared state = URL-fragment "rival cards"** (option **a**), plus automatic same-device boards. | Reasoning in §1.10. | If you later accept a backend, §5 T-5 describes an end-to-end-encrypted sync that reuses the existing merge rules. |
 | A-24 | **The luck component in the slice is the league's weekly wildcard.** Every device picks the same category for the week by hashing the week id, with no server. The **Dice Race** mode (designed, §1.4) adds in-game luck. | The wildcard gives a weaker player a real chance in the only head-to-head that exists today. | Build Dice Race (§4 step 7). |
 | A-25 | **Designed but not built in the slice:** Target, Sieve, Workshop and Dice Race modes, the puzzle track, the weekly themed challenge, the adaptive hint ladder. | Scope boundary of deliverable 3. | See §4 for order and effort. |
+| A-26 | **Features ship ON by default.** The owner wants the complete product live, so new modes and features are enabled once their e2e flow passes. Flags remain as per-child switches in the adult view. Readiness gating still applies: a mode's card shows but stays locked until it can be played well (Sprint needs a Solid fluency skill; new modes need placement done), and the Band A home simply omits it until then. Sprint is the first mode switched on under this rule. | With n = 2 known children and an adult who can see and toggle every flag, "dark until proven" mostly hides finished work. The per-child switch keeps the escape hatch the flags were for. | If a feature turns out to hurt a child (e.g. timed play stresses them), switch its flag off for that child in Grown-ups → Features; to ship a future feature dark instead, set its `default: false`. |
 
 ---
 
@@ -130,7 +131,7 @@ The test I applied: if you removed the maths, would there be no game left? Is th
 | **Sieve (tower-defence-ish)** | Place sieves defined by mathematical properties; numbers flow through | Placing the right property ("multiples of 3", "> ½", "factors of 24") *is* classification. A number that slips through shows exactly which property you misjudged. Turn-based in A (no clock). | More/less than 5, even/odd | Factors, multiples, primes, fraction size | Inequalities, integer sets, function values | Designed |
 | **Workshop (spatial)** | Cut, shade, stack and resize shapes | Fractions and geometry by direct manipulation: split a bar into equal parts, fill with ½+⅓+⅙ strips, resize a rectangle to area 24 and perimeter 20, stack cubes for volume, build squares on triangle sides (Pythagoras). The constructed object is checked, not a typed number. | Shapes, patterns, halves | Fractions, area/perimeter | Volume, Pythagoras, coordinate plotting | Designed |
 | **Dice Race (pass-and-play)** | Roll dice, compute your move, race on a linear board | Luck (dice) plus your own adaptive items. A: count the dots and hop. B: choose how to combine the dice to reach a ladder square. C: powers and negatives. The computed move *is* the maths; the dice let the younger child win sometimes. Same device, zero shared state. | Count on | Combine + − × | Powers, negatives | Designed |
-| **Sprint (Race your shadow)** | Hop mode against your own ghost | Speed on already-solid facts, where accuracy strictly dominates speed (§1.8). | — | ✓ | ✓ | **Built** (flagged) |
+| **Sprint (Race your shadow)** | Hop mode against your own ghost | Speed on already-solid facts, where accuracy strictly dominates speed (§1.8). | — | ✓ | ✓ | **Built** (on; per-child flag, A-26) |
 | **Puzzle track** | Logic grids, pattern extension, cryptarithms (e.g. TO + GO = OUT), pouring and weighing, spatial nets, estimation with no single exact answer | Reasoning, with its own per-type rating and no timer or streak coupling. Scales from A (picture patterns, balance with pictures) to C (cryptarithms, logic grids). | ✓ | ✓ | ✓ | Designed |
 
 Modes are **parameterised across bands** by capability. A mode declares `requires: ['numberLine']`, and generators declare the capabilities they provide. The engine only offers compatible skills, so "twelve modes" never becomes "twelve codebases".
@@ -227,12 +228,12 @@ Forgetting feeds back into difficulty: predicted ability drops by 1.0·(1 − R)
 
 Reviews are **interleaved** into normal sessions through the scheduler's review bucket, never blocked into "review days".
 
-### 1.8 Timed challenges (Sprint, built behind `mode.sprint`)
+### 1.8 Timed challenges (Sprint, `mode.sprint`, on by default)
 
 This is how the implementation honours each constraint:
 
 - **Fluency skills at or near mastery only.** The mode's skill filter is `tags ∋ fluency ∧ proficientAt set`. The mode is hidden in Band A (`timersAllowed: false`), and its card says why it is locked until a fact skill is Solid.
-- **Opt-in, never default, never needed.** It is a separate card. Streaks, quests, progress and unlocking never require it.
+- **Opt-in, never needed.** It is a separate card the child may choose; Hop stays the default play. Streaks, quests, progress and unlocking never require it. The card is visible by default (A-26) and locked until a fluency skill is Solid; an adult can switch it off per child (`mode.sprint`).
 - **The opponent is your own previous best.** A "shadow" replays your personal-best splits. The first run's shadow runs at your *par* pace. The run history chart is the primary feedback.
 - **Timer generosity adapts per skill:** par = 1.25 × the median latency of that child's last 20 correct first attempts *on that skill* (fallbacks: all fluency skills, then 6 s), clamped to 1.5–15 s.
 - **Accuracy beats rushing.** A wrong answer adds **2 × par** seconds, so guessing only pays above 2/3 accuracy. For example, at par 3 s, careful play (95%, 3 s) scores 0.29 correct/s and rushing (80%, 2.1 s) scores 0.26.
@@ -417,7 +418,7 @@ src/
   core/                    pure TS, no DOM — the engine and the rules
     rng.ts rational.ts time.ts hash.ts types.ts
     skills/                catalog.ts (THE DAG), graph.ts, types.ts
-    items/                 types.ts (Item, Prompt, LineSpec…), grade.ts, util.ts
+    items/                 types.ts (Item, Prompt, LineSpec…), grade.ts, checkers.ts, customPrompts.ts, util.ts
       generators/          number.ts addsub.ts muldiv.ts integers.ts word.ts registry.ts index.ts
     engine/                model.ts (LearnerModel interface) glicko.ts memory.ts placement.ts
                            scheduler.ts observe.ts session.ts replay.ts params.ts
@@ -431,14 +432,14 @@ src/
   bands/                   types.ts registry.ts (A/B/C configs)
   modes/                   types.ts registry.ts index.ts · hop/ (PlayView, HopMode) · sprint/
   audio/                   speech.ts voiceScript.ts clips.ts sfx.ts
-  ui/                      components/ (NumberLine, Numpad, Frog, Prompts, Icon…) screens/ hooks.ts anim.ts
+  ui/                      components/ (NumberLine, Numpad, Frog, Prompts, Icon…) screens/ widgets/ homeWidgets.tsx hooks.ts anim.ts
   adult/                   Adult.tsx analytics.ts charts.tsx
-  app/                     App.tsx store.ts router.ts actions.ts services.ts
+  app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
   styles/                  fonts.css app.css
-tests/                     unit + simulated-learner acceptance + i18n/font coverage (188 tests)
+tests/                     unit + simulated-learner acceptance + i18n/font coverage + seam guards (236 tests)
 sim/                       simulated learners + harness + report (npm run sim)
-e2e/                       Pages-like server + MK 360px flow with screenshots (npm run e2e)
+e2e/                       run.mjs harness, lib.mjs helpers, flows/NN-<name>.mjs (MK, 360px, screenshots; npm run e2e)
 scripts/                   gen-skill-doc, gen-audio-script, gen-icons, level-report
 design/                    generated skill graph and audio script
 ```
@@ -612,8 +613,8 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 **Feature flags** (`core/flags.ts`):
 
-- Registry of `{ id, scope: 'profile' | 'device', default }`.
-- Precedence: URL `?ff=mode.sprint,-quests.daily` (testing) > profile > device > default.
+- Registry of `{ id, scope: 'profile' | 'device', default, labelKey? }`. Features default ON (A-26); the label comes from `labelKey` (a feature's own block, e.g. `target.flag`) or `flag.<id>`.
+- Precedence: URL `?ff=-mode.sprint,quests.daily` (testing) > profile > device > default.
 - Toggled per child in the adult view.
 
 ### 2.8 What a contributor touches
@@ -622,9 +623,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Adding… | Files touched | Nothing else changes because… |
 |---|---|---|
-| **(a) a game mode** | `src/modes/<id>/<Mode>.tsx` (reuse `PlayView` or call `nextItem`/`submitAnswer`/`endSession`); one `registerMode({...})` in `src/modes/index.ts`; `mode.<id>.title/desc` in each bundle | Home lists `modesFor(profile)`, the router renders the registry component, the engine filters skills by `requires`, "tried every mode" counts the registry, and the flag gates it |
+| **(a) a game mode** | `src/modes/<id>/` (component, optional intro, `index.ts` with `registerMode({...})`, own CSS); one `import './<id>';` under the mode's slot in `src/modes/index.ts`; its flag under its slot in `core/flags.ts`; strings in its own top-level locale block | Home cards and the Band A tray list `modesFor(profile)` in `order`, `/intro/<id>` and `/play/<id>` render from the registry, "again" relaunches through it, the engine filters skills by `requires`, "tried every mode" counts session starts, and the flag gates it per child |
 | **(b) a skill** | One `s(...)` line in `catalog.ts`; `skill.<id>` in each bundle; optionally a generator file added to `generators/index.ts`, with `sol.*`/`mis.*` keys | Tests validate DAG and band consistency, generator validity, determinism, level tracking and string coverage; the doc is regenerated |
-| **(c) an achievement** | One entry in `achievements/definitions.ts`; `ach.<id>.name/desc/hint` in each bundle; *(if needed)* one `registerMetric` | The evaluator is generic; the CI guard rejects correctness-only rewards; the trophy case renders from the list |
+| **(c) an achievement** | One entry in `achievements/definitions.ts` (a feature's under its slot, id `<feature>.<name>`); `ach.<id>.name/desc/hint` in each bundle (a feature's in its `ach.<feature>` block); *(if needed)* one `registerMetric` (a feature's in `achievements/metrics/<feature>.ts`) | The evaluator is generic; the CI guard rejects correctness-only rewards; the trophy case renders from the list |
+| **a feature built in parallel** (Wave 1+) | Its own directories (`src/modes/<id>/`, `src/core/<feature>/`, `src/app/<feature>Actions.ts`, `tests/<feature>.test.ts`, `e2e/flows/NN-<feature>.mjs`) plus lines directly under its `// ── slot: <feature> ──` anchors in 14 shared files and inside its reserved locale blocks | Anchors and blocks are in a fixed order, one per feature, so parallel branches edit disjoint lines and merge without conflicts (`tests/slots.test.ts` guards them); seams (`registerHomeWidget`, `registerChecker`, `registerCustomPrompt`, `MODE_EVIDENCE`, `startSessionFor`/`recordAnswer`/`finishSession`) replace edits to shared switch statements. CONTRIBUTING: "Parallel work conventions" |
 | **(d) a third language** (e.g. Albanian, spoken by about a quarter of North Macedonia) | `locales/sq.json`, `wordproblems/sq.json` (authored), one `registerLocale({...})` with number conventions, glyphs and speech langs; the number-word composition rule in `voiceScript.ts`; recordings | The toggle lists all registered locales; parity, ICU and font tests say exactly what is missing |
 
 ---
@@ -640,7 +642,7 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **Streaks** with silent freezes and the 7-stone establishment path.
 - **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
-- **Sprint timed mode** (flagged).
+- **Sprint timed mode** (on by default, per-child flag; A-26).
 - **Feature flags.**
 - **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, flags, voice report.
 - **Both locales**, fully wired.
@@ -650,10 +652,10 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 | Check | Result |
 |---|---|
-| `npm test` | **188 tests pass**: parser/formatter, ICU, locale parity, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script |
-| `npm run e2e` | Full flow in **Macedonian at 360×740**: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab. **31 screenshots, zero console errors, zero horizontal overflow.** |
-| Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels |
-| Size | 87 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| `npm test` | **236 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 36 generator bindings, engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
+| `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). **35 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
+| Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache |
+| Size | 89 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -668,7 +670,8 @@ npm run e2e          # screenshots in ./screens (needs Chromium; see e2e/run.mjs
 
 Useful URL switches:
 
-- `?ff=mode.sprint` turns on the flagged sprint.
+- `?ff=-mode.sprint` hides Sprint (any flag: `?ff=id` on, `?ff=-id` off).
+- With `?e2e`: `?seed=<n>` makes sessions deterministic, `?now=<ISO date>` shifts the clock, and `window.__hopa` exposes the test hooks (see CONTRIBUTING).
 - `?ff=debug.shortSessions` gives 4-item sessions.
 - The adult view is reached by holding "Grown-ups" for 2 s on the player picker or in Settings.
 
@@ -694,6 +697,8 @@ Useful URL switches:
 ## 4. Build order for the rest of v1
 
 **Recommendation: build Band B first, then Band A; defer Band C content.**
+
+**Wave 0 (done): the parallel-work seams.** Mode registry with `order`, intro/standalone routes and a Band A tray; home widgets; profile-parameterised session actions; custom prompts, checkers and a `built` response; per-mode evidence weight; slot anchors and reserved locale blocks; per-flow e2e with test hooks. Steps below can now be built in parallel, each in its own directories (CONTRIBUTING: "Parallel work conventions").
 
 - **B** is the default design. It exercises every system (reading, numpad, quests, league, sprint), and 8–11-year-olds can tell you *why* something is boring.
 - **A** is next. It depends on the MK voice recordings and on fine-motor tuning that needs a real 5-year-old in front of it.

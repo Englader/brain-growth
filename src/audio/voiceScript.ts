@@ -36,6 +36,19 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.gift': ['voice.gift'],
   'voice.sessionDone': ['voice.sessionDone'],
   'voice.trophy': ['voice.trophy'],
+  // Feature voice lines (keys `voice.<feature>.*`), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 };
 
 /** Per-locale overrides where word order differs (none needed for en/mk yet). */

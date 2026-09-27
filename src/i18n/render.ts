@@ -3,6 +3,7 @@
  * operator glyphs), word problems (from the per-locale bank), worked-solution
  * steps and spoken prompts. Nothing here is hard-coded display text.
  */
+import { getCustomPrompt } from '../core/items/customPrompts';
 import type { Expr, Item, Prompt, SolutionStep } from '../core/items/types';
 import type { BandId, LocaleId } from '../core/types';
 import { formatMessage } from './format';
@@ -76,6 +77,8 @@ export function promptText(item: Item, locale: LocaleId, band: BandId): string {
       return t(locale, 'prompt.groups', { groups: p.groups, size: p.size }, band);
     case 'word':
       return wordProblemText(p, locale);
+    case 'custom':
+      return getCustomPrompt(p.type)?.text(p, item, locale, band) ?? t(locale, 'prompt.custom', {}, band);
     case 'expr':
       if (p.rhs) return t(locale, 'prompt.bond', {}, band);
       if (item.line.answerMode === 'count') {
@@ -86,10 +89,21 @@ export function promptText(item: Item, locale: LocaleId, band: BandId): string {
   }
 }
 
+/** The voice line (key + params) for a custom prompt; null when it has none or its type is unregistered. */
+export function customVoice(item: Item): { key: string; params?: Record<string, number> } | null {
+  const p = item.prompt;
+  if (p.kind !== 'custom') return null;
+  return getCustomPrompt(p.type)?.spoken?.(p, item) ?? null;
+}
+
 /** What Band A hears. */
 export function spokenPrompt(item: Item, locale: LocaleId): string {
   const p = item.prompt;
   switch (p.kind) {
+    case 'custom': {
+      const v = customVoice(item);
+      return v ? tk(locale, v.key, v.params) : '';
+    }
     case 'count':
       return t(locale, 'voice.count');
     case 'locate':
