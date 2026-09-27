@@ -56,6 +56,21 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.target.tapShiny': ['voice.target.tapShiny'],
   // ── slot: dice ──
   // ── slot: puzzle ──
+  'voice.puzzle.shelf': ['voice.puzzle.shelf'],
+  'voice.puzzle.pattern': ['voice.puzzle.pattern'],
+  'voice.puzzle.balance': ['voice.puzzle.balance'],
+  'voice.puzzle.notYet': ['voice.puzzle.notYet'],
+  'voice.puzzle.solved': ['voice.puzzle.solved'],
+  'voice.puzzle.together': ['voice.puzzle.together'],
+  'voice.puzzle.hint.unit': ['voice.puzzle.hint.unit'],
+  'voice.puzzle.hint.same': ['voice.puzzle.hint.same'],
+  'voice.puzzle.hint.groups': ['voice.puzzle.hint.groups'],
+  'voice.puzzle.hint.grows': ['voice.puzzle.hint.grows'],
+  'voice.puzzle.hint.start': ['voice.puzzle.hint.start'],
+  'voice.puzzle.hint.remove': ['voice.puzzle.hint.remove'],
+  'voice.puzzle.hint.share': ['voice.puzzle.hint.share'],
+  'voice.puzzle.hint.count': ['voice.puzzle.hint.count'],
+  'voice.puzzle.hint.known': ['voice.puzzle.weighs', '{weight}'],
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

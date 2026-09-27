@@ -9,6 +9,7 @@ import './metrics';
 import './metrics/target';
 // ── slot: dice ──
 // ── slot: puzzle ──
+import './metrics/puzzle';
 // ── slot: workshop ──
 // ── slot: balance ──
 // ── slot: coord ──

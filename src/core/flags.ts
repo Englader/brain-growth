@@ -39,6 +39,7 @@ export const FLAGS: readonly FlagDef[] = [
   { id: 'mode.target', scope: 'profile', default: true, description: 'Make it: combine dealt cards with the operations to hit a target number (all bands; evidence weight 0.5).', labelKey: 'target.flag' },
   // ── slot: dice ──
   // ── slot: puzzle ──
+  { id: 'mode.puzzle', scope: 'profile', default: true, labelKey: 'puzzle.flag', description: 'Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms; untimed, own rating per type, never needed for progress.' },
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──

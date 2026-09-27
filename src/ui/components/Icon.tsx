@@ -69,6 +69,12 @@ const PATHS = {
   eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: dice ──
   // ── slot: puzzle ──
+  puzzle: 'M5 8h3.5a2.5 2.5 0 015 0H17v3.5a2.5 2.5 0 010 5V20H5z',
+  pattern: 'M3 12a2 2 0 104 0 2 2 0 00-4 0zM10 10h4v4h-4zM17 12a2 2 0 104 0 2 2 0 00-4 0z',
+  scale: 'M12 4v16M8 20h8M5 7h14M5 7l-3 6h6zM19 7l-3 6h6z',
+  ruler: 'M3 16L16 3l5 5L8 21zM7 12l2 2M10 9l2 2M13 6l2 2',
+  grid: 'M4 4h16v16H4zM4 9.5h16M4 14.5h16M9.5 4v16M14.5 4v16',
+  key: 'M8 16a4 4 0 110-8 4 4 0 010 8zM12 12h9M18 12v3M21 12v2',
   // ── slot: workshop ──
   // ── slot: balance ──
   // ── slot: coord ──
