@@ -18,7 +18,8 @@ It is a static, offline-first PWA on GitHub Pages: no accounts, no servers, no a
 - **Each child taps their own card.** Opening Hopa always starts on "Who's playing?" (Кој игра?), with one card per child and "+ New player" below. The first time, with nobody yet, it opens the new-player form instead.
 - **Switch with the button at the top.** Every child's home starts with their avatar and name; tapping it goes back to "Who's playing?". Reloading the page while a child plays keeps that child; closing the tab and opening Hopa again asks who is playing.
 - **Keep using the same browser.** Each child's progress is stored separately, but only in this browser on this computer. Another browser, a private window, or a second tab open at the same time will not share it (a second tab only reads).
-- **Back up from the Grown-ups area.** Hold "Grown-ups" for 2 seconds, open Data and export a backup now and then; importing it on another device merges it with what is there.
+- **Set the parent PIN first.** Tap "Grown-ups" (За возрасни) at the bottom of "Who's playing?". The first time, answer a grown-ups' question (e.g. 37 × 24) and choose a 4–6 digit PIN, typed twice; from then on the Grown-ups area asks for it, and locks again when you leave it or after 5 minutes without use. Forgot it? "Forgot PIN?" asks a harder question and lets you choose a new one. Change or remove it in Grown-ups → Data. It keeps children out; it is not strong security, since everything stays on this computer.
+- **Back up from the Grown-ups area.** Open Data and export a backup now and then (the PIN is never in it); importing it on another device merges it with what is there.
 
 ## Deploy
 
@@ -36,7 +37,7 @@ npm run size     # start-up JS budget (CI): languages, mode screens and the grow
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 
-The grown-ups dashboard (hold "Grown-ups" for 2 seconds) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, help used, time on feedback, Band A counting vs recall), a Help tab listing which questions a child answered with a hint or "show me" (and where help is needed most, to practise together), backups, storage use with a "keep data safe" button, per-child feature flags and which speech voices each device has.
+The grown-ups dashboard (behind the parent PIN) shows mastery over time, engine calibration, recurring misconceptions, a pilot readout (exits after a mistake, help used, time on feedback, Band A counting vs recall), a Help tab listing which questions a child answered with a hint or "show me" (and where help is needed most, to practise together), backups, storage use with a "keep data safe" button, per-child feature flags and which speech voices each device has.
 
 **Adding voice recordings:** save each clip named in [the recording script](design/audio-recording-script.md) as `public/audio/<locale>/<clip-id>.mp3`, run `npm run gen:clips` (the build also does it) and commit the files with the regenerated manifest; Grown-ups → Voices lists what is still missing.
 

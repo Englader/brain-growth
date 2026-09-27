@@ -12,6 +12,7 @@
  * IndexedDB (data/idb.ts) behind the same KV interface (data/hybridKV.ts);
  * everything else stays in localStorage.
  */
+import type { PinRecord } from '../core/pin/pin';
 import { NS } from './kv';
 
 export const CURRENT_SCHEMA = 1;
@@ -24,7 +25,7 @@ export interface Meta {
   createdAt: number;
   lastBackupAt: number | null;
   deviceFlags: Record<string, boolean>;
-  /** Hold-to-open adult gate completed on this device (not a security boundary). */
+  /** Legacy: set by nothing since the parent PIN replaced the 2-second hold (DESIGN A-30); kept for old builds. */
   adultSeen: boolean;
   /** Language for screens shown before a player is chosen (additive field, optional). */
   uiLocale?: string;
@@ -34,6 +35,13 @@ export interface Meta {
    * older cached build into read-only mode mid-play). Absent = localStorage.
    */
   logStore?: 'idb';
+  /**
+   * The parent PIN in front of the Grown-ups area (DESIGN A-30): a salted
+   * PBKDF2 hash, never the PIN (additive field, optional; no schema bump, as
+   * for logStore). Absent = no PIN yet: the next visit sets one. Device-level
+   * only: backup export leaves it out and import never writes it.
+   */
+  parentPin?: PinRecord;
 }
 
 export const KEYS = {

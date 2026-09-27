@@ -7,7 +7,7 @@
  * Voices the recording checklist of missing clips.
  */
 import { readFileSync } from 'node:fs';
-import { forceSkill, recentLog, seed, waitNext } from '../lib.mjs';
+import { forceSkill, openAdult, recentLog, seed, waitNext } from '../lib.mjs';
 
 /** Clips the mk recording script lists (design/audio-recording-script.md, kept current by tests/generated-docs.test.ts). */
 const MK_CLIPS = Number(/## Македонски \(mk\) — (\d+) clips/.exec(readFileSync(new URL('../../design/audio-recording-script.md', import.meta.url), 'utf8'))[1]);
@@ -127,8 +127,7 @@ export default async function pilot(t) {
   await forceSkill(t, null);
 
   // ── Grown-ups: pilot readout (Overview), strategy (Skills, Band A), recording checklist (Voices) ──
-  await t.goto('/adult');
-  await page.waitForSelector('.adult');
+  await openAdult(t);
   await page.locator('.adult select').first().selectOption({ label: 'Марко' });
   const card = page.locator('.pilot-card');
   await card.waitFor();

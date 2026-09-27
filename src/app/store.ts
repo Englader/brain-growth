@@ -75,6 +75,11 @@ export interface AppState {
   localePending: LocaleId | null;
   /** Options of the last launchMode (year, challenge): intro screens and standalone modes start their sessions with them. */
   launchOpts: SessionOptions | null;
+  /**
+   * The Grown-ups area (DESIGN A-30): 'open' once the parent PIN was entered, until the route leaves
+   * /adult or 5 minutes pass without use ('idle': locked by the idle timer). In memory only.
+   */
+  adultLock: 'locked' | 'open' | 'idle';
 }
 
 type Listener = (s: AppState) => void;
@@ -96,6 +101,7 @@ let state: AppState = {
   locales: [],
   localePending: null,
   launchOpts: null,
+  adultLock: 'locked',
 };
 
 const listeners = new Set<Listener>();

@@ -10,6 +10,7 @@ import { TopBar } from '../components/common';
 import { Frog } from '../components/Frog';
 import { Icon } from '../components/Icon';
 import { lookFor, useT } from '../hooks';
+import { Monogram } from './Profiles';
 
 export function Wardrobe(): JSX.Element | null {
   const t = useT();
@@ -71,6 +72,9 @@ export function Wardrobe(): JSX.Element | null {
                         <Frog color={look.color} hat={c.id} size={48} />
                       ) : slot === 'title' ? (
                         <Icon name="star" />
+                      ) : slot === 'theme' ? (
+                        // Band C: the player's own tile in that accent, as on "Who's playing?" and the new-player form.
+                        <Monogram name={p.name} color={c.value} size={44} />
                       ) : (
                         <span class="swatch-fill" style={{ background: c.value }} />
                       )}

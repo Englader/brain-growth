@@ -1,6 +1,5 @@
-/** Small shared UI pieces: language toggle, top bar, hold-to-open button, toast. */
+/** Small shared UI pieces: language toggle, top bar, toast, card. */
 import type { ComponentChildren, JSX } from 'preact';
-import { useRef, useState } from 'preact/hooks';
 import { setUiLocale, switchLocale } from '../../app/actions';
 import { useStore } from '../../app/store';
 import { allLocales } from '../../i18n/locales';
@@ -50,48 +49,6 @@ export function TopBar({ title, onBack, right }: { title?: string; onBack?: () =
       {title ? <h1 class="topbar-title">{title}</h1> : <span class="grow" />}
       <div class="topbar-right">{right ?? <LangToggle />}</div>
     </header>
-  );
-}
-
-/** Press-and-hold button (adult gate). Not security — a speed bump for small hands. */
-export function HoldButton({ onDone, onStart, children, label, ms = 2000 }: { onDone: () => void; onStart?: () => void; children: ComponentChildren; label: string; ms?: number }): JSX.Element {
-  const [progress, setProgress] = useState(0);
-  const raf = useRef(0);
-  const start = useRef(0);
-  const tick = (): void => {
-    const p = Math.min(1, (performance.now() - start.current) / ms);
-    setProgress(p);
-    if (p >= 1) {
-      setProgress(0);
-      onDone();
-      return;
-    }
-    raf.current = requestAnimationFrame(tick);
-  };
-  const down = (): void => {
-    onStart?.();
-    start.current = performance.now();
-    cancelAnimationFrame(raf.current);
-    raf.current = requestAnimationFrame(tick);
-  };
-  const up = (): void => {
-    cancelAnimationFrame(raf.current);
-    setProgress(0);
-  };
-  return (
-    <button
-      type="button"
-      class="hold-btn"
-      aria-label={label}
-      onPointerDown={down}
-      onPointerUp={up}
-      onPointerLeave={up}
-      onPointerCancel={up}
-      onContextMenu={(e) => e.preventDefault()}
-      style={{ '--hold': String(progress) } as JSX.CSSProperties}
-    >
-      {children}
-    </button>
   );
 }
 

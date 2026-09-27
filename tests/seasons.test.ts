@@ -460,7 +460,7 @@ describe('seasonal decoration (app.css)', () => {
   const opacity = (sel: string): number => Number(/--season-scatter-opacity: ([0-9.]+)/.exec(block(sel))![1]);
 
   it('the snow and blossom layers keep body and muted text at 4.5:1 or better on the light and dark child themes', () => {
-    const base = block('.app,\n.screen[data-theme]');
+    const base = block(':where(.app, .screen[data-theme])');
     const light = opacity('.app[data-season]');
     const themes: Record<string, { bg: string; ink: string; muted: string; opacity: number }> = {
       lagoon: { bg: token(base, '--bg'), ink: token(base, '--ink'), muted: token(base, '--muted'), opacity: light },

@@ -213,7 +213,10 @@ export class Repo {
       if (m && !ids.has(m[1]!)) continue;
       entries[k] = this.kv.get(k)!;
     }
-    entries[KEYS.meta] = JSON.stringify({ ...meta, profileIds: meta.profileIds.filter((id) => ids.has(id)) });
+    // The parent PIN is device-level (DESIGN A-30): never in a backup file. (Import never writes meta
+    // fields other than profileIds, so a file cannot set or clear it either.)
+    const { parentPin: _pin, ...shared } = meta;
+    entries[KEYS.meta] = JSON.stringify({ ...shared, profileIds: meta.profileIds.filter((id) => ids.has(id)) });
     const body = JSON.stringify(entries);
     this.saveMeta({ lastBackupAt: this.now() });
     return {

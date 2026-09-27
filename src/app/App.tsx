@@ -15,12 +15,24 @@ import { Results } from '../ui/screens/Results';
 import { Settings } from '../ui/screens/Settings';
 import { Trophies } from '../ui/screens/Trophies';
 import { Wardrobe } from '../ui/screens/Wardrobe';
+import { PinGateScreen } from '../ui/pin/screen';
 import { OtherTabNotice } from '../ui/storage/OtherTabNotice';
 import { receiveRival } from './actions';
+import { watchAdultIdle } from './adultLock';
 import { navigate } from './router';
 import { seasonNow } from './seasonActions';
 import { now } from './services';
 import { useStore } from './store';
+
+/**
+ * #/adult, however it is reached (the picker, Settings, a typed or bookmarked URL): the parent-PIN gate
+ * until the PIN is entered, then the dashboard, which locks again on leaving or after 5 idle minutes (A-30).
+ */
+function AdultRoute(): JSX.Element | null {
+  const lock = useStore((s) => s.adultLock);
+  useEffect(() => (lock === 'open' ? watchAdultIdle() : undefined), [lock]);
+  return lock === 'open' ? <AdultScreen /> : <PinGateScreen />;
+}
 
 function Screen(): JSX.Element | null {
   const route = useStore((s) => s.route);
@@ -30,7 +42,7 @@ function Screen(): JSX.Element | null {
   const meta = useStore((s) => s.meta);
 
   if (route.startsWith('/rival/')) return <RivalImport payload={route.slice(7)} />;
-  if (route === '/adult') return <AdultScreen />;
+  if (route === '/adult') return <AdultRoute />;
   if (route === '/new' || (!profile && profiles.length === 0)) return <Create />;
   if (!profile) return <Profiles />;
   // Generic mode routes: /intro/<id> (the mode's pre-session screen) and /play/<id>.

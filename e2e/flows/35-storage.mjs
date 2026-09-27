@@ -10,7 +10,7 @@
  *    reloading makes this one the writer again;
  *  - the adult Data tab shows both stores and the "keep data safe" button.
  */
-import { playSession, recentLog, seed } from '../lib.mjs';
+import { openAdult, playSession, recentLog, seed } from '../lib.mjs';
 
 const assert = (ok, msg) => {
   if (!ok) throw new Error(msg);
@@ -109,8 +109,7 @@ export default async function storage(t) {
   assert(!(await appState(page)).otherTab && (await page.locator('.other-tab').count()) === 0, 'writer again once the other tab is gone');
 
   // Adult Data tab: localStorage and IndexedDB usage, persistence, "keep data safe".
-  await t.goto('/adult');
-  await page.waitForSelector('.adult');
+  await openAdult(t);
   await page.getByRole('tab', { name: 'Податоци' }).click();
   await page.waitForSelector('.storage-idb');
   await page.waitForSelector('.storage-persist');

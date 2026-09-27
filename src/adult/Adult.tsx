@@ -23,6 +23,7 @@ import { numberText, percentText } from '../i18n/render';
 import { TopBar } from '../ui/components/common';
 import { Icon } from '../ui/components/Icon';
 import { useT } from '../ui/hooks';
+import { ParentPinCard } from '../ui/pin/PinSettings';
 import { StorageDetails, StorageWarning } from '../ui/storage/StorageDetails';
 import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors, yearsTried } from './analytics';
 import { BarChart, Reliability, StepLines } from './charts';
@@ -364,6 +365,7 @@ function DataTab(): JSX.Element {
         {msg && <p role="status">{msg}</p>}
         <p class="muted">{t('adult.data.iosNote')}</p>
       </section>
+      <ParentPinCard />
       <section class="card storage-card">
         <p>{t('adult.data.storage', { kb: Math.round(usage.bytes / 1024) })}</p>
         <StorageDetails idbBytes={usage.idbBytes} />

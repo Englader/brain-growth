@@ -31,8 +31,7 @@
   "profiles": {
     "title": "Who's playing?",
     "add": "New player",
-    "grownups": "Grown-ups",
-    "hold": "Hold for 2 seconds"
+    "grownups": "Grown-ups"
   },
   "create": {
     "title": "New player",
@@ -351,7 +350,6 @@
   },
   "adult": {
     "title": "Grown-ups",
-    "hold": "Hold for 2 seconds",
     "player": "Player",
     "tab": {
       "overview": "Overview",
@@ -1408,6 +1406,49 @@
       "rect": "a {w} by {h} rectangle",
       "rectExample": "for example, a {w} by {h} rectangle"
     }
+  },
+  "pin": {
+    "title": "Parent PIN",
+    "hint": "Asks for the parent PIN",
+    "enter": "Enter the PIN",
+    "confirm": "Confirm the PIN",
+    "create": "Choose a PIN",
+    "digits": "{min} to {max} digits",
+    "entered": "{n, plural, =0 {No digits entered} one {# digit entered} other {# digits entered}}",
+    "open": "Open",
+    "check": "Check",
+    "forgot": "Forgot PIN?",
+    "change": "Change PIN",
+    "remove": "Remove PIN",
+    "set": "Set a PIN",
+    "setupTitle": "Set a parent PIN",
+    "setupIntro": "Progress, backups and settings are for grown-ups. A PIN keeps this area closed to children.",
+    "forgotIntro": "Answer a question for grown-ups, then choose a new PIN.",
+    "gateTitle": "A question for grown-ups",
+    "gateQuestion": "What is {a} {op} {b}?",
+    "gateHelp": "So that a child cannot choose the PIN first.",
+    "gateWrong": "Not quite. Here is a new question.",
+    "wrong": "That is not the PIN. Try again.",
+    "wait": "Let's take a short break. The PIN can be tried again in about {time}.",
+    "seconds": "{n, plural, one {# second} other {# seconds}}",
+    "minutes": "{n, plural, one {# minute} other {# minutes}}",
+    "mismatch": "The two PINs are not the same. Let's choose it again.",
+    "weak": "That one is easy to guess. Choose another.",
+    "tooShort": "Use {min} to {max} digits.",
+    "idle": "Locked again after {n, plural, one {# minute} other {# minutes}} without use.",
+    "honest": "The PIN keeps children out of this area. It is not strong security: everything stays on this device, so someone who knows browsers well could get around it.",
+    "noCrypto": "This browser cannot use a PIN on this page. Open Hopa from its https:// address.",
+    "readOnly": "Hopa is open in another tab. Close it to set the PIN here.",
+    "isSet": "A parent PIN is set (since {date}).",
+    "wasReset": "It was chosen again through “Forgot PIN?” on {date}.",
+    "none": "No parent PIN is set. The next visit to this area will ask for a new one.",
+    "current": "Enter the current PIN",
+    "newPin": "Choose a new PIN",
+    "changed": "The PIN is changed.",
+    "setDone": "The PIN is set.",
+    "removeAsk": "Remove the PIN? The next visit to this area will ask to set a new one.",
+    "removeYes": "Yes, remove it",
+    "removed": "The PIN is removed."
   },
   "frac": {
     "locate": "Where is this fraction?",

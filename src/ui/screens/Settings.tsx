@@ -1,12 +1,12 @@
 import type { JSX } from 'preact';
-import { AdultScreen } from '../../adult/screen';
 import { signOut, updateSettings } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { useStore } from '../../app/store';
 import { getBand } from '../../bands/registry';
-import { HoldButton, LangToggle, TopBar } from '../components/common';
+import { LangToggle, TopBar } from '../components/common';
 import { Icon } from '../components/Icon';
 import { useT } from '../hooks';
+import { GrownupsButton } from '../pin/GrownupsButton';
 
 export function Settings(): JSX.Element | null {
   const t = useT();
@@ -47,10 +47,7 @@ export function Settings(): JSX.Element | null {
         <button type="button" class="btn" onClick={signOut}>
           <Icon name="user" /> {t('home.switch')}
         </button>
-        <HoldButton label={t('adult.hold')} onStart={() => void AdultScreen.preload().catch(() => undefined)} onDone={() => navigate('/adult')}>
-          <Icon name="lock" size={18} /> {t('profiles.grownups')}
-        </HoldButton>
-        <small class="muted">{t('adult.hold')}</small>
+        <GrownupsButton />
       </div>
     </div>
   );
