@@ -132,6 +132,7 @@ export const EVENTS = {
   // ── slot: weekly ──
   WEEKLY_DONE: 'weekly_done',
   // ── slot: target ──
+  TARGET_WAY: 'target_way',
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

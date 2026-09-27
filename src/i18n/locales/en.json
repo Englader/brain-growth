@@ -199,6 +199,10 @@
       "done": "All the stones are lit! There's a gift for you."
     },
     "target": {
+      "makeTen": "Make ten! Tap the cards.",
+      "make": "Make {n}!",
+      "makeWord": "Make",
+      "tapShiny": "Now tap the shiny cards!"
     },
     "dice": {
     },
@@ -768,6 +772,22 @@
       }
     },
     "target": {
+      "reusedCard": {
+        "name": "Card used twice",
+        "tip": "Each card can be used only once."
+      },
+      "notCard": {
+        "name": "Number not dealt",
+        "tip": "Use only the numbers on the cards."
+      },
+      "badOp": {
+        "name": "Sign not in this deal",
+        "tip": "Use only the signs shown."
+      },
+      "unused": {
+        "name": "Cards left over",
+        "tip": "This deal needs every card."
+      }
     },
     "workshop": {
     },
@@ -1057,6 +1077,13 @@
     "weekly": {
     },
     "target": {
+      "manyWays": {
+        "name": "Many Ways",
+        "desc": "Found 3 ways to make the same target.",
+        "hint": "After you make a target, look for a different way.",
+        "name@C": "Many Roads",
+        "desc@C": "Found three distinct solutions to one deal."
+      }
     },
     "dice": {
     },
@@ -1314,6 +1341,51 @@
     }
   },
   "target": {
+    "title": "Make it",
+    "title@C": "Target",
+    "desc": "Combine the cards to make the target number",
+    "desc@C": "Combine numbers with the four operations to hit a target",
+    "flag": "Make it: combine dealt cards to make a target number (all bands; its answers count as half evidence).",
+    "notReady": "Opens after a little more practice on the number trail",
+    "notReady@C": "Unlocks once a skill it trains is within reach",
+    "prompt": "Make {target}",
+    "promptAll": "Make {target} using every card",
+    "howTo": "Tap a card, then a sign, then another card.",
+    "card": "Card {value}",
+    "op": {
+      "add": "plus",
+      "sub": "minus",
+      "mul": "times",
+      "div": "divided by"
+    },
+    "undo": "Undo",
+    "reset": "Start again",
+    "showMe": "Show me",
+    "pickFirst": "Tap a card first.",
+    "divZero": "You can't divide by zero.",
+    "wholeOnly": "This deal uses whole numbers only.",
+    "noNegative": "This deal stays at zero or above.",
+    "missOver": "You made {value}. That is {d} more than {target}.",
+    "missUnder": "You made {value}. That is {d} less than {target}.",
+    "missOther": "You made {value}, not {target}.",
+    "useAll": "You made {target}, but this deal needs every card.",
+    "another": "Find another way",
+    "anotherPrompt": "Can you make {target} another way?",
+    "newWay": "A new way! You have found {n, plural, one {# way} other {# ways}}.",
+    "sameWay": "That is the same way as before. Try a different one!",
+    "next": "Next",
+    "otherWays": "Other ways",
+    "waysTotal": "{n, plural, one {# way} other {# ways}} in all",
+    "foundByYou": "You found this one",
+    "reveal": "Here is one way:",
+    "hint": {
+      "op": "Try this sign:",
+      "start": "Start with:",
+      "then": "Then:"
+    },
+    "results": {
+      "ways": "{n, plural, one {You found # extra way to make a target.} other {You found # extra ways to make a target.}}"
+    }
   },
   "dice": {
   },

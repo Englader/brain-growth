@@ -41,12 +41,15 @@ export const SKILLS: readonly SkillDef[] = [
   s('num.count.20', 'number', 1.0, 'A', ['num.count.10'], [], [g('count', { max: 20, layouts: ['frame', 'scatter'] })]),
   s('as.bonds.5', 'addsub', 1.0, 'A', ['num.subitize.5', 'num.count.10'], ['fluency'], [g('bonds', { total: 5 })]),
   s('as.add.10', 'addsub', 1.1, 'A', ['as.bonds.5'], ['fluency'], [g('addsub', { op: '+', range: 10 })]),
-  s('as.bonds.10', 'addsub', 1.2, 'A', ['as.bonds.5', 'num.subitize.10'], ['fluency'], [g('bonds', { total: 10 })]),
+  s('as.bonds.10', 'addsub', 1.2, 'A', ['as.bonds.5', 'num.subitize.10'], ['fluency'], [g('bonds', { total: 10 }), g('makeTen')]),
   s('as.sub.10', 'addsub', 1.3, 'A', ['as.add.10'], ['fluency'], [g('addsub', { op: '-', range: 10 })]),
   s('num.line.20', 'number', 1.3, 'A', ['num.line.10', 'num.count.20'], [], [g('locate', { min: 0, max: 20 })]),
   s('num.compare.20', 'number', 1.4, 'A', ['num.compare.10', 'num.count.20']),
   s('geo.shapes.props', 'geometry', 1.5, 'A', ['geo.shapes.basic'], ['visual']),
-  s('as.add.20', 'addsub', 1.6, 'A', ['as.add.10', 'as.bonds.10', 'num.line.20'], ['fluency'], [g('addsub', { op: '+', range: 20 })]),
+  s('as.add.20', 'addsub', 1.6, 'A', ['as.add.10', 'as.bonds.10', 'num.line.20'], ['fluency'], [
+    g('addsub', { op: '+', range: 20 }),
+    g('makeIt', { band: 'B', ops: ['+', '-'], minTarget: 11, maxTarget: 20, maxCard: 10 }),
+  ]),
   s('pat.grow', 'patterns', 1.7, 'A', ['pat.repeat', 'num.count.20']),
   s('as.sub.20', 'addsub', 1.8, 'A', ['as.sub.10', 'as.add.20'], ['fluency'], [g('addsub', { op: '-', range: 20 })]),
   // ───────────────────────── Band A · одделение 2 (age 7) ───────────────────────
@@ -84,6 +87,7 @@ export const SKILLS: readonly SkillDef[] = [
   s('md.mult.facts', 'muldiv', 3.3, 'B', ['md.mult.2510'], ['fluency'], [
     g('mult', {}, 5),
     g('word', { template: 'wp.rows', base: { id: 'mult', config: { minFactor: 2 } } }, 1),
+    g('makeIt', { band: 'B', focus: '*', maxCard: 10 }, 1),
   ]),
   s('dp.pictograph', 'data', 3.3, 'B', ['as.add.100.noregroup'], ['visual', 'reading']),
   s('as.sub.multi', 'addsub', 3.4, 'B', ['as.sub.100', 'as.add.multi'], [], [
@@ -94,6 +98,7 @@ export const SKILLS: readonly SkillDef[] = [
   s('md.div.facts', 'muldiv', 3.5, 'B', ['md.mult.facts'], ['fluency'], [
     g('div', {}, 5),
     g('word', { template: 'wp.share', base: { id: 'div', config: { minFactor: 2 } } }, 1),
+    g('makeIt', { band: 'B', focus: '/' }, 1),
   ]),
   s('f.unit', 'fractions', 3.6, 'B', ['md.groups'], ['visual'], [g('fracLine', { mode: 'unit' })]),
   s('md.mult.10s', 'muldiv', 3.6, 'B', ['md.mult.facts', 'pv.1000'], [], [g('mult10s', {})]),
@@ -135,7 +140,10 @@ export const SKILLS: readonly SkillDef[] = [
 
   // ───────────────────────── Band C · одделение 7 (age 12) ──────────────────────
   s('int.intro', 'integers', 7.0, 'C', ['num.line.1000'], [], [g('locate', { min: -10, max: 10 })]),
-  s('int.addsub', 'integers', 7.1, 'C', ['int.intro', 'as.sub.multi'], ['fluency'], [g('intAddSub', {})]),
+  s('int.addsub', 'integers', 7.1, 'C', ['int.intro', 'as.sub.multi'], ['fluency'], [
+    g('intAddSub', {}),
+    g('makeIt', { band: 'C', focus: 'neg' }),
+  ]),
   s('r.ratio', 'ratio', 7.2, 'C', ['f.equiv', 'md.mult.facts']),
   s('oo.full', 'algebra', 7.2, 'C', ['oo.basic', 'int.addsub']),
   s('geo.coord', 'geometry', 7.3, 'C', ['int.intro'], ['visual']),

@@ -51,6 +51,9 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.weekly.intro': ['voice.weekly.intro'],
   'voice.weekly.done': ['voice.weekly.done'],
   // ── slot: target ──
+  'voice.target.makeTen': ['voice.target.makeTen'],
+  'voice.target.make': ['voice.target.makeWord', '{n}'],
+  'voice.target.tapShiny': ['voice.target.tapShiny'],
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
