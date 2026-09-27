@@ -264,7 +264,7 @@ export function TargetBoard({ presented, data, locale, band, look, onNext, onExt
     submitAnswer(
       presented,
       { kind: 'built', value: null, repr: '', data: { reveal: 1 } },
-      { latencyMs: performance.now() - shownAt.current, hint: tier > 0, hintTier: tier, input: 'tap', hops: 0 },
+      { latencyMs: performance.now() - shownAt.current, hint: tier > 0, hintTier: tier, revealed: true, input: 'tap', hops: 0 },
     );
     setMsg(null);
     setSel(null);

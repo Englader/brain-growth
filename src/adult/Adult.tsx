@@ -26,10 +26,11 @@ import { useT } from '../ui/hooks';
 import { StorageDetails, StorageWarning } from '../ui/storage/StorageDetails';
 import { calibration, misconceptions, overview, skillRows, strategyA, unusualErrors } from './analytics';
 import { BarChart, Reliability, StepLines } from './charts';
+import { HelpTab } from './Help';
 import { MissingClips, PilotReadout, StrategyStat } from './Pilot';
 
-type Tab = 'overview' | 'skills' | 'calibration' | 'errors' | 'data' | 'features' | 'voices' | 'profile';
-const TABS: Tab[] = ['overview', 'skills', 'calibration', 'errors', 'data', 'features', 'voices', 'profile'];
+type Tab = 'overview' | 'help' | 'skills' | 'calibration' | 'errors' | 'data' | 'features' | 'voices' | 'profile';
+const TABS: Tab[] = ['overview', 'help', 'skills', 'calibration', 'errors', 'data', 'features', 'voices', 'profile'];
 
 function download(name: string, text: string): void {
   const blob = new Blob([text], { type: 'application/json' });
@@ -75,6 +76,7 @@ export function Adult(): JSX.Element {
       <div class="adult-body">
         {tab === 'data' ? <DataTab /> : tab === 'voices' ? <VoicesTab /> : !p ? <p class="muted">{t('adult.overview.noData')}</p> : null}
         {p && tab === 'overview' && <OverviewTab p={p} />}
+        {p && tab === 'help' && <HelpTab p={p} />}
         {p && tab === 'skills' && p.band === 'A' && <p class="muted">{t('pilot.strategy.help')}</p>}
         {p && tab === 'skills' && <SkillsTab p={p} />}
         {p && tab === 'calibration' && <CalibrationTab p={p} />}

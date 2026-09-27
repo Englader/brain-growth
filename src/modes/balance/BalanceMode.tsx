@@ -257,7 +257,7 @@ function BalancePlay({ onFinished, onExit }: { onFinished: () => void; onExit: (
     const r = submitAnswer(
       cur,
       { kind: 'built', value: v, repr, data: { bal: state.balloons ? 1 : 0 } },
-      { latencyMs: latency, hint: tier > 0, hintTier: creditTier(), input: 'typed', hops: 0 },
+      { latencyMs: latency, hint: tier > 0, hintTier: creditTier(), ladderTier: tier, revealed: value === null, input: 'typed', hops: 0 },
     );
     if (r.grade.invalid) {
       setInvalid(true);

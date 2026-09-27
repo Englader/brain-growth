@@ -53,7 +53,7 @@ describe('pilot readout metrics (synthetic logs)', () => {
     expect(exitsAfterError([])).toEqual({ exits: 0, afterError: 0, share: null, medianIndex: null });
   });
 
-  it('hintUsage: untimed Band B/C first attempts per logged tier; an untiered (legacy) hint counts as tier 2', () => {
+  it('hintUsage: help on untimed first tries in every band and mode, and on puzzles; "show me" counts; an untiered (legacy) hint counts as tier 2', () => {
     const log: LogRecord[] = [
       item({ hint: true }),
       item({ hint: false }),
@@ -61,18 +61,23 @@ describe('pilot readout metrics (synthetic logs)', () => {
       item({ hint: true, band: 'C' }),
       item({ hint: true, attempt: 2 }), // retries are not counted
       item({ hint: true, timed: true }), // Sprint
-      item({ band: 'A', input: 'tap' }), // Band A has no hint button
+      item({ band: 'A', input: 'tap' }), // Band A counts too: no help here
+      item({ band: 'A', mode: 'target', gen: 'makeTen', correct: false, answer: 'reveal', expected: '10' }), // Band A "show me" (a record from before `revealed`)
+      ev(EVENTS.PUZZLE, { type: 'pattern', diff: 0, ts: T, solved: true, hints: 1, checks: 0 }),
     ];
     expect(hintTier(item({ hint: true }))).toBe(2);
     expect(hintTier(item())).toBe(0);
-    expect(hintUsage(log)).toEqual({ n: 4, used: 2, share: 0.5, byTier: [2, 0, 2, 0] });
-    expect(hintUsage([item({ band: 'A' })]).share).toBeNull();
+    expect(hintUsage(log)).toEqual({ n: 7, used: 4, share: 4 / 7, byTier: [3, 1, 2, 0], shown: 1 });
+    expect(hintUsage([item({ band: 'A' })])).toEqual({ n: 1, used: 0, share: 0, byTier: [1, 0, 0, 0], shown: 0 });
+    expect(hintUsage([]).share).toBeNull();
     // The ladder logs its tier; the tier wins over the legacy rule.
     expect(hintTier(item({ hint: true, tier: 3 }))).toBe(3);
     expect(hintTier(item({ hint: true, tier: null }))).toBe(2);
     expect(hintTier(item({ hint: false, tier: 0 }))).toBe(0);
     const tiered: LogRecord[] = [item({ hint: true, tier: 1 }), item({ hint: true, tier: 3 }), item({ hint: true, tier: 3 }), item({ tier: 0 }), item({ hint: true })];
-    expect(hintUsage(tiered)).toEqual({ n: 5, used: 4, share: 0.8, byTier: [1, 1, 1, 2] });
+    expect(hintUsage(tiered)).toEqual({ n: 5, used: 4, share: 0.8, byTier: [1, 1, 1, 2], shown: 0 });
+    // A hint and then "show me" is counted once, as shown.
+    expect(hintUsage([item({ hint: true, tier: 2, correct: false, revealed: true })])).toEqual({ n: 1, used: 1, share: 1, byTier: [0, 0, 0, 0], shown: 1 });
   });
 
   it('feedbackTime: median of the logged feedback events, ignoring other events and malformed data', () => {
