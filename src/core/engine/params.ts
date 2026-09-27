@@ -1,3 +1,5 @@
+import type { ModeId } from '../types';
+
 /**
  * Every tunable constant of the adaptive engine, in one place, with the value
  * actually shipped. DESIGN.md §1.5 derives and justifies each; the simulated-
@@ -114,3 +116,30 @@ export const PLACEMENT = {
   /** Extra per-skill variance: children's profiles are uneven. */
   SKILL_S2: 0.5,
 } as const;
+
+/**
+ * Evidence weight of a first attempt, per mode (0..1), applied to the ability
+ * update by live sessions (session.ts) and by log replay (replay.ts, from each
+ * record's `mode`) through the same applyFirstAttempt, so the two never drift.
+ * Modes absent here count fully (1). Timed items are still MODEL.TIMED_WEIGHT.
+ * Use < 1 for modes whose items are noisier evidence of the skill (e.g. a
+ * multi-solution deal) until real calibration data exists.
+ */
+export const MODE_EVIDENCE: Record<ModeId, number> = {
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
+};
+
+export function modeEvidence(mode: ModeId): number {
+  return MODE_EVIDENCE[mode] ?? 1;
+}

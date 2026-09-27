@@ -58,4 +58,18 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   { id: 'secret.weekend', category: 'discovery', bands: 'all', secret: true, icon: 'kite', on: ON_SESSION, when: { metric: 'weekend.both', gte: 1 } },
   { id: 'secret.polyglot', category: 'discovery', bands: 'all', secret: true, icon: 'globe', on: ON_ITEM, when: { metric: 'stats.localeSwitches', gte: 5 } },
   { id: 'secret.marathonFrog', category: 'discovery', bands: ['A', 'B'], secret: true, icon: 'frog', on: ON_ITEM, when: { metric: 'stats.hops', gte: 1000 } },
+
+  // Feature achievements (ids `<feature>.<name>`, strings in `ach.<feature>.<name>`), each under its own anchor:
+  // ── slot: frac ──
+  // ── slot: hint ──
+  // ── slot: pilot ──
+  // ── slot: storage ──
+  // ── slot: weekly ──
+  // ── slot: target ──
+  // ── slot: dice ──
+  // ── slot: puzzle ──
+  // ── slot: workshop ──
+  // ── slot: balance ──
+  // ── slot: coord ──
+  // ── slot: season ──
 ];

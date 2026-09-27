@@ -24,7 +24,7 @@ describe('voice script', () => {
     for (const loc of allLocales()) for (const k of allVoiceKeys()) expect(loc.messages[k], `${loc.id}:${k}`).toBeTruthy();
   });
 
-  it('recording budget stays small (under 60 clips per locale for the slice)', () => {
-    for (const loc of allLocales()) expect(requiredClips(loc.id).length).toBeLessThan(60);
+  it('recording budget stays small (under 140 clips per locale; A-15 expects ~130 by v1)', () => {
+    for (const loc of allLocales()) expect(requiredClips(loc.id).length).toBeLessThan(140);
   });
 });
