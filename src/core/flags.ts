@@ -38,6 +38,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: target ──
   { id: 'mode.target', scope: 'profile', default: true, description: 'Make it: combine dealt cards with the operations to hit a target number (all bands; evidence weight 0.5).', labelKey: 'target.flag' },
   // ── slot: dice ──
+  { id: 'mode.dice', scope: 'profile', default: true, labelKey: 'dice.flag', description: 'Dice Race: two children on this device race on their own lanes, each move one of their own adaptive items (pass-and-play).' },
   // ── slot: puzzle ──
   { id: 'mode.puzzle', scope: 'profile', default: true, labelKey: 'puzzle.flag', description: 'Puzzle track: patterns, balance scales, estimation ranges, logic grids and cryptarithms; untimed, own rating per type, never needed for progress.' },
   // ── slot: workshop ──

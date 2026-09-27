@@ -7,7 +7,7 @@
  * are easy, squares easier than neighbours, 6·7·8 hardest.
  */
 import { rat } from '../../rational';
-import type { GeneratorDef, SolutionStep } from '../types';
+import type { GeneratedItem, GeneratorDef, SolutionStep } from '../types';
 import { bin, clamp01, pickByLevel, uniqMisconceptions, windowAround } from '../util';
 
 const TABLE_EASE: Record<number, number> = {
@@ -83,6 +83,29 @@ export const groupsGen: GeneratorDef<{ maxGroups: number; maxSize: number }> = {
   },
 };
 
+/** A times-table item `a × b` (drawn as a hops of b). */
+function multItem(a: number, b: number, level: number): GeneratedItem {
+  const p = a * b;
+  return {
+    level,
+    prompt: { kind: 'expr', expr: bin('*', a, b) },
+    answer: { value: rat(p) },
+    line: { min: 0, max: Math.max(100, p), start: 0, major: 10, minor: 5, labelEvery: 10, steps: [b], answerMode: 'land' },
+    solution: [...hopsOf(a, b), ...factStrategy(a, b)],
+    misconceptions: uniqMisconceptions(
+      [
+        { value: (a + 1) * b, code: 'mul.adjacent_fact' },
+        { value: (a - 1) * b, code: 'mul.adjacent_fact' },
+        { value: a * (b + 1), code: 'mul.adjacent_fact' },
+        { value: a * (b - 1), code: 'mul.adjacent_fact' },
+        { value: a + b, code: 'mul.added' },
+      ].filter((m) => m.value >= 0),
+      p,
+    ),
+    features: { a, b, p },
+  };
+}
+
 export const multGen: GeneratorDef<{ factors?: number[]; minFactor?: number }> = {
   id: 'mult',
   version: 1,
@@ -104,26 +127,11 @@ export const multGen: GeneratorDef<{ factors?: number[]; minFactor?: number }> =
       },
       ({ a, b }) => factDifficulty(a, b),
     );
-    const { a, b } = value;
-    const p = a * b;
-    return {
-      level: lv,
-      prompt: { kind: 'expr', expr: bin('*', a, b) },
-      answer: { value: rat(p) },
-      line: { min: 0, max: 100, start: 0, major: 10, minor: 5, labelEvery: 10, steps: [b], answerMode: 'land' },
-      solution: [...hopsOf(a, b), ...factStrategy(a, b)],
-      misconceptions: uniqMisconceptions(
-        [
-          { value: (a + 1) * b, code: 'mul.adjacent_fact' },
-          { value: (a - 1) * b, code: 'mul.adjacent_fact' },
-          { value: a * (b + 1), code: 'mul.adjacent_fact' },
-          { value: a * (b - 1), code: 'mul.adjacent_fact' },
-          { value: a + b, code: 'mul.added' },
-        ].filter((m) => m.value >= 0),
-        p,
-      ),
-      features: { a, b, p },
-    };
+    return multItem(value.a, value.b, lv);
+  },
+  fromOperands({ a, op, b }) {
+    if (op !== '*' || !Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 1) return null;
+    return multItem(a, b, factDifficulty(a, b));
   },
 };
 

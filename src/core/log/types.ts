@@ -134,6 +134,8 @@ export const EVENTS = {
   // ── slot: target ──
   TARGET_WAY: 'target_way',
   // ── slot: dice ──
+  /** A finished (or abandoned) Dice Race, in each player's own log: facts for fairness tuning, never a winner. */
+  DICE_MATCH: 'dice_match',
   // ── slot: puzzle ──
   PUZZLE: 'puzzle',
   // ── slot: workshop ──

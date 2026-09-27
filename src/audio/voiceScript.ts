@@ -55,6 +55,9 @@ const DEFAULT_LINES: Record<string, VoiceLine> = {
   'voice.target.make': ['voice.target.makeWord', '{n}'],
   'voice.target.tapShiny': ['voice.target.tapShiny'],
   // ── slot: dice ──
+  'voice.dice.roll': ['voice.dice.roll'],
+  'voice.dice.yourTurn': ['voice.dice.yourTurn'],
+  'voice.dice.pass': ['voice.dice.pass'],
   // ── slot: puzzle ──
   'voice.puzzle.shelf': ['voice.puzzle.shelf'],
   'voice.puzzle.pattern': ['voice.puzzle.pattern'],

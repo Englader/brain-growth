@@ -12,7 +12,7 @@ import { questProgress } from '../core/quests';
 import { GRAPH } from '../core/skills';
 import { dayKey } from '../core/time';
 import { StorageFullError } from '../data/kv';
-import { modesFor } from '../modes/registry';
+import { isReady, modesFor } from '../modes/registry';
 import { now, repo } from './services';
 import { getState, setState } from './store';
 
@@ -81,7 +81,9 @@ export function evalCtx(p: Profile, sessionId: string | null): EvalContext {
     log: recentLog(p.id),
     sessionId,
     graph: GRAPH,
-    modesAvailable: modesFor(p, getState().meta?.deviceFlags ?? {}).length,
+    // Modes this child can start now: a visible mode that can never be ready for them (Dice Race on a
+    // one-child device) must not make "tried every mode" unreachable.
+    modesAvailable: modesFor(p, getState().meta?.deviceFlags ?? {}).filter((m) => isReady(m, p)).length,
     memo: new Map(),
   };
 }

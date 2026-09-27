@@ -156,6 +156,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // A deal has many solutions and mixes skills: half evidence until calibration data exists.
   target: 0.5,
   // ── slot: dice ──
+  /** Dice Race moves are ordinary fact items, answered untimed: full evidence. */
+  dice: 1,
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──

@@ -1,4 +1,21 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import '../src/modes';
+import { answerTurn, beginTurn, chooseOption, endTurn, quitMatch, rollTurn, startMatch } from '../src/app/diceActions';
+import { saveProfile } from '../src/app/persist';
+import { repo } from '../src/app/services';
+import { getState, setState } from '../src/app/store';
+import { glickoElo } from '../src/core/engine/glicko';
+import type { SkillState } from '../src/core/engine/model';
+import { replay } from '../src/core/engine/replay';
+import type { Response } from '../src/core/items/grade';
+import { getGenerator } from '../src/core/items/generators/registry';
+import type { GeneratedItem, Operands } from '../src/core/items/types';
+import { EVENTS, type EventRecord, type ItemRecord, type LogRecord, type SessionRecord } from '../src/core/log/types';
+import { createProfile, type Profile } from '../src/core/profile';
+import { toNumber } from '../src/core/rational';
+import { GRAPH } from '../src/core/skills';
+import { moveItem, moveSkill, opsForSkills } from '../src/modes/dice/rules';
+import { getDice } from '../src/modes/dice/state';
 import {
   applyMove,
   boardFor,
@@ -18,6 +35,7 @@ import {
   playMove,
   roll,
   rollDice,
+  type DiceItemSpec,
   type DiceOp,
   type DiceRoll,
   type LaneState,
@@ -367,5 +385,276 @@ describe('dice determinism and matches', () => {
 
   it('dice message keys live in the dice block', () => {
     for (const key of Object.values(DICE_KEYS)) expect(key).toMatch(/^dice\./);
+  });
+});
+
+// ── integration: real items on each child's own profile (src/modes/dice, src/app/diceActions) ──
+
+describe('fixed items from operands (GeneratorDef.fromOperands)', () => {
+  /** The operands a sampled item was built from, read back from its features. */
+  const operandsOf = (genId: string, cfg: Record<string, unknown>, it: GeneratedItem): Operands => {
+    const f = it.features;
+    if (genId === 'intAddSub') {
+      const form = ['a+b', 'a-b', 'a+(-b)', 'a-(-b)'][f.form!]!;
+      return { a: f.a!, op: form.startsWith('a+') ? '+' : '-', b: form.includes('(-b)') ? -f.b! : f.b! };
+    }
+    if (genId === 'mult') return { a: f.a!, op: '*', b: f.b! };
+    return { a: f.a!, op: cfg.op as '+' | '-', b: f.b! };
+  };
+
+  const bindings = GRAPH.playableSkills().flatMap((s) =>
+    (s.gens ?? []).filter((b) => getGenerator(b.id).fromOperands).map((b) => ({ skill: s.id, id: b.id, cfg: (b.config ?? {}) as Record<string, unknown> })),
+  );
+
+  it('covers the dice generators: addsub, intAddSub and mult', () => {
+    expect(new Set(bindings.map((b) => b.id))).toEqual(new Set(['addsub', 'intAddSub', 'mult']));
+  });
+
+  for (const b of bindings) {
+    it(`${b.skill} via ${b.id}: the level is the sampler's scorer level, and the whole item matches`, () => {
+      const gen = getGenerator(b.id);
+      const rng = createRng(4242);
+      for (let i = 0; i < 150; i++) {
+        const sampled = gen.generate(rng.next(), rng, b.cfg);
+        const fixed = gen.fromOperands!(operandsOf(b.id, b.cfg, sampled), b.cfg);
+        expect(fixed, JSON.stringify(sampled.features)).not.toBeNull();
+        expect(fixed!.level).toBe(sampled.level);
+        expect(fixed).toEqual(sampled);
+      }
+    });
+  }
+
+  it('Band C operands past the sampler range are accepted (a up to 14; the line widens only when needed)', () => {
+    const int = getGenerator('intAddSub');
+    const top = int.fromOperands!({ a: 14, op: '-', b: -1 }, {})!;
+    expect(toNumber(top.answer.value)).toBe(15);
+    expect(top.prompt).toEqual({ kind: 'expr', expr: { k: 'op', op: '-', a: { k: 'num', v: 14 }, b: { k: 'num', v: -1 } } });
+    expect([top.line.min, top.line.max, top.line.start]).toEqual([-20, 20, 14]);
+    expect(top.level).toBeGreaterThan(0);
+    const far = int.fromOperands!({ a: 18, op: '+', b: 7 }, {})!;
+    expect(far.line.max).toBeGreaterThanOrEqual(25);
+    for (let a = -10; a <= 14; a++) {
+      for (const b of [-10, -3, -1, 1, 4, 10]) {
+        for (const op of ['+', '-'] as const) {
+          const it = int.fromOperands!({ a, op, b }, {})!;
+          const r = toNumber(it.answer.value);
+          expect(r).toBe(op === '+' ? a + b : a - b);
+          expect(r).toBeGreaterThanOrEqual(it.line.min);
+          expect(r).toBeLessThanOrEqual(it.line.max);
+        }
+      }
+    }
+  });
+
+  it('refuses what a generator cannot express', () => {
+    const add = getGenerator('addsub');
+    expect(add.fromOperands!({ a: 3, op: '-', b: 2 }, { op: '+', range: 10 })).toBeNull();
+    expect(add.fromOperands!({ a: 2, op: '-', b: 5 }, { op: '-', range: 10 })).toBeNull();
+    expect(add.fromOperands!({ a: -2, op: '+', b: 5 }, { op: '+', range: 10 })).toBeNull();
+    expect(getGenerator('mult').fromOperands!({ a: 3, op: '+', b: 4 }, {})).toBeNull();
+    expect(getGenerator('intAddSub').fromOperands!({ a: 3, op: '*', b: 4 }, {})).toBeNull();
+    expect(getGenerator('intAddSub').fromOperands!({ a: 3, op: '+', b: 0 }, {})).toBeNull();
+    // Past the config's range: accepted, with a line that holds the answer.
+    const wide = add.fromOperands!({ a: 17, op: '+', b: 3 }, { op: '+', range: 10 })!;
+    expect([wide.line.max, toNumber(wide.answer.value)]).toEqual([20, 20]);
+  });
+
+  it('every move of every band becomes a real item with the move’s operands and answer', () => {
+    const rng = createRng(77);
+    for (const band of ['A', 'B', 'C'] as BandId[]) {
+      for (let seed = 0; seed < 25; seed++) {
+        const board = boardFor(band, seed);
+        let lane = newLane(board);
+        while (!isFinished(lane)) {
+          const options = moveOptions(board, lane.position, roll(rng, band), ALL);
+          for (const o of options) {
+            const built = moveItem(o.item, {});
+            expect(toNumber(built.generated.answer.value)).toBe(o.item.expected);
+            const pr = built.generated.prompt;
+            expect(pr.kind === 'expr' && pr.expr.k === 'op' && pr.expr.op).toBe(o.item.op);
+            expect(GRAPH.get(built.skillId).gens!.some((g) => g.id === built.gen.id)).toBe(true);
+          }
+          lane = applyMove(lane, greedyPolicy(options)).lane;
+        }
+      }
+    }
+  });
+});
+
+describe('dice skill choice: ratings stay sensible', () => {
+  const T0 = Date.UTC(2026, 8, 20, 15);
+  const solid = (...ids: string[]): Record<string, SkillState> =>
+    Object.fromEntries(ids.map((id) => [id, { ...glickoElo.init(GRAPH.get(id), T0), proficientAt: T0 }]));
+  const sum = (a: number, b: number): DiceItemSpec => ({ skillHint: a + b <= 10 ? 'as.add.10' : 'as.add.20', a, op: '+', b, expected: a + b });
+
+  it('an unlocked hint is used as is', () => {
+    const states = solid('as.bonds.5', 'as.add.10', 'as.bonds.10', 'num.line.20', 'num.subitize.10');
+    expect(moveSkill(sum(8, 5), states)).toBe('as.add.20');
+    expect(moveSkill(sum(3, 4), states)).toBe('as.add.10');
+  });
+
+  it('a locked Band A hint falls back to the nearest unlocked add skill', () => {
+    const states = solid('as.bonds.5'); // as.add.10 unlocked, as.add.20 not
+    expect(moveSkill(sum(8, 5), states)).toBe('as.add.10');
+    // Rated at that skill's own scorer level: a sum past 10 is simply a hard "within 10" item.
+    const built = moveItem(sum(8, 5), states);
+    expect(built.generated.level).toBe(getGenerator('addsub').fromOperands!({ a: 8, op: '+', b: 5 }, { op: '+', range: 10 })!.level);
+    expect(built.generated.level).toBeGreaterThan(0.8);
+  });
+
+  it('with nothing unlocked it is the most basic playable skill of that kind', () => {
+    expect(moveSkill(sum(8, 5), {})).toBe('as.add.10');
+    expect(moveSkill({ skillHint: 'as.sub.10', a: 6, op: '-', b: 2, expected: 4 }, {})).toBe('as.sub.10');
+    expect(moveSkill({ skillHint: 'md.mult.facts', a: 3, op: '*', b: 4, expected: 12 }, {})).toBe('md.mult.2510');
+    // Integers have one skill of their kind: it is rated there even before it unlocks.
+    expect(moveSkill({ skillHint: 'int.addsub', a: -3, op: '-', b: -4, expected: 1 }, {})).toBe('int.addsub');
+  });
+
+  it('Band B operators follow the child’s unlocked skills', () => {
+    expect(opsForSkills({})).toEqual(['+']);
+    expect(opsForSkills(solid('as.add.10'))).toEqual(['+', '-']);
+    expect(opsForSkills(solid('as.add.10', 'md.mult.2510'))).toEqual(['+', '-', '*']);
+  });
+});
+
+describe('pass-and-play: two children, one MemoryKV repo', () => {
+  const T0 = Date.UTC(2026, 8, 21, 16);
+  let ana: Profile;
+  let marko: Profile;
+  let stefan: Profile;
+
+  const placed = (name: string, age: number, g: number): Profile => {
+    const p = createProfile({ name, age, locale: 'mk', avatar: 'color.green' }, T0);
+    const done: EventRecord = { type: 'event', ts: T0, sid: null, name: EVENTS.PLACEMENT_DONE, data: { g, sd: 0.3 } };
+    return saveProfile({ ...p, skills: replay({ graph: GRAPH, model: glickoElo }, [done]), placement: { done: true, state: null, g, sd: 0.3 } });
+  };
+  const logOf = (pid: string): LogRecord[] => repo.readKnownLog(pid);
+  const diceItems = (pid: string): ItemRecord[] => logOf(pid).filter((r): r is ItemRecord => r.type === 'item' && r.mode === 'dice');
+
+  beforeAll(() => {
+    vi.useFakeTimers({ now: T0, toFake: ['Date'] });
+    vi.stubGlobal('history', { pushState: vi.fn(), replaceState: vi.fn() });
+    vi.stubGlobal('location', { hash: '' });
+    repo.init();
+    ana = placed('Ана', 6, 1.2);
+    marko = placed('Марко', 9, 3.5);
+    stefan = placed('Стефан', 13, 7.5);
+    setState({ profile: ana, profiles: [ana, marko, stefan], session: null, meta: repo.meta() });
+  });
+  afterAll(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  /** Play one whole turn: the pass screen, the roll, the operator (B: option `pick`), an answer from `answer`. */
+  function playTurn(answer: (expected: number) => number, opts: { latencyMs?: number; pick?: number } = {}): { correct: boolean; from: number; to: number } {
+    beginTurn();
+    rollTurn();
+    if (getDice().turn.choice === null) chooseOption((opts.pick ?? 0) % getDice().match!.pending!.options.length);
+    const d = getDice();
+    const player = d.turn.player;
+    const band = d.match!.players[player]!.band;
+    const from = d.match!.lanes[player]!.position;
+    const v = answer(toNumber(d.turn.presented!.item.answer.value));
+    const response: Response = band === 'A' ? { kind: 'landed', value: v, hops: Math.abs(v - from) } : { kind: 'typed', raw: v < 0 ? `−${-v}` : String(v) };
+    const res = answerTurn(response, { latencyMs: opts.latencyMs ?? 2500, hint: false, input: band === 'A' ? 'hops' : 'typed', hops: 0 });
+    const to = getDice().match!.lanes[player]!.position;
+    endTurn();
+    return { correct: !!res?.grade.correct, from, to };
+  }
+
+  function playMatch(pids: string[], seed: number, answer: (expected: number, i: number) => number, latencyMs?: number): MatchState {
+    expect(startMatch(pids, seed)).toBe(true);
+    let last: MatchState | null = null;
+    for (let i = 0; i < 200 && getDice().match; i++) {
+      playTurn((e) => answer(e, i), { ...(latencyMs === undefined ? {} : { latencyMs }), pick: i });
+      last = getDice().match ?? last;
+    }
+    expect(getDice().phase).toBe('results');
+    return last!;
+  }
+
+  it('each child’s answers land only in their own log, on their own profile', () => {
+    const before = { [ana.id]: logOf(ana.id).length, [marko.id]: logOf(marko.id).length };
+    const itemsBefore = { [ana.id]: repo.loadProfile(ana.id)!.stats.items, [marko.id]: repo.loadProfile(marko.id)!.stats.items };
+    // Some answers right, some wrong.
+    playMatch([marko.id, ana.id], 31, (e, i) => (i % 3 === 1 ? e + 1 : e));
+    const results = getDice().results!;
+    expect(results.map((r) => r.pid)).toEqual([marko.id, ana.id]);
+
+    for (const [pid, other] of [[ana.id, marko.id], [marko.id, ana.id]] as const) {
+      const log = logOf(pid).slice(before[pid]);
+      const sessions = log.filter((r): r is SessionRecord => r.type === 'session');
+      expect(sessions.map((r) => [r.phase, r.mode])).toEqual([['start', 'dice'], ['end', 'dice']]);
+      const sid = sessions[0]!.sid;
+      const items = log.filter((r): r is ItemRecord => r.type === 'item');
+      const turns = results.find((r) => r.pid === pid)!.result.firstAttempts;
+      expect(items.length).toBe(turns);
+      expect(turns).toBeGreaterThan(2);
+      expect(items.every((r) => r.sid === sid && r.mode === 'dice' && r.source === 'fixed' && r.attempt === 1)).toBe(true);
+      expect(items.every((r) => r.band === repo.loadProfile(pid)!.band)).toBe(true);
+      // Nothing of the other child's session is in this log.
+      const otherSid = logOf(other).filter((r): r is SessionRecord => r.type === 'session' && r.mode === 'dice').at(-1)!.sid;
+      expect(log.some((r) => r.sid === otherSid)).toBe(false);
+      // One match event per child: lane facts only, never a winner, place or score.
+      const ev = log.filter((r): r is EventRecord => r.type === 'event' && r.name === EVENTS.DICE_MATCH);
+      expect(ev).toHaveLength(1);
+      expect(ev[0]!.sid).toBe(sid);
+      expect(ev[0]!.data!.turns).toBe(turns);
+      expect(JSON.stringify(ev[0]!.data)).not.toMatch(/win|lose|lost|rank|place|score/i);
+      expect(repo.loadProfile(pid)!.stats.items).toBe(itemsBefore[pid]! + turns);
+    }
+    // Both children took the same number of turns (the race ends with the round).
+    expect(results[0]!.result.firstAttempts).toBe(results[1]!.result.firstAttempts);
+    // The app's active child and session were never touched.
+    expect(getState().profile?.id).toBe(ana.id);
+    expect(getState().session).toBeNull();
+    // Band A items are rated on unlocked (or the most basic) add skills, never a locked hint.
+    expect(new Set(diceItems(ana.id).map((r) => r.skill))).toEqual(new Set(['as.add.10']));
+    expect(diceItems(marko.id).every((r) => ['as.add.10', 'as.add.20', 'as.sub.10'].includes(r.skill))).toBe(true);
+  });
+
+  it('a wrong Band A answer still moves the token, exactly as far as a right one', () => {
+    const first = (answer: (e: number) => number): { correct: boolean; from: number; to: number } => {
+      startMatch([ana.id, marko.id], 5);
+      const turn = playTurn(answer);
+      quitMatch();
+      return turn;
+    };
+    const right = first((e) => e);
+    const wrong = first((e) => e + 1);
+    expect([right.correct, wrong.correct]).toEqual([true, false]);
+    expect(wrong.to).toBe(right.to);
+    expect(wrong.to).toBeGreaterThan(wrong.from);
+    // A whole race answered wrong every time travels exactly the same path.
+    const allWrong = playMatch([ana.id, marko.id], 9, (e) => e + 1);
+    const allRight = playMatch([ana.id, marko.id], 9, (e) => e);
+    expect(allWrong).toEqual(allRight);
+  });
+
+  it('Band C integer forms work end to end (negative answers typed with −)', () => {
+    const n = diceItems(stefan.id).length;
+    playMatch([stefan.id, ana.id], 12, (e) => e);
+    const items = diceItems(stefan.id).slice(n);
+    expect(items.length).toBeGreaterThan(2);
+    expect(items.every((r) => r.skill === 'int.addsub' && r.correct && r.gen === 'intAddSub')).toBe(true);
+  });
+
+  it('nothing depends on latency: the race and the ratings are the same fast or slow', () => {
+    const run = (latencyMs: number): { match: MatchState; ana: Record<string, SkillState>; marko: Record<string, SkillState> } => {
+      saveProfile(ana);
+      saveProfile(marko);
+      const match = playMatch([ana.id, marko.id], 21, (e, i) => (i % 2 ? e : e + 2), latencyMs);
+      return { match, ana: repo.loadProfile(ana.id)!.skills, marko: repo.loadProfile(marko.id)!.skills };
+    };
+    const fast = run(40);
+    const slow = run(120_000);
+    expect(slow.match).toEqual(fast.match);
+    for (const who of ['ana', 'marko'] as const) {
+      for (const [id, st] of Object.entries(fast[who])) {
+        expect(slow[who][id]!.mu, `${who} ${id}`).toBeCloseTo(st.mu, 9);
+        expect(slow[who][id]!.s2, `${who} ${id}`).toBeCloseTo(st.s2, 9);
+      }
+    }
   });
 });

@@ -5,7 +5,7 @@ Everything that grows is registry-driven: adding a mode, skill, achievement or l
 ```bash
 npm ci
 npm run dev        # develop at http://localhost:5173 (?ff=-mode.sprint etc. to switch flags)
-npm run check      # typecheck + 744 tests (incl. locale parity, font coverage and the seam guards)
+npm run check      # typecheck + 769 tests (incl. locale parity, font coverage and the seam guards)
 npm run build      # writes dist/ (not committed; CI builds and deploys main to Pages)
 npm run size       # after a build: start-up JS ≤ 100 kB and first load ≤ 130 kB gzipped (a CI step)
 npm run e2e        # every e2e flow, Macedonian at 360px; fails on errors, horizontal overflow, clipped text or unusable controls
@@ -178,6 +178,7 @@ New modes and features are enabled by default once their e2e flow passes (DESIGN
 | Checkers | `src/core/items/checkers.ts` | `registerChecker(id, (item, response, params, conv) => ({ correct, given, invalid?, misconception?, delta? }))`; an item opts in with `answer.check = { id, params? }`. Import the checker module from the generator that emits it. |
 | Built answers | `src/core/items/grade.ts` | `Response` `{ kind: 'built', value: Rational \| null, repr, data? }`: graded by the item's checker, else by `value`. |
 | Evidence weight | `src/core/engine/params.ts` | `MODE_EVIDENCE[mode]` (default 1) scales the ability update of that mode's first attempts, identically in live sessions and in log replay. |
+| Fixed items | `GeneratorDef.fromOperands` (`src/core/items/types.ts`), `SessionEngine.presentFixed` | `gen.fromOperands({ a, op, b }, config)` builds the item for operands the MODE chose (level from the generator's own scorer; null if it cannot express them; `addsub`, `intAddSub`, `mult`). `engine.presentFixed(skillId, generated, gen, seed)` presents it with source `fixed`, rated and logged like any first attempt. Dice Race uses both. |
 
 ### 6. e2e flows
 
