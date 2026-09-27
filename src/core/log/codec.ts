@@ -23,6 +23,8 @@ const ITEM_FIELDS_V1 = [
   'locale', 'source', 'timed', 'input', 'hops', 'alt',
   // Appended (no version bump): older records decode with tier = null.
   'tier',
+  // Appended (no version bump): older records decode with revealed, ladder and req = null (log/help.ts).
+  'revealed', 'ladder', 'req',
 ] as const;
 const SESSION_FIELDS_V1 = [
   'ts', 'sid', 'phase', 'mode', 'band', 'locale', 'opts', 'items', 'firstCorrect', 'durationMs', 'completed',
@@ -32,7 +34,7 @@ const SESSION_FIELDS_V1 = [
 ] as const;
 const EVENT_FIELDS_V1 = ['ts', 'sid', 'name', 'data'] as const;
 
-const BOOL_FIELDS = new Set(['correct', 'hint', 'timed', 'alt', 'completed', 'lastCorrect']);
+const BOOL_FIELDS = new Set(['correct', 'hint', 'timed', 'alt', 'completed', 'lastCorrect', 'revealed']);
 
 interface TypeCodec {
   tag: string;

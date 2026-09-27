@@ -52,6 +52,25 @@ export interface ItemRecord {
    * `hint: true` counts as MODEL.LEGACY_HINT_TIER (engine/observe.hintTierOf).
    */
   tier?: number | null;
+  /**
+   * The child asked to be shown the answer ("show me": Target, Balance, the
+   * Workshop). Such an attempt is graded wrong (y = 0), so this changes no
+   * credit. Null in records written before the field; log/help.ts reads those
+   * from the logged answer ('reveal', or a Balance transcript ending '=?').
+   */
+  revealed?: boolean | null;
+  /**
+   * Highest hint-ladder tier the child opened, logged only where it differs
+   * from `tier`: Balance's credit tier also counts refused one-pan moves.
+   * Null otherwise (then `tier` is the ladder tier). Read by log/help.ts only.
+   */
+  ladder?: number | null;
+  /**
+   * The level requested from the generator, at full precision: with `gen`,
+   * `genV`, `seed` and the skill's binding it rebuilds the exact item (the
+   * grown-ups' Help list). Null for fixed items (Dice Race) and older records.
+   */
+  req?: number | null;
 }
 
 export interface SessionOptions {

@@ -12,6 +12,7 @@ import type { SkillGraph } from '../core/skills/graph';
 import { currentStreak } from '../core/streaks';
 import { addDays, dayKey, dayStart } from '../core/time';
 import type { SkillId } from '../core/types';
+import { countHelp, helpAnswers, helpedCount } from './helpStats';
 
 const DAY = 86_400_000;
 
@@ -244,20 +245,22 @@ export function exitsAfterError(log: readonly LogRecord[]): ExitStats {
 export const hintTier = (r: ItemRecord): number => hintTierOf(r.hint, r.tier);
 
 export interface HintStats {
-  /** Untimed Band B/C first attempts (Band A has no hint button). */
+  /** Untimed first tries in every band and mode, and finished puzzles (the Help tab's answers, ./helpStats.ts). */
   n: number;
+  /** …answered with any help: a hint or "show me". */
   used: number;
   share: number | null;
-  /** First attempts per tier 0–3. */
+  /** First tries by the highest hint tier 0–3 opened, not counting those shown. */
   byTier: number[];
+  /** First tries where the child asked to be shown the answer ("show me"; a puzzle revealed). */
+  shown: number;
 }
 
+/** Help on first tries (core/log/help.ts): the same counts as the Help tab over the same log. */
 export function hintUsage(log: readonly LogRecord[]): HintStats {
-  const fa = firstAttempts(log).filter((r) => r.band !== 'A');
-  const byTier = [0, 0, 0, 0];
-  for (const r of fa) byTier[Math.min(3, hintTier(r))]!++;
-  const used = fa.length - byTier[0]!;
-  return { n: fa.length, used, share: fa.length ? used / fa.length : null, byTier };
+  const c = countHelp(helpAnswers(log).filter((a) => a.first));
+  const used = helpedCount(c);
+  return { n: c.total, used, share: c.total ? used / c.total : null, byTier: [c.none, c.hint1, c.hint2, c.hint3], shown: c.shown };
 }
 
 /** Time spent on the feedback after a wrong answer (EVENTS.FEEDBACK), in ms. */

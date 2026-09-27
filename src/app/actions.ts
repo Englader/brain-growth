@@ -182,6 +182,10 @@ export interface SubmitMeta {
   hint: boolean;
   /** Highest hint-ladder tier used (0 = none, 1–3); credit 1 − 0.25·tier. Omit when the mode has no ladder. */
   hintTier?: number;
+  /** "Show me": the child asked to see the answer (graded wrong by the response). Logged as `revealed`. */
+  revealed?: boolean;
+  /** The hint-ladder tier opened, when `hintTier` also counts something else (Balance's refused moves). Logged as `ladder`. */
+  ladderTier?: number;
   input: InputMethod;
   hops: number;
 }
@@ -301,6 +305,8 @@ export function recordAnswer(
     latencyMs: meta.latencyMs,
     hint: meta.hint,
     ...(meta.hintTier !== undefined ? { hintTier: meta.hintTier } : {}),
+    ...(meta.revealed ? { revealed: true } : {}),
+    ...(meta.ladderTier !== undefined ? { ladderTier: meta.ladderTier } : {}),
     locale: p.locale,
     conv: getLocale(p.locale).numbers,
     input: meta.input,

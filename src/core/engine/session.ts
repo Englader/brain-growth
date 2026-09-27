@@ -83,6 +83,10 @@ export interface AnswerInput {
    * modes without a ladder: `hint` then counts as the legacy single hint.
    */
   hintTier?: number;
+  /** The child asked to be shown the answer ("show me"); the response grades it wrong. Logged only (`revealed`). */
+  revealed?: boolean;
+  /** The hint-ladder tier opened, when `hintTier` (the credit) also counts something else (Balance). Logged only (`ladder`). */
+  ladderTier?: number;
   locale: LocaleId;
   conv: NumberConventions;
   input: InputMethod;
@@ -187,7 +191,8 @@ export class SessionEngine {
     const binding = bindings[this.rng.weighted(bindings.map((b) => b.weight ?? 1))]!;
     const gen = getGenerator(binding.id);
     const { seed, rng } = this.rng.fork();
-    const g = gen.generate(clamp01(level), rng, binding.config ?? {});
+    const req = clamp01(level);
+    const g = gen.generate(req, rng, binding.config ?? {});
     this.itemCounter++;
     return {
       ...g,
@@ -197,6 +202,7 @@ export class SessionEngine {
       genId: gen.id,
       genVersion: gen.version,
       seed,
+      req,
     };
   }
 
@@ -369,6 +375,10 @@ export class SessionEngine {
       alt: grade.altReading,
       // Unknown (null) when a mode reports a hint without a tier: replay then applies the legacy rule.
       tier: input.hintTier !== undefined ? tier : input.hint ? null : 0,
+      // Logged for the grown-ups' Help view (core/log/help.ts); none of these feeds the rating.
+      revealed: !!input.revealed,
+      ladder: input.ladderTier ?? null,
+      req: presented.item.req ?? null,
     };
     return { ...base, record, statusChange, unlocked, willReturn, placementFinished, memoryReview };
   }

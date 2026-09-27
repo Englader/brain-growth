@@ -95,7 +95,7 @@ export function useBuild(presented: PresentedItem, locale: LocaleId, band: BandI
   const reveal = (): void => {
     if (phase !== 'build') return;
     if (checks === 0) {
-      const r = submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, meta());
+      const r = submitAnswer(presented, { kind: 'built', value: null, repr: '', data: { reveal: 1 } }, { ...meta(), revealed: true });
       setWillReturn(r.willReturn);
       setChecks(1);
       onWrong?.();

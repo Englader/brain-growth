@@ -55,6 +55,10 @@ export function BarChart(props: {
   format: (v: number) => string;
   ariaLabel: string;
   tickLabel?: (label: string, i: number) => string | null;
+  /** Tooltip text of a bar (default: "label: value"). */
+  tip?: (d: { label: string; value: number }, i: number) => string;
+  /** The axis reaches at least this value (default 1). */
+  floor?: number;
 }): JSX.Element {
   const [ref, width] = useWidth();
   const [tip, setTip] = useState<Tip | null>(null);
@@ -63,7 +67,8 @@ export function BarChart(props: {
   const padB = 22;
   const padT = 8;
   // At least 1 on the axis: a scale topping at 0.1 labelled its middle tick "0.1" too (0.05 rounded).
-  const max = niceMax(Math.max(...props.data.map((d) => d.value), 1));
+  const max = niceMax(Math.max(...props.data.map((d) => d.value), props.floor ?? 1));
+  const tipText = (d: { label: string; value: number }, i: number): string => props.tip?.(d, i) ?? `${d.label}: ${props.format(d.value)}`;
   const slot = Math.max(1, (width - padL - 4) / Math.max(1, props.data.length));
   const barW = Math.max(2, Math.min(24, slot - 2));
   const y = (v: number): number => padT + (1 - v / max) * (H - padT - padB);
@@ -98,8 +103,8 @@ export function BarChart(props: {
                 width={slot}
                 height={H - padT - padB}
                 fill="transparent"
-                onPointerEnter={() => setTip({ x: x + barW / 2, y: top, text: `${d.label}: ${props.format(d.value)}` })}
-                onClick={() => setTip({ x: x + barW / 2, y: top, text: `${d.label}: ${props.format(d.value)}` })}
+                onPointerEnter={() => setTip({ x: x + barW / 2, y: top, text: tipText(d, i) })}
+                onClick={() => setTip({ x: x + barW / 2, y: top, text: tipText(d, i) })}
               />
               {lbl && (
                 <text x={x + barW / 2} y={H - 6} class="viz-axis" text-anchor="middle">
@@ -229,6 +234,48 @@ export function Reliability(props: {
             />
           );
         })}
+      </svg>
+      <Tooltip tip={tip} />
+    </div>
+  );
+}
+
+/**
+ * One horizontal bar split into parts of a whole (≤ 24px thick, 2px surface
+ * gaps, 4px rounded outer ends). Each part's colour is a CSS class (an
+ * ordinal ramp for ordered parts); the caller shows the legend with the
+ * values (a table), and hovering or tapping a part shows its tooltip.
+ */
+export function StackedBar(props: { parts: Array<{ value: number; cls: string; tip: string }>; ariaLabel: string }): JSX.Element {
+  const [ref, width] = useWidth();
+  const [tip, setTip] = useState<Tip | null>(null);
+  const H = 24;
+  const top = 26;
+  const gap = 2;
+  const shown = props.parts.filter((p) => p.value > 0);
+  const total = shown.reduce((s, p) => s + p.value, 0);
+  const room = Math.max(0, width - gap * Math.max(0, shown.length - 1));
+  let x = 0;
+  const id = `sb-${Math.round(width)}-${shown.length}`;
+  return (
+    <div class="viz" ref={ref}>
+      <svg width={width} height={top + H} role="img" aria-label={props.ariaLabel} onPointerLeave={() => setTip(null)}>
+        <defs>
+          <clipPath id={id}>
+            <rect x="0" y={top} width={width} height={H} rx="4" ry="4" />
+          </clipPath>
+        </defs>
+        {total > 0 && (
+          <g clip-path={`url(#${id})`}>
+            {shown.map((p) => {
+              const w = (p.value / total) * room;
+              const at = x;
+              x += w + gap;
+              const show = (): void => setTip({ x: at + w / 2, y: top, text: p.tip });
+              return <rect x={at} y={top} width={Math.max(0, w)} height={H} class={p.cls} onPointerEnter={show} onClick={show} />;
+            })}
+          </g>
+        )}
       </svg>
       <Tooltip tip={tip} />
     </div>

@@ -119,6 +119,8 @@ export interface Item extends GeneratedItem {
   genId: string;
   genVersion: number;
   seed: number;
+  /** The level asked of the generator (logged as `req`, so the item can be rebuilt); absent for a fixed item built from operands. */
+  req?: number;
 }
 
 /** What a generator's items need from a mode. One member per line; features add theirs under their slot. */
