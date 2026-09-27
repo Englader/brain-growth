@@ -66,6 +66,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  { id: 'target.manyWays', category: 'exploration', bands: ['B', 'C'], icon: 'cards', on: ON_ITEM, when: { metric: 'target.ways', gte: 3 } },
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

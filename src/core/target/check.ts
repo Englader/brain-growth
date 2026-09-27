@@ -87,8 +87,10 @@ export interface TargetDealData {
   mustUseAll: boolean;
   allowNegativeIntermediates: boolean;
   allowFractionIntermediates: boolean;
-  /** Distinct solution reprs, simplest first. */
+  /** Distinct solution reprs, simplest first (capped). */
   ways: string[];
+  /** Number of distinct solutions before the cap. */
+  total: number;
 }
 
 const isInt = (x: unknown): x is number => typeof x === 'number' && Number.isSafeInteger(x);
@@ -97,7 +99,7 @@ const isInt = (x: unknown): x is number => typeof x === 'number' && Number.isSaf
 export function readDealData(data: unknown): TargetDealData | null {
   if (typeof data !== 'object' || data === null) return null;
   const d = data as Record<string, unknown>;
-  const { cards, target, ops, mustUseAll, allowNegativeIntermediates, allowFractionIntermediates, ways } = d;
+  const { cards, target, ops, mustUseAll, allowNegativeIntermediates, allowFractionIntermediates, ways, total } = d;
   if (!Array.isArray(cards) || cards.length === 0 || cards.length > 10 || !cards.every(isInt)) return null;
   if (!isInt(target)) return null;
   if (!Array.isArray(ops) || !ops.every((o) => (TARGET_OPS as readonly unknown[]).includes(o))) return null;
@@ -112,6 +114,7 @@ export function readDealData(data: unknown): TargetDealData | null {
     allowNegativeIntermediates,
     allowFractionIntermediates,
     ways: ways.slice(),
+    total: isInt(total) && total >= ways.length ? total : ways.length,
   };
 }
 

@@ -36,6 +36,22 @@ import { SessionEngine, type PresentedItem } from '../src/core/engine/session';
 import { decodeRecord, encodeRecord } from '../src/core/log/codec';
 import type { ItemRecord } from '../src/core/log/types';
 import { GRAPH } from '../src/core/skills';
+import '../src/modes';
+import { getBand } from '../src/bands/registry';
+import { ACHIEVEMENTS, evaluateAchievements, getMetric, validateAchievements, type EvalContext } from '../src/core/achievements';
+import { modeEvidence } from '../src/core/engine/params';
+import { isEnabled } from '../src/core/flags';
+import { getGenerator } from '../src/core/items/generators';
+import { targetData, targetLine } from '../src/core/items/generators/makeIt';
+import { gradeResponse } from '../src/core/items/grade';
+import type { Item } from '../src/core/items/types';
+import { EVENTS, type LogRecord } from '../src/core/log/types';
+import { createProfile, type Profile } from '../src/core/profile';
+import { dayKey } from '../src/core/time';
+import { customVoice, promptText } from '../src/i18n/render';
+import { getMode } from '../src/modes/registry';
+import { hasTargetWork } from '../src/modes/target';
+import { exprText, valueText } from '../src/modes/target/format';
 
 const ALL: SolveOptions = {
   ops: TARGET_OPS,
@@ -608,5 +624,145 @@ describe('hint-tier credit', () => {
     const ids = Object.keys(t1).filter((id) => t1[id]!.n);
     expect(ids.length).toBeGreaterThan(0);
     for (const id of ids) expect(t1[id]!.mu, id).toBeGreaterThan(t3[id]!.mu);
+  });
+});
+
+// ── The mode: rendering, generators, checker, registration, metric ──────────
+describe('Target mode integration', () => {
+  const EN_CONV = getLocale('en').numbers;
+  const NOW = Date.now();
+  const bindings = GRAPH.playableSkills().flatMap((s) =>
+    (s.gens ?? []).filter((g) => g.id === 'makeIt' || g.id === 'makeTen').map((g) => ({ skill: s.id, g })),
+  );
+  const itemFor = (skill: string, g: (typeof bindings)[number]['g'], level: number, seed: number): Item => ({
+    ...getGenerator(g.id).generate(level, createRng(seed), g.config ?? {}),
+    key: '1', skillId: skill, genId: g.id, genVersion: 1, seed,
+  });
+  const placed = (age: number, g: number): Profile => {
+    const p = createProfile({ name: 'Ана', age, locale: 'mk', avatar: 'color.green' }, NOW);
+    const skills = replay({ graph: GRAPH, model: glickoElo }, [{ type: 'event', ts: NOW - 1000, sid: null, name: EVENTS.PLACEMENT_DONE, data: { g, sd: 0.3 } }]);
+    return { ...p, skills, placement: { done: true, state: null, g, sd: 0.3 } };
+  };
+
+  it('mk renders × as ·, ÷ as :, minus as −, with brackets only where needed', () => {
+    expect(exprText(mustParse('3*4-2'), 'mk')).toBe('3 · 4 − 2');
+    expect(exprText(mustParse('(12/(4-1))'), 'mk')).toBe('12 : (4 − 1)');
+    expect(exprText(mustParse('(6-(-3))'), 'mk')).toBe('6 − (−3)');
+    expect(exprText(mustParse('3*4-2'), 'en')).toBe('3 × 4 − 2');
+    expect(exprText(mustParse('(8/(3-(8/3)))'), 'en')).toBe('8 ÷ (3 − 8 ÷ 3)');
+    expect(valueText(rat(3, 4), 'mk')).toBe('3/4');
+    expect(valueText(rat(-7, 2), 'mk')).toBe('−7/2');
+    expect(valueText(rat(-12), 'mk')).toBe('−12');
+  });
+
+  it('binds deals to the planned skills: make 10 for Band A, focused deals for B and C', () => {
+    expect(bindings.map((b) => `${b.skill}:${b.g.id}`).sort()).toEqual([
+      'as.add.20:makeIt', 'as.bonds.10:makeTen', 'int.addsub:makeIt', 'md.div.facts:makeIt', 'md.mult.facts:makeIt',
+    ]);
+    expect(getGenerator('makeTen').capabilities).not.toContain('reading');
+    expect(getGenerator('makeIt').capabilities).toContain('reading');
+    for (const { skill, g } of bindings) {
+      for (let seed = 1; seed <= 12; seed++) {
+        const item = itemFor(skill, g, (seed % 5) / 4, seed);
+        const d = targetData(item)!;
+        const ways = d.ways.map(mustParse);
+        const label = `${skill} ${d.cards} -> ${d.target}`;
+        if (skill === 'md.mult.facts') expect(ways.every((e) => opsUsed(e).includes('*')), label).toBe(true);
+        if (skill === 'md.div.facts') expect(ways.every((e) => opsUsed(e).includes('/')), label).toBe(true);
+        if (skill === 'int.addsub') expect([...leaves(ways[0]!), ...intermediates(ways[0]!)].some((v) => v.n < 0), label).toBe(true);
+        if (skill === 'as.add.20') {
+          expect(d.ops, label).toEqual(['+', '-']);
+          expect(d.target >= 11 && d.target <= 20, label).toBe(true);
+        }
+        if (skill === 'as.bonds.10') expect(d.band === 'A' && d.target === 10 && d.ops.join() === '+', label).toBe(true);
+      }
+    }
+  });
+
+  it('the target.expr checker grades the built expression, never a value the UI reports', () => {
+    for (const { skill, g } of bindings) {
+      const item = itemFor(skill, g, 0.6, 5);
+      const d = targetData(item)!;
+      for (const w of d.ways) expect(gradeResponse(item, { kind: 'built', value: null, repr: w }, EN_CONV), w).toMatchObject({ correct: true, invalid: false, given: w });
+      const claimed = gradeResponse(item, { kind: 'built', value: rat(d.target), repr: `(${d.cards[0]}+${d.cards[1]})` }, EN_CONV);
+      if (d.cards[0]! + d.cards[1]! !== d.target) expect(claimed.correct).toBe(false);
+      expect(gradeResponse(item, { kind: 'built', value: rat(d.target), repr: '', data: { reveal: 1 } }, EN_CONV)).toMatchObject({ correct: false, invalid: false, given: 'reveal' });
+      expect(gradeResponse(item, { kind: 'built', value: rat(d.target), repr: '((' }, EN_CONV).invalid).toBe(true);
+      expect(gradeResponse(item, { kind: 'typed', raw: String(d.target) }, EN_CONV).invalid).toBe(true);
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: '(9999+1)' }, EN_CONV)).toMatchObject({ correct: false, misconception: 'target.notCard' });
+    }
+  });
+
+  it('prompt text, voice lines and the ruler follow the deal', () => {
+    const b = bindings.find((x) => x.skill === 'md.mult.facts')!;
+    const itemB = itemFor(b.skill, b.g, 0.3, 2);
+    const dB = targetData(itemB)!;
+    expect(promptText(itemB, 'mk', 'B')).toMatch(dB.mustUseAll ? /^Направи \d+ со сите картички$/ : /^Направи \d+$/);
+    expect(customVoice(itemB)).toEqual({ key: 'voice.target.make', params: { n: dB.target } });
+    const a = bindings.find((x) => x.skill === 'as.bonds.10')!;
+    const itemA = itemFor(a.skill, a.g, 0.3, 2);
+    expect(customVoice(itemA)).toEqual({ key: 'voice.target.makeTen' });
+    expect(itemA.solution.every((s) => s.k === 'hop')).toBe(true);
+    expect(targetLine('B', [5, 6, 4, 3], 24)).toMatchObject({ min: 0, max: 50, flag: 24, labelEvery: 5 });
+    expect(targetLine('C', [8, 4, 4, 2], -13)).toMatchObject({ min: -30, max: 0, flag: -13 });
+    expect(targetLine('A', [9, 7, 3, 2], 10)).toMatchObject({ min: 0, max: 21, flag: 10 });
+  });
+
+  it('registers the mode: on by default, deals only, nothing returns, half evidence', () => {
+    const m = getMode('target')!;
+    expect(m).toMatchObject({ order: 20, requires: ['deal'], bands: ['A', 'B', 'C'], flag: 'mode.target', homeA: true });
+    expect(m.maxReturns!(getBand('B'))).toBe(0);
+    expect((['A', 'B', 'C'] as const).map((id) => m.plannedItems!(getBand(id), {}))).toEqual([5, 8, 10]);
+    expect(m.plannedItems!(getBand('C'), { quick: true })).toBe(3);
+    expect(isEnabled('mode.target', {}, {})).toBe(true);
+    expect(isEnabled('mode.target', { 'mode.target': false }, {})).toBe(false);
+    expect(modeEvidence('target')).toBe(0.5);
+  });
+
+  it('is ready once a deal skill can be scheduled; Band A sessions serve only make-10 deals', () => {
+    const m = getMode('target')!;
+    expect(m.ready!(createProfile({ name: 'Ана', age: 6, locale: 'mk', avatar: 'color.green' }, NOW))).toBe(false);
+    expect(m.ready!(placed(6, 1.2))).toBe(false);
+    expect(hasTargetWork(placed(7, 2.5))).toBe(true);
+    expect(m.ready!(placed(9, 3.5))).toBe(true);
+    const serve = (p: Profile, band: 'A' | 'B'): Item[] => {
+      const engine = new SessionEngine(
+        { graph: GRAPH, model: glickoElo, now: () => NOW },
+        { skills: p.skills, placement: { done: true, state: null } },
+        {
+          sessionId: 's1', seed: 3, band: { id: band, targetP: 0.85, allowReading: band !== 'A', maxReturns: 0 },
+          mode: { id: 'target', requires: ['deal'] }, plannedItems: 5, stretch: false, timed: false,
+        },
+      );
+      const out: Item[] = [];
+      for (let cur = engine.next(); cur; cur = engine.next()) {
+        out.push(cur.item);
+        engine.answer(cur, { response: { kind: 'built', value: null, repr: targetData(cur.item)!.ways[0]! }, latencyMs: 9000, hint: false, locale: 'mk', conv: EN_CONV, input: 'tap' });
+      }
+      return out;
+    };
+    const a = serve(placed(7, 2.5), 'A');
+    expect(a.length).toBe(5);
+    expect(a.every((it) => it.genId === 'makeTen' && it.prompt.kind === 'custom' && it.prompt.type === 'target.deal')).toBe(true);
+    const b = serve(placed(9, 3.5), 'B');
+    expect(b.length).toBe(5);
+    expect(b.every((it) => targetData(it) !== null)).toBe(true);
+  });
+
+  it('Many Ways reads target_way events (never item records) and needs 3 ways for one deal', () => {
+    const p = { ...createProfile({ name: 'Марко', age: 9, locale: 'mk', avatar: 'color.green' }, NOW), band: 'B' as const };
+    const way = (n: number, key = '1'): LogRecord => ({ type: 'event', ts: NOW, sid: 's1', name: EVENTS.TARGET_WAY, data: { key, canon: 'x', repr: '(1+2)', n } });
+    const ctx = (log: LogRecord[]): EvalContext => ({ profile: p, now: NOW, today: dayKey(NOW), log, sessionId: 's1', graph: GRAPH, modesAvailable: 3, memo: new Map() });
+    const metric = getMetric('target.ways')!;
+    expect(metric.kind).toBe('exploration');
+    expect(metric.compute(ctx([]), {})).toBe(0);
+    expect(metric.compute(ctx([way(2), way(2, '2')]), {})).toBe(2);
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([way(2), way(2, '2')]), 'item')).not.toContain('target.manyWays');
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([way(2), way(3)]), 'item')).toContain('target.manyWays');
+  });
+
+  it('validateAchievements stays clean (nothing for correctness alone)', () => {
+    expect(validateAchievements(ACHIEVEMENTS)).toEqual([]);
+    expect(ACHIEVEMENTS.find((x) => x.id === 'target.manyWays')).toMatchObject({ category: 'exploration', bands: ['B', 'C'] });
   });
 });

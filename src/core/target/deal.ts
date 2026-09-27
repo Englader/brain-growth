@@ -58,12 +58,32 @@ export interface TargetDeal {
   features: Record<string, number>;
 }
 
+/**
+ * Narrows a deal to one skill (the generator binding's config), so a deal
+ * served as evidence for, say, multiplication facts actually needs ×.
+ */
+export interface DealOptions {
+  /** Operators on offer (default: all four in Bands B and C). */
+  ops?: readonly TargetOp[];
+  /** Target range (defaults: B 5…100, C −30…100). */
+  minTarget?: number;
+  maxTarget?: number;
+  /** Largest card (default: 6–12 in B, 9–13 in C, rising with level). */
+  maxCard?: number;
+  /**
+   * The simplest solution must use this operator, or ('neg') a negative card
+   * or value. The achieved level then measures difficulty beyond it: the
+   * focus itself does not count as a harder operator or a needed negative.
+   */
+  focus?: TargetOp | 'neg';
+}
+
 /** Bump when `makeDeal` output for a given (seed, band, level) changes. */
 export const DEAL_VERSION = 1;
 export const MAX_DEAL_SOLUTIONS = 20;
 
 /** Candidates drawn per deal: Band A deals are cheap, B and C need a solve each. */
-const K: Record<TargetBand, number> = { A: 24, B: 12, C: 12 };
+const K: Record<TargetBand, number> = { A: 24, B: 12, C: 10 };
 
 const OP_RANK: Record<TargetOp, number> = { '+': 0, '-': 1, '*': 2, '/': 3 };
 
@@ -72,6 +92,7 @@ interface Candidate {
   target: number;
   rules: TargetRules;
   res: SolveResult;
+  focus?: DealOptions['focus'];
 }
 
 const ramp = (x: number, a: number, b: number): number => clamp01((x - a) / (b - a));
@@ -159,17 +180,49 @@ const B_BUCKETS = [
   [40, 100],
 ] as const;
 
-function sampleB(r: Rng, level: number): Candidate | null {
-  const maxCard = [6, 9, 10, 12][levelInt(r, level, 0, 3, 0.8)]!;
+/** Four overlapping size buckets spread geometrically over [lo, hi] (lo ≥ 1). */
+function bucketsFor(lo: number, hi: number): Array<[number, number]> {
+  const edge = (k: number): number => Math.round(lo * (hi / lo) ** (k / 4));
+  return [0, 1, 2, 3].map((k) => [edge(k), edge(Math.min(4, k + 2))]);
+}
+
+/** Card values up to the level's cap, never above the binding's `maxCard`. */
+function cardCap(r: Rng, level: number, caps: readonly number[], o: DealOptions): number {
+  const allowed = caps.filter((c) => c <= (o.maxCard ?? Infinity));
+  return allowed.length ? allowed[levelInt(r, level, 0, allowed.length - 1, 0.8)]! : o.maxCard!;
+}
+
+/**
+ * With an operator focus, keep only targets the cards cannot make without that
+ * operator: every solution then uses it, the simplest included.
+ */
+function focusPool(cards: number[], rules: TargetRules, pool: number[], focus: DealOptions['focus']): number[] {
+  if (!focus || focus === 'neg') return pool;
+  const without = reachableValues(cards, { ...rules, ops: rules.ops.filter((op) => op !== focus) });
+  return pool.filter((v) => !without.has(key(rat(v))));
+}
+
+/** Whether the simplest solution uses the focus (operator, or a negative card or value). */
+function meetsFocus(c: Candidate): boolean {
+  const best = c.res.solutions[0];
+  if (!best || !c.focus) return !!best;
+  return c.focus === 'neg' ? best.usesNegative : best.opKinds.includes(c.focus);
+}
+
+function sampleB(r: Rng, level: number, o: DealOptions): Candidate | null {
+  const maxCard = cardCap(r, level, [6, 9, 10, 12], o);
   const cards = Array.from({ length: 4 }, () => r.int(1, maxCard));
   const rules: TargetRules = {
-    ops: [...TARGET_OPS],
+    ops: TARGET_OPS.filter((op) => (o.ops ?? TARGET_OPS).includes(op)),
     mustUseAll: r.chance(0.8 * ramp(level, 0.5, 0.9)),
     allowNegativeIntermediates: false,
     allowFractionIntermediates: false,
   };
-  const target = pickTarget(r, targetPool(cards, rules, 5, 100), level, B_BUCKETS);
-  return target === null ? null : { cards, target, rules, res: solveCandidate(cards, target, rules) };
+  const lo = Math.max(1, o.minTarget ?? 5);
+  const hi = o.maxTarget ?? 100;
+  const buckets = o.minTarget === undefined && o.maxTarget === undefined ? B_BUCKETS : bucketsFor(lo, hi);
+  const target = pickTarget(r, focusPool(cards, rules, targetPool(cards, rules, lo, hi), o.focus), level, buckets);
+  return target === null ? null : { cards, target, rules, res: solveCandidate(cards, target, rules), ...(o.focus ? { focus: o.focus } : {}) };
 }
 
 const C_BUCKETS = [
@@ -178,19 +231,20 @@ const C_BUCKETS = [
   [20, 100],
 ] as const;
 
-function sampleC(r: Rng, level: number): Candidate | null {
-  const maxCard = [9, 10, 12, 13][levelInt(r, level, 0, 3, 0.8)]!;
+function sampleC(r: Rng, level: number, o: DealOptions): Candidate | null {
+  const maxCard = cardCap(r, level, [9, 10, 12, 13], o);
   const cards = Array.from({ length: 4 }, () => r.int(1, maxCard));
-  if (r.chance(0.5 * ramp(level, 0.3, 0.8))) cards[r.int(0, 3)] = -r.int(1, 9);
+  const negFocus = o.focus === 'neg';
+  if (r.chance((negFocus ? 0.3 : 0) + 0.5 * ramp(level, 0.3, 0.8))) cards[r.int(0, 3)] = -r.int(1, 9);
   const wantFraction = r.chance(ramp(level, 0.55, 0.95));
-  const wantNegative = r.chance(0.45 * ramp(level, 0.3, 0.8));
+  const wantNegative = negFocus || r.chance(0.45 * ramp(level, 0.3, 0.8));
   const rules: TargetRules = {
-    ops: [...TARGET_OPS],
+    ops: TARGET_OPS.filter((op) => (o.ops ?? TARGET_OPS).includes(op)),
     mustUseAll: r.chance(0.35 + 0.55 * level),
     allowNegativeIntermediates: true,
     allowFractionIntermediates: wantFraction || r.chance(ramp(level, 0.3, 0.8)),
   };
-  let pool = targetPool(cards, rules, -30, 100);
+  let pool = focusPool(cards, rules, targetPool(cards, rules, o.minTarget ?? -30, o.maxTarget ?? 100), o.focus);
   if (wantFraction) {
     const plain = reachableValues(cards, { ...rules, allowFractionIntermediates: false });
     const only = pool.filter((v) => !plain.has(key(rat(v))));
@@ -204,7 +258,7 @@ function sampleC(r: Rng, level: number): Candidate | null {
     pool = pool.filter((v) => v > 0);
   }
   const target = pickTarget(r, pool, level, C_BUCKETS);
-  return target === null ? null : { cards, target, rules, res: solveCandidate(cards, target, rules) };
+  return target === null ? null : { cards, target, rules, res: solveCandidate(cards, target, rules), ...(o.focus ? { focus: o.focus } : {}) };
 }
 
 interface Traits {
@@ -216,15 +270,17 @@ interface Traits {
   needsNegative: boolean;
 }
 
+/** Difficulty traits of the simplest solution; a focus operator (or negative) is the skill itself and does not count. */
 function traits(c: Candidate): Traits {
   const best = c.res.solutions[0]!;
+  const others = best.opKinds.filter((op) => op !== c.focus);
   return {
     opsNeeded: best.ops,
     cardsNeeded: best.cardsUsed,
-    hardestOp: Math.max(0, ...best.opKinds.map((op) => OP_RANK[op])),
-    opKinds: best.opKinds.length,
+    hardestOp: Math.max(0, ...others.map((op) => OP_RANK[op])),
+    opKinds: Math.max(1, others.length),
     needsFraction: c.res.withoutFraction === 0,
-    needsNegative: c.res.withoutNegative === 0,
+    needsNegative: c.focus !== 'neg' && c.res.withoutNegative === 0,
   };
 }
 
@@ -245,7 +301,7 @@ function scoreFour(c: Candidate): number {
 
 function scoreC(c: Candidate): number {
   const t = traits(c);
-  const negCard = c.cards.some((v) => v < 0);
+  const negCard = c.focus !== 'neg' && c.cards.some((v) => v < 0);
   return 0.6 * scoreFour(c) + 0.25 * (t.needsFraction ? 1 : 0) + 0.1 * (t.needsNegative ? 1 : 0) + 0.05 * (negCard ? 1 : 0);
 }
 
@@ -266,11 +322,12 @@ function fallback(band: TargetBand): Candidate {
   return { cards, target, rules, res: solveCandidate(cards, target, rules) };
 }
 
-function retrying(band: TargetBand, level: number, draw: (r: Rng, level: number) => Candidate | null) {
+function retrying(band: TargetBand, level: number, o: DealOptions, draw: (r: Rng, level: number, o: DealOptions) => Candidate | null) {
+  const tries = o.focus ? 60 : 20;
   return (r: Rng): Candidate => {
-    for (let i = 0; i < 20; i++) {
-      const c = draw(r, level);
-      if (c && c.res.total > 0) return c;
+    for (let i = 0; i < tries; i++) {
+      const c = draw(r, level, o);
+      if (c && c.res.total > 0 && meetsFocus(c)) return c;
     }
     return fallback(band);
   };
@@ -299,17 +356,18 @@ function features(band: TargetBand, c: Candidate): Record<string, number> {
 }
 
 /**
- * A solvable deal for `band` near difficulty `level` ∈ [0,1]. Uses only `rng`
- * for randomness, so a stored seed reproduces the deal exactly.
+ * A solvable deal for `band` near difficulty `level` ∈ [0,1], narrowed by
+ * `opts` (Bands B and C). Uses only `rng` for randomness, so a stored seed
+ * reproduces the deal exactly.
  */
-export function makeDeal(rng: Rng, band: TargetBand, level: number): TargetDeal {
+export function makeDeal(rng: Rng, band: TargetBand, level: number, opts: DealOptions = {}): TargetDeal {
   const lv = clamp01(Number.isFinite(level) ? level : 0);
   const sample =
     band === 'A'
-      ? retrying(band, lv, sampleA)
+      ? retrying(band, lv, {}, sampleA)
       : band === 'B'
-        ? retrying(band, lv, sampleB)
-        : retrying(band, lv, sampleC);
+        ? retrying(band, lv, opts, sampleB)
+        : retrying(band, lv, opts, sampleC);
   const score = band === 'A' ? scoreA : band === 'B' ? scoreFour : scoreC;
   const { value: c, level: achieved } = pickByLevel(rng, lv, sample, score, K[band]);
   return {
@@ -334,5 +392,6 @@ export function toDealData(deal: TargetDeal): TargetDealData {
     allowNegativeIntermediates: deal.rules.allowNegativeIntermediates,
     allowFractionIntermediates: deal.rules.allowFractionIntermediates,
     ways: deal.solutions.map((s) => s.repr),
+    total: deal.totalSolutions,
   };
 }

@@ -1,0 +1,301 @@
+/* Target ("Make it"): the B/C tap-merge board and the Band A make-10 board.
+   Layout rules from app.css apply: no fixed widths on text, rows wrap. */
+
+/* ── Shared: numbers, stacked fractions, expressions ─────────────────────── */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.tfrac {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.06em;
+  vertical-align: middle;
+}
+.tfrac-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.62em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.tfrac-n {
+  border-bottom: 0.13em solid currentColor;
+  padding: 0 0.18em 0.04em;
+}
+.tfrac-d {
+  padding: 0.04em 0.18em 0;
+}
+.texpr {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.texpr-op {
+  margin: 0 0.22em;
+  color: var(--primary);
+  font-weight: 800;
+}
+
+/* ── Bands B/C board ───────────────────────────────────────────────────── */
+.target-prompt {
+  min-height: 0;
+  gap: 4px;
+}
+.target-goal {
+  margin: 0;
+  font-size: 1.45em;
+  font-weight: 900;
+  color: var(--primary);
+}
+.target-prompt .small {
+  margin: 0;
+  font-size: 0.85em;
+}
+.thint-op {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6em;
+  min-height: 1.6em;
+  margin-left: 4px;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--primary);
+  font-size: 1.3em;
+  font-weight: 900;
+  line-height: 1;
+  vertical-align: middle;
+}
+.thint p {
+  margin: 2px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tcards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.tcards.n1 {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 0 18%;
+}
+.tcards.n2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.tcards.n3,
+.tcards.n5,
+.tcards.n6 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.tcard {
+  min-height: 76px;
+  min-width: 0;
+  padding: 6px 4px;
+  border: 3px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: transform 0.12s;
+}
+.tcard-v {
+  font-size: 1.75em;
+  font-weight: 900;
+  line-height: 1.1;
+}
+.tcard-expr {
+  max-width: 100%;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--muted);
+}
+.tcard.merged {
+  border-style: dashed;
+  background: var(--surface-2);
+}
+.tcard.sel {
+  border-style: solid;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary);
+  transform: translateY(-3px);
+}
+.tcard:disabled {
+  cursor: default;
+}
+.tops {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+  gap: 8px;
+}
+.top {
+  min-height: 56px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--primary);
+  font-size: 1.8em;
+  font-weight: 900;
+  cursor: pointer;
+}
+.top.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+.ttools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.ttools .btn {
+  flex: 1 1 auto;
+}
+.tmsg {
+  margin: 0;
+  font-weight: 700;
+}
+.tmsg.note {
+  color: #7c4a00;
+}
+.tmsg.good {
+  color: var(--good);
+}
+[data-theme='slate'] .tmsg.note {
+  color: #fcd34d;
+}
+[data-theme='slate'] .tmsg.good {
+  color: #34d399;
+}
+.tdone {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tdone-title {
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+}
+.tdone-expr {
+  margin: 0;
+  text-align: center;
+  font-size: 1.6em;
+  font-weight: 900;
+}
+.tways-btn.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+.tways {
+  gap: 6px;
+}
+.tways h2,
+.tways p {
+  margin: 0;
+}
+.tways h2 {
+  font-size: 1.1em;
+}
+.tways-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tways-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: 1.15em;
+  font-weight: 800;
+}
+.tways-list li.found {
+  box-shadow: inset 0 0 0 2px var(--go);
+}
+.tways-list li svg {
+  flex-shrink: 0;
+  color: var(--go);
+}
+
+/* ── Band A make-10 board ──────────────────────────────────────────────── */
+.ta-goal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #e34948;
+}
+.ta-goal .big-num {
+  font-size: 3em;
+}
+.ta-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.ta-cards.n4 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.ta-card {
+  min-width: 0;
+  min-height: 72px;
+  padding: 8px 6px;
+  border: 4px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.ta-card .dots.frame {
+  width: 100%;
+  max-width: 132px;
+}
+.ta-card.picked {
+  border-color: var(--go);
+  background: #dcfce7;
+  transform: translateY(-4px);
+}
+.ta-card.glow {
+  box-shadow: 0 0 0 5px #fde047, 0 0 22px 8px #fde047;
+  animation: pulse 1s infinite;
+}
+.ta-controls {
+  align-items: center;
+}
+.ta-show {
+  width: auto;
+  min-width: 132px;
+  border-radius: 999px;
+  color: var(--primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ta-card.glow {
+    animation: none;
+  }
+  .ta-card,
+  .tcard {
+    transition: none;
+  }
+}

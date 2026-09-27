@@ -12,6 +12,7 @@ import { wordGen } from './word';
 // ── slot: storage ──
 // ── slot: weekly ──
 // ── slot: target ──
+import { makeItGen, makeTenGen } from './makeIt';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
@@ -39,6 +40,8 @@ const BUILTIN = [
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  makeTenGen,
+  makeItGen,
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

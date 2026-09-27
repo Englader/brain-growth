@@ -5,7 +5,7 @@ Record each line as a separate mono MP3 (44.1 kHz, ~48 kbps), ~200 ms of silence
 friendly and unhurried. Save as `public/audio/<locale>/<clip-id>.mp3` and list the id in `src/audio/clips.ts`.
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 50 clips, 0 recorded
+## English (en) — 53 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -52,15 +52,18 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 41 | `voice.praise4.mp3` | Spot on! |  |
 | 42 | `voice.sessionDone.mp3` | Great playing today! |  |
 | 43 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
-| 44 | `voice.trophy.mp3` | You found a trophy! |  |
-| 45 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 46 | `word.dividedBy.mp3` | divided by |  |
-| 47 | `word.hopsOf.mp3` | hops of |  |
-| 48 | `word.minus.mp3` | minus |  |
-| 49 | `word.plus.mp3` | plus |  |
-| 50 | `word.times.mp3` | times |  |
+| 44 | `voice.target.makeTen.mp3` | Make ten! Tap the cards. |  |
+| 45 | `voice.target.makeWord.mp3` | Make |  |
+| 46 | `voice.target.tapShiny.mp3` | Now tap the shiny cards! |  |
+| 47 | `voice.trophy.mp3` | You found a trophy! |  |
+| 48 | `voice.welcome.mp3` | Hi! Let's play! |  |
+| 49 | `word.dividedBy.mp3` | divided by |  |
+| 50 | `word.hopsOf.mp3` | hops of |  |
+| 51 | `word.minus.mp3` | minus |  |
+| 52 | `word.plus.mp3` | plus |  |
+| 53 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 51 clips, 0 recorded
+## Македонски (mk) — 54 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -107,12 +110,15 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 41 | `voice.praise4.mp3` | Точно така! |  |
 | 42 | `voice.sessionDone.mp3` | Одлично игравме денес! |  |
 | 43 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
-| 44 | `voice.trophy.mp3` | Најде трофеј! |  |
-| 45 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 46 | `word.and.mp3` | и |  |
-| 47 | `word.dividedBy.mp3` | поделено со |  |
-| 48 | `word.hopsOf.mp3` | скока по |  |
-| 49 | `word.minus.mp3` | минус |  |
-| 50 | `word.plus.mp3` | плус |  |
-| 51 | `word.times.mp3` | пати |  |
+| 44 | `voice.target.makeTen.mp3` | Направи десет! Допри ги картичките. |  |
+| 45 | `voice.target.makeWord.mp3` | Направи |  |
+| 46 | `voice.target.tapShiny.mp3` | Сега допри ги картичките што светат! |  |
+| 47 | `voice.trophy.mp3` | Најде трофеј! |  |
+| 48 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
+| 49 | `word.and.mp3` | и |  |
+| 50 | `word.dividedBy.mp3` | поделено со |  |
+| 51 | `word.hopsOf.mp3` | скока по |  |
+| 52 | `word.minus.mp3` | минус |  |
+| 53 | `word.plus.mp3` | плус |  |
+| 54 | `word.times.mp3` | пати |  |
 

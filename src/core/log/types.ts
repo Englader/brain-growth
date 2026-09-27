@@ -114,6 +114,7 @@ export const EVENTS = {
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  TARGET_WAY: 'target_way',
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──

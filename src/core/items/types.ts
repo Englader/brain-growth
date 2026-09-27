@@ -114,6 +114,7 @@ export type Capability =
   // ── slot: storage ──
   // ── slot: weekly ──
   // ── slot: target ──
+  | 'deal'
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
