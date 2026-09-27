@@ -235,6 +235,19 @@ select {
 .center-row {
   justify-content: center;
 }
+/* A screen whose chunk is still loading (src/modes/lazy.tsx): background only, a line after a moment. */
+.lazy-screen {
+  justify-content: center;
+  align-items: center;
+}
+.lazy-msg {
+  text-align: center;
+  max-width: 24rem;
+}
+.lazy-msg .row {
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
 /* ── Top bar & language toggle ──────────────────────────────────────────── */
 .topbar {
@@ -278,8 +291,8 @@ select {
   cursor: pointer;
 }
 .icon-btn.small {
-  min-width: 36px;
-  min-height: 36px;
+  min-width: 44px;
+  min-height: 44px;
   box-shadow: none;
   background: transparent;
 }
@@ -307,6 +320,25 @@ select {
 .lang button.on {
   background: var(--primary);
   color: var(--primary-ink);
+}
+/* A language whose bundle is still loading (a tap before the idle prefetch finished, §1.12):
+   a ring in the accent, gently breathing when motion is welcome. The label and size never change. */
+.lang button.busy {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lang button.busy {
+    animation: lang-busy 0.9s ease-in-out infinite alternate;
+  }
+}
+@keyframes lang-busy {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.45;
+  }
 }
 
 /* ── Buttons, chips, fields, cards ──────────────────────────────────────── */
@@ -349,7 +381,8 @@ select {
   border-radius: 40px;
 }
 .btn.small {
-  min-height: 40px;
+  /* 44 px: the smallest tap target anywhere, also for small buttons (a11y pass). */
+  min-height: 44px;
   padding: 6px 12px;
   font-size: 0.9em;
 }

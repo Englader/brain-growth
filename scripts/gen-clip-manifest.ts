@@ -10,6 +10,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { requiredClips } from '../src/audio/voiceScript';
+import { loadAllLocales } from '../src/i18n/locales';
 import { CLIP_MANIFEST, clipProblems, renderManifest, scanClips } from './clips';
 import { AUDIO_SCRIPT_DOC, renderAudioScriptDoc } from './docs';
 
@@ -22,6 +23,8 @@ function writeIfChanged(rel: string, text: string): void {
   console.log(`gen:clips: wrote ${rel}`);
 }
 
+// The recording script lists each clip's text: the locale bundles (loaded on demand in the app) must be in.
+await loadAllLocales();
 const clips = scanClips();
 writeIfChanged(CLIP_MANIFEST, renderManifest(clips));
 writeIfChanged(AUDIO_SCRIPT_DOC, renderAudioScriptDoc(clips));

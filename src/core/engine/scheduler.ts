@@ -2,7 +2,8 @@
  * Which skill comes next. Interleaved, not blocked:
  *
  *   frontier  unlocked, not yet proficient     weight ∝ exp(−0.8·Δgrade) (earliest gaps first),
- *             plus Solid-not-mastered skills at weight 0.5 (consolidation, above the review floor)
+ *             plus Solid-not-mastered skills at weight 0.5 (consolidation, above the review floor),
+ *             fading ×exp(−1.2·d) for skills d grades beyond 3 below the leading edge of learning
  *   review    proficient/mastered, R < 0.8    weight ∝ (1 − R)
  *   maintain  mastered, not due               weight 1 (variety, retrieval practice)
  *
@@ -105,7 +106,15 @@ export function classify(input: ScheduleInput): { frontier: Cand[]; review: Cand
   const learning = frontier.filter((c) => c.learning);
   if (frontier.length) {
     const g0 = Math.min(...(learning.length ? learning : frontier).map((c) => c.skill.grade));
-    for (const c of frontier) c.weight *= Math.exp(-SELECTION.GRADE_DECAY * Math.max(0, c.skill.grade - g0));
+    // The leading edge: the hardest skill the child is learning now.
+    const edge = learning.length ? Math.max(...learning.map((c) => c.skill.grade)) : g0;
+    for (const c of frontier) {
+      c.weight *= Math.exp(-SELECTION.GRADE_DECAY * Math.max(0, c.skill.grade - g0));
+      // Consolidation fades far below the leading edge (DESIGN §1.5), as review keeps to the band's
+      // floor: a placement-Solid skill that far down is easy even at its hardest level. Review still
+      // reaches it when it is due.
+      if (!c.learning) c.weight *= Math.exp(-SELECTION.CONSOLIDATE_BELOW_DECAY * Math.max(0, edge - SELECTION.CONSOLIDATE_SPAN - c.skill.grade));
+    }
   }
   const { boost } = eligibility;
   if (boost) {

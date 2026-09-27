@@ -22,6 +22,7 @@ import { GRAPH } from '../../core/skills';
 import { streakView } from '../../core/streaks';
 import { dayKey, weekKey } from '../../core/time';
 import type { BandId, Strand } from '../../core/types';
+import { percentText } from '../../i18n/render';
 import { isReady, modesFor } from '../../modes/registry';
 import type { ModeDef } from '../../modes/types';
 import { HomeWidgets } from '../homeWidgets';
@@ -328,10 +329,18 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
             return (
               <li>
                 <span class="meter-label">{t.dyn(`strand.${strand}`)}</span>
-                <span class="meter" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+                <span
+                  class="meter"
+                  role="meter"
+                  aria-label={t.dyn(`strand.${strand}`)}
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuetext={percentText(pct, t.locale)}
+                >
                   <span class="meter-fill" style={{ width: `${pct}%` }} />
                 </span>
-                <span class="meter-value">{pct}%</span>
+                <span class="meter-value">{percentText(pct, t.locale)}</span>
               </li>
             );
           })}

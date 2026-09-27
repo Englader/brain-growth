@@ -1,4 +1,5 @@
 import type { JSX } from 'preact';
+import { AdultScreen } from '../../adult/screen';
 import { selectProfile } from '../../app/actions';
 import { navigate } from '../../app/router';
 import { useStore } from '../../app/store';
@@ -48,7 +49,7 @@ export function Profiles(): JSX.Element {
         </button>
       </div>
       <div class="picker-foot">
-        <HoldButton label={t('profiles.hold')} onDone={() => navigate('/adult')}>
+        <HoldButton label={t('profiles.hold')} onStart={() => void AdultScreen.preload().catch(() => undefined)} onDone={() => navigate('/adult')}>
           <Icon name="lock" size={18} /> {t('profiles.grownups')}
         </HoldButton>
         <small class="muted">{t('profiles.hold')}</small>

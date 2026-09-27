@@ -16,6 +16,7 @@ import type { JSX } from 'preact';
 import { useEffect, useLayoutEffect, useRef, useState } from 'preact/hooks';
 import type { LineSpec } from '../../core/items/types';
 import type { LocaleId } from '../../core/types';
+import { tk } from '../../i18n/i18n';
 import { getLocale } from '../../i18n/locales';
 import { formatNumber, formatPercent } from '../../i18n/numbers';
 import { lineValueText, numberText } from '../../i18n/render';
@@ -267,7 +268,15 @@ export function RulerLine(props: LineViewProps): JSX.Element {
   const hx = xOf(pos);
   return (
     <div class={`ruler${pickable ? ' pickable' : ''}`} ref={box}>
-      <svg width={width} height={H} viewBox={`0 0 ${width} ${H}`} onClick={onClick} dir="ltr">
+      <svg
+        width={width}
+        height={H}
+        viewBox={`0 0 ${width} ${H}`}
+        onClick={onClick}
+        dir="ltr"
+        role="img"
+        aria-label={tk(locale, 'play.line', { from: lineValueText(line.min, line, locale), to: lineValueText(line.max, line, locale) })}
+      >
         <line x1={padX} x2={width - padX} y1={baseY} y2={baseY} class="axis" />
         {ticks}
         {labels}

@@ -6,8 +6,10 @@
  */
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loadAllLocales } from '../src/i18n/locales';
 import { AUDIO_SCRIPT_DOC, renderAudioScriptDoc } from './docs';
 
+await loadAllLocales();
 const out = resolve(__dirname, '..', AUDIO_SCRIPT_DOC);
 writeFileSync(out, renderAudioScriptDoc());
 console.log(`wrote ${out}`);

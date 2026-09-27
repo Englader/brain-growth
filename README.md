@@ -21,6 +21,7 @@ npm run dev      # http://localhost:5173
 npm run check    # typecheck + tests
 npm run sim      # simulated-learner report for the adaptive engine
 npm run build    # → dist/ (not committed; CI builds and deploys)
+npm run size     # start-up JS budget (CI): languages, mode screens and the grown-ups' view load on demand
 npm run e2e      # Macedonian-first screenshots at 360px (needs Chromium)
 ```
 

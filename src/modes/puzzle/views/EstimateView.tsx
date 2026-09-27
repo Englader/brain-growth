@@ -25,7 +25,7 @@ const AXIS = 58;
 function QuantityView({ q, locale, t }: { q: Quantity; locale: string; t: BoardProps<EstimatePuzzle, State, EstimateAnswer>['t'] }): JSX.Element {
   const ops = getLocale(locale).ops;
   const n = (x: number): string => numberText(x, locale);
-  if (q.kind === 'percent') return <p class="pz-quantity">{t('puzzle.percentOf', { pct: n(q.pct), of: n(q.of) })}</p>;
+  if (q.kind === 'percent') return <p class="pz-quantity">{t('puzzle.percentOf', { pct: q.pct, of: q.of })}</p>;
   const text =
     q.kind === 'sum' ? q.terms.map(n).join(` ${ops['+']} `) : `${n(q.a)} ${q.kind === 'product' ? ops['*'] : ops['/']} ${n(q.b)}`;
   return <p class="pz-quantity">{text}</p>;

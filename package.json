@@ -9,6 +9,7 @@
     "dev": "vite",
     "prebuild": "npm run gen:clips",
     "build": "tsc --noEmit && vite build",
+    "size": "node scripts/size-check.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -2,17 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { glickoElo, levelToDifficulty } from '../src/core/engine/glicko';
 import { daysUntilDue, isDue, memoryEvent, retrievability, startMemory } from '../src/core/engine/memory';
 import type { SkillState } from '../src/core/engine/model';
-import { MEMORY } from '../src/core/engine/params';
+import { MEMORY, SELECTION } from '../src/core/engine/params';
 import { replay } from '../src/core/engine/replay';
 import { startPlacement } from '../src/core/engine/placement';
-import { chooseSkill } from '../src/core/engine/scheduler';
+import { chooseSkill, classify } from '../src/core/engine/scheduler';
 import { SessionEngine, type LearnerSnapshot } from '../src/core/engine/session';
 import type { LogRecord } from '../src/core/log/types';
 import { key } from '../src/core/rational';
 import { createRng } from '../src/core/rng';
 import { GRAPH } from '../src/core/skills';
 import { DAY_MS } from '../src/core/time';
-import { EN_CONV, SimClock } from '../sim/harness';
+import { EN_CONV, newSnapshot, runSession, SimClock } from '../sim/harness';
+import { SimLearner } from '../sim/learner';
 
 const skill = GRAPH.get('as.add.20');
 const T0 = Date.UTC(2026, 8, 1, 12);
@@ -139,6 +140,26 @@ describe('scheduler', () => {
     }
     expect(sources.has('review')).toBe(true);
     expect(sources.has('frontier')).toBe(true);
+  });
+});
+
+describe('consolidation far below the child (DESIGN §1.5)', () => {
+  it('fades for placement-Solid skills more than three grades below the leading edge of learning', () => {
+    const rng = createRng(11);
+    const learner = new SimLearner({ g: 5.5, slope: 1.8, offset: -0.5, skillSd: 0, slip: 0, learnRate: 0 }, GRAPH, rng);
+    const placed = runSession(learner, newSnapshot(11), new SimClock(T0), rng, { items: 10, targetP: 0.85, seed: 3 });
+    expect(placed.placementDone).not.toBeNull();
+    const b = classify({
+      graph: GRAPH, model: glickoElo, states: placed.snapshot.skills, now: T0 + DAY_MS / 2, rng,
+      eligibility: { requires: ['numberLine'], allowReading: true }, history: ['x'], newIntroduced: 0,
+    });
+    const edge = Math.max(...b.frontier.filter((c) => c.learning).map((c) => c.skill.grade));
+    const consolidating = b.frontier.filter((c) => !c.learning);
+    const far = consolidating.filter((c) => c.skill.grade < edge - SELECTION.CONSOLIDATE_SPAN - 1);
+    expect(far.length).toBeGreaterThan(3);
+    for (const c of far) expect(c.weight, c.skill.id).toBeLessThan(SELECTION.CONSOLIDATE_WEIGHT * Math.exp(-SELECTION.CONSOLIDATE_BELOW_DECAY));
+    const total = (cs: typeof far): number => cs.reduce((s, c) => s + c.weight, 0);
+    expect(total(far) / total(b.frontier)).toBeLessThan(0.1);
   });
 });
 
