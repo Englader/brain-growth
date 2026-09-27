@@ -12,7 +12,7 @@ import { resolve } from 'node:path';
 import * as fontkit from 'fontkit';
 import { describe, expect, it } from 'vitest';
 import { ACHIEVEMENTS } from '../src/core/achievements';
-import { FLAGS } from '../src/core/flags';
+import { FLAGS, flagLabelKey } from '../src/core/flags';
 import { WILDCARDS } from '../src/core/league';
 import { QUEST_TEMPLATES } from '../src/core/quests';
 import { COSMETICS } from '../src/core/rewards/cosmetics';
@@ -73,7 +73,7 @@ describe('content ids have strings', () => {
     }
   });
   it('cosmetics', () => expect(COSMETICS.map((c) => `cos.${c.id}`).filter((k) => !has(k))).toEqual([]));
-  it('flags', () => expect(FLAGS.map((f) => `flag.${f.id}`).filter((k) => !has(k))).toEqual([]));
+  it('flags (labelKey, default flag.<id>)', () => expect(FLAGS.map(flagLabelKey).filter((k) => !has(k))).toEqual([]));
   it('quests', () => expect(QUEST_TEMPLATES.map((q) => q.id).filter((k) => !has(k))).toEqual([]));
   it('wildcards', () => expect(WILDCARDS.map((w) => `family.wild.${w}`).filter((k) => !has(k))).toEqual([]));
 

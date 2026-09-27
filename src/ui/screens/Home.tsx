@@ -6,12 +6,11 @@
  */
 import type { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { evalCtx, petTap, signOut, startSession, toast } from '../../app/actions';
+import { evalCtx, launchMode, petTap, signOut, toast } from '../../app/actions';
 import { navigate } from '../../app/router';
-import { speaker } from '../../app/services';
+import { now, speaker } from '../../app/services';
 import { useStore } from '../../app/store';
 import { play as sfx, unlockAudio } from '../../audio/sfx';
-import { getBand } from '../../bands/registry';
 import { glickoElo } from '../../core/engine/glicko';
 import { isDue } from '../../core/engine/memory';
 import { wildcardForWeek } from '../../core/league';
@@ -21,8 +20,9 @@ import { GRAPH } from '../../core/skills';
 import { streakView } from '../../core/streaks';
 import { dayKey, weekKey } from '../../core/time';
 import type { BandId, Strand } from '../../core/types';
-import { modesFor } from '../../modes/registry';
+import { isReady, modesFor } from '../../modes/registry';
 import type { ModeDef } from '../../modes/types';
+import { HomeWidgets } from '../homeWidgets';
 import { LangToggle } from '../components/common';
 import { Frog } from '../components/Frog';
 import { Icon } from '../components/Icon';
@@ -31,8 +31,7 @@ import { Avatar } from './Profiles';
 
 function launch(mode: ModeDef, stretch = false, quick = false): void {
   unlockAudio();
-  if (mode.id === 'sprint') navigate('/intro/sprint');
-  else startSession(mode.id, { ...(stretch ? { stretch: true } : {}), ...(quick ? { quick: true } : {}) });
+  launchMode(mode, { ...(stretch ? { stretch: true } : {}), ...(quick ? { quick: true } : {}) });
 }
 
 function unseen(p: Profile): number {
@@ -41,7 +40,7 @@ function unseen(p: Profile): number {
 
 function StreakStones({ p }: { p: Profile }): JSX.Element {
   const t = useT();
-  const v = streakView(p.streak, dayKey(Date.now()));
+  const v = streakView(p.streak, dayKey(now()));
   if (v.establishing) {
     const lit = Math.min(7, v.current);
     return (
@@ -63,7 +62,7 @@ function StreakStones({ p }: { p: Profile }): JSX.Element {
 
 function StreakLine({ p }: { p: Profile }): JSX.Element {
   const t = useT();
-  const v = streakView(p.streak, dayKey(Date.now()));
+  const v = streakView(p.streak, dayKey(now()));
   const yesterday = v.calendar[v.calendar.length - 2];
   return (
     <div class="streak-line">
@@ -77,7 +76,7 @@ function StreakLine({ p }: { p: Profile }): JSX.Element {
 
 function QuestCard({ p }: { p: Profile }): JSX.Element | null {
   const t = useT();
-  if (!p.quests || p.quests.day !== dayKey(Date.now()) || !(p.flags['quests.daily'] ?? true)) return null;
+  if (!p.quests || p.quests.day !== dayKey(now()) || !(p.flags['quests.daily'] ?? true)) return null;
   const ctx = evalCtx(p, null);
   const all = p.quests.ids.length > 0 && p.quests.ids.every((id) => questProgress(id, ctx).done);
   return (
@@ -139,7 +138,10 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const look = lookFor(p);
   const [bounce, setBounce] = useState(false);
-  const hop = useModes(p).find((m) => m.id === 'hop')!;
+  const modes = useModes(p);
+  const hop = modes.find((m) => m.id === 'hop')!;
+  // Other modes offered to pre-readers: big icon tiles, only once they can be started (no locked states in A).
+  const tray = modes.filter((m) => m.homeA && m.id !== 'hop' && isReady(m, p));
   useEffect(() => {
     if (p.settings.voice) speaker.say('voice.welcome', {}, p.locale);
   }, [p.locale]);
@@ -170,6 +172,16 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
       <button type="button" class="btn quick" aria-label={t('home.quick')} onClick={() => launch(hop, false, true)}>
         <Icon name="bolt" size={34} solid />
       </button>
+      {tray.length > 0 && (
+        <div class="mode-tray">
+          {tray.map((m) => (
+            <button type="button" class={`btn mode-tile mode-${m.id}`} aria-label={t(m.titleKey)} onClick={() => launch(m)}>
+              <Icon name={m.icon} size={40} />
+            </button>
+          ))}
+        </div>
+      )}
+      <HomeWidgets p={p} />
       <NavRow p={p} band="A" />
     </div>
   );
@@ -178,8 +190,7 @@ function HomeA({ p }: { p: Profile }): JSX.Element {
 // ── Band B ────────────────────────────────────────────────────────────────
 function ModeCard({ p, mode, stretch, setStretch }: { p: Profile; mode: ModeDef; stretch: boolean; setStretch: (v: boolean) => void }): JSX.Element {
   const t = useT();
-  const ready = !mode.ready || mode.ready(p);
-  const band = getBand(p.band);
+  const ready = isReady(mode, p);
   return (
     <section class={`card mode-card mode-${mode.id}`}>
       <div class="mode-head">
@@ -206,7 +217,7 @@ function ModeCard({ p, mode, stretch, setStretch }: { p: Profile; mode: ModeDef;
           </div>
         </>
       )}
-      {mode.id !== 'hop' && band.timersAllowed && (
+      {mode.id !== 'hop' && (
         <button type="button" class="btn" disabled={!ready} onClick={() => launch(mode)}>
           <Icon name={mode.icon} /> {t(mode.titleKey)}
         </button>
@@ -221,7 +232,7 @@ function HomeB({ p }: { p: Profile }): JSX.Element {
   const modes = useModes(p);
   const [stretch, setStretch] = useState(false);
   const [says] = useState(() => 1 + Math.floor(Math.random() * 3));
-  const due = Object.values(p.skills).filter((s) => isDue(s, Date.now())).length;
+  const due = Object.values(p.skills).filter((s) => isDue(s, now())).length;
   return (
     <div class="screen home home-b">
       <header class="topbar">
@@ -248,6 +259,7 @@ function HomeB({ p }: { p: Profile }): JSX.Element {
         <ModeCard p={p} mode={m} stretch={stretch} setStretch={setStretch} />
       ))}
       {due > 0 && <p class="muted center">{t('home.reviewDue', { n: due })}</p>}
+      <HomeWidgets p={p} />
       <QuestCard p={p} />
       <NavRow p={p} band="B" />
     </div>
@@ -259,21 +271,21 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
   const t = useT();
   const modes = useModes(p);
   const [stretch, setStretch] = useState(false);
-  const now = Date.now();
+  const t0 = now();
   const states = Object.values(p.skills);
   const mastered = states.filter((s) => s.masteredAt !== undefined).length;
   const solid = states.filter((s) => s.proficientAt !== undefined).length;
-  const v = streakView(p.streak, dayKey(now));
+  const v = streakView(p.streak, dayKey(t0));
   const strands = new Map<Strand, { sum: number; n: number }>();
   for (const s of GRAPH.playableSkills()) {
     const st = p.skills[s.id];
     const e = strands.get(s.strand) ?? { sum: 0, n: 0 };
-    e.sum += st ? glickoElo.masteryP(st, s, now) : 0;
+    e.sum += st ? glickoElo.masteryP(st, s, t0) : 0;
     e.n++;
     strands.set(s.strand, e);
   }
   const title = p.cosmetics.equipped.title;
-  const wild = wildcardForWeek(weekKey(now));
+  const wild = wildcardForWeek(weekKey(t0));
   return (
     <div class="screen home home-c">
       <header class="topbar">
@@ -320,6 +332,7 @@ function HomeC({ p }: { p: Profile }): JSX.Element {
           })}
         </ul>
       </section>
+      <HomeWidgets p={p} />
       <QuestCard p={p} />
       <p class="muted center">
         {t('family.wildcard')}: {t.dyn(`family.wild.${wild}`)}

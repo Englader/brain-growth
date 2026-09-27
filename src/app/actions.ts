@@ -2,118 +2,46 @@
  * Application actions: the only place where the engine, persistence, rewards,
  * streaks, quests and achievements meet. Screens call these; they never touch
  * the repository directly.
+ *
+ * Session actions come in two layers:
+ *  - startSessionFor / recordAnswer / finishSession take the profile and the
+ *    session explicitly and never touch the store's session, so a mode can run
+ *    several children's sessions at once (pass-and-play);
+ *  - startSession / submitAnswer / endSession are thin wrappers over them for
+ *    the active profile and the store's single session.
+ * Shared persistence helpers live in ./persist.
  */
 import { getBand } from '../bands/registry';
-import { ACHIEVEMENTS, evaluateAchievements, type EvalContext, type Trigger } from '../core/achievements';
 import { glickoElo } from '../core/engine/glicko';
 import { replay } from '../core/engine/replay';
 import { SessionEngine, type AnswerResult, type PresentedItem } from '../core/engine/session';
 import { uid } from '../core/hash';
 import type { Response } from '../core/items/grade';
 import { decodeRivalCard, encodeRivalCard, weeklyEffort, type RivalCard } from '../core/league';
-import type { EventRecord, InputMethod, LogRecord, SessionOptions, SessionRecord } from '../core/log/types';
+import type { InputMethod, LogRecord, SessionOptions, SessionRecord } from '../core/log/types';
 import { EVENTS } from '../core/log/types';
 import { createProfile, type NewProfileInput, type Profile, type SprintRun } from '../core/profile';
-import { questProgress, questsForDay } from '../core/quests';
+import { questsForDay } from '../core/quests';
 import { getCosmetic, type CosmeticSlot } from '../core/rewards/cosmetics';
 import { pickCosmetic, rollDrop } from '../core/rewards/drops';
-import { createRng, freshSeed } from '../core/rng';
+import { createRng } from '../core/rng';
 import { GRAPH } from '../core/skills';
 import { applyFreezes, currentStreak, MIN_ITEMS_FOR_DAY, recordActiveDay } from '../core/streaks';
 import { dayKey, weekKey } from '../core/time';
 import type { LocaleId, ModeId } from '../core/types';
-import { StorageFullError } from '../data/kv';
 import { getLocale } from '../i18n/locales';
-import { getMode, modesFor } from '../modes/registry';
+import { defaultPlannedItems, getMode } from '../modes/registry';
+import type { ModeDef } from '../modes/types';
+import { appendLog, event, forgetLog, questsOn, recentLog, saveProfile, unlockAchievements, updateQuests } from './persist';
 import { navigate } from './router';
-import { now, repo } from './services';
+import { nextSeed, now, repo, testOverrides } from './services';
 import { getState, setState, type ActiveSession, type SessionResult } from './store';
 
-const DAY = 86_400_000;
-const LOG_WINDOW_DAYS = 120;
-
-// ── recent-log cache (write-through) ───────────────────────────────────────
-const logCache = new Map<string, LogRecord[]>();
-
-export function recentLog(pid: string): LogRecord[] {
-  let l = logCache.get(pid);
-  if (!l) {
-    l = repo.readKnownLog(pid, now() - LOG_WINDOW_DAYS * DAY);
-    logCache.set(pid, l);
-  }
-  return l;
-}
-
-function appendLog(pid: string, records: LogRecord[]): void {
-  if (!records.length) return;
-  try {
-    repo.appendLog(pid, records);
-  } catch (e) {
-    if (e instanceof StorageFullError) setState({ storageFull: true });
-    else throw e;
-  }
-  recentLog(pid).push(...records);
-}
-
-function event(name: string, data: Record<string, unknown> | null, sid: string | null): EventRecord {
-  return { type: 'event', ts: now(), sid, name, data };
-}
-
-function saveProfile(p: Profile): Profile {
-  let saved = p;
-  try {
-    saved = repo.saveProfile(p);
-  } catch (e) {
-    if (e instanceof StorageFullError) setState({ storageFull: true });
-    else throw e;
-  }
-  setState((s) => ({
-    profile: s.profile?.id === saved.id || !s.profile ? saved : s.profile,
-    profiles: s.profiles.some((x) => x.id === saved.id) ? s.profiles.map((x) => (x.id === saved.id ? saved : x)) : [...s.profiles, saved],
-  }));
-  return saved;
-}
+export { evalCtx, recentLog } from './persist';
 
 export function toast(msg: string): void {
   setState({ toast: msg });
   window.setTimeout(() => setState((s) => (s.toast === msg ? { toast: null } : {})), 2600);
-}
-
-// ── evaluation context ─────────────────────────────────────────────────────
-export function evalCtx(p: Profile, sessionId: string | null): EvalContext {
-  const t = now();
-  return {
-    profile: p,
-    now: t,
-    today: dayKey(t),
-    log: recentLog(p.id),
-    sessionId,
-    graph: GRAPH,
-    modesAvailable: modesFor(p, getState().meta?.deviceFlags ?? {}).length,
-    memo: new Map(),
-  };
-}
-
-function unlockAchievements(p: Profile, trigger: Trigger, sid: string | null): { profile: Profile; ids: string[] } {
-  const ids = evaluateAchievements(ACHIEVEMENTS, evalCtx(p, sid), trigger);
-  if (!ids.length) return { profile: p, ids };
-  const t = now();
-  const achievements = { ...p.achievements };
-  for (const id of ids) achievements[id] = { at: t, seen: false };
-  appendLog(p.id, ids.map((id) => event(EVENTS.ACHIEVEMENT, { id }, sid)));
-  return { profile: { ...p, achievements }, ids };
-}
-
-function questsOn(p: Profile): boolean {
-  const flags = getState().meta?.deviceFlags ?? {};
-  return p.flags['quests.daily'] ?? flags['quests.daily'] ?? true;
-}
-
-function updateQuests(p: Profile, sid: string | null): Profile {
-  if (!p.quests || p.quests.day !== dayKey(now()) || !questsOn(p)) return p;
-  const ctx = evalCtx(p, sid);
-  const done = p.quests.ids.filter((id) => questProgress(id, ctx).done);
-  return done.length === p.quests.done.length ? p : { ...p, quests: { ...p.quests, done } };
 }
 
 // ── boot & profiles ────────────────────────────────────────────────────────
@@ -188,7 +116,7 @@ export function updateProfile(pid: string, patch: Partial<Profile>): void {
 
 export function deleteProfile(pid: string): void {
   repo.deleteProfile(pid);
-  logCache.delete(pid);
+  forgetLog(pid);
   setState((s) => ({
     profiles: s.profiles.filter((p) => p.id !== pid),
     profile: s.profile?.id === pid ? null : s.profile,
@@ -197,11 +125,17 @@ export function deleteProfile(pid: string): void {
 }
 
 // ── language ───────────────────────────────────────────────────────────────
-export function switchLocale(locale: LocaleId): void {
+/**
+ * Switch a child's language. Without `pid` it is the active child; with the
+ * id of another child (pass-and-play), that child's profile changes and the
+ * switch is not counted as mid-session (their session is not the store's).
+ */
+export function switchLocale(locale: LocaleId, pid?: string): void {
   const st = getState();
-  const p = st.profile;
+  const active = !pid || pid === st.profile?.id;
+  const p = active ? st.profile : st.profiles.find((x) => x.id === pid) ?? repo.loadProfile(pid);
   if (!p || p.locale === locale) return;
-  const s = st.session;
+  const s = active ? st.session : null;
   const next: Profile = { ...p, locale, stats: { ...p.stats, localeSwitches: p.stats.localeSwitches + 1 } };
   appendLog(p.id, [event(EVENTS.LOCALE_SWITCH, { from: p.locale, to: locale, mid: !!s }, s?.id ?? null)]);
   const a = unlockAchievements(next, 'item', s?.id ?? null);
@@ -213,24 +147,48 @@ export function setUiLocale(locale: LocaleId): void {
   setState({ meta: repo.saveMeta({ uiLocale: locale }) });
 }
 
-// ── sessions ───────────────────────────────────────────────────────────────
-export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
-  const st = getState();
-  const p = st.profile;
+// ── sessions (profile-parameterised) ───────────────────────────────────────
+export interface SubmitMeta {
+  latencyMs: number;
+  hint: boolean;
+  input: InputMethod;
+  hops: number;
+}
+
+/** Extra outcome a mode hands to finishSession. */
+export interface FinishExtra {
+  /** Sprint run: personal-best bookkeeping and the sprint result line. */
+  sprint?: { run: SprintRun; noClock: boolean };
+  /** Additional summary lines shown on the results screen (Bands B/C). */
+  extras?: SessionResult['extras'];
+}
+
+/**
+ * Create a session for `profile` in `modeId` and log its start record. Pure
+ * with respect to the store: the caller keeps the returned session (the store
+ * for the active child, or its own state for pass-and-play). Placement items
+ * are only served by modes with `placement: true`. Returns null for an
+ * unknown mode.
+ */
+export function startSessionFor(profile: Profile, modeId: ModeId, opts: SessionOptions = {}): ActiveSession | null {
   const mode = getMode(modeId);
-  if (!p || !mode) return;
+  if (!mode) return null;
+  const p = profile;
+  const deviceFlags = getState().meta?.deviceFlags ?? {};
   const band = getBand(p.band);
   const t = now();
   const sid = uid('s');
-  let planned = mode.plannedItems(band, opts);
-  if ((p.flags['debug.shortSessions'] ?? st.meta?.deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
-  const timed = !!mode.timed && !opts.noClock;
+  const only = opts.only ?? testOverrides.only ?? undefined;
+  const o: SessionOptions = only ? { ...opts, only } : opts;
+  let planned = (mode.plannedItems ?? defaultPlannedItems)(band, o);
+  if ((p.flags['debug.shortSessions'] ?? deviceFlags['debug.shortSessions']) === true) planned = Math.min(planned, 4);
+  const timed = !!mode.timed && !o.noClock;
   const engine = new SessionEngine(
     { graph: GRAPH, model: glickoElo, now },
-    { skills: p.skills, placement: p.placement },
+    { skills: p.skills, placement: mode.placement ? p.placement : { ...p.placement, state: null } },
     {
       sessionId: sid,
-      seed: freshSeed(),
+      seed: nextSeed(),
       band: {
         id: band.id,
         targetP: band.targetP,
@@ -240,19 +198,21 @@ export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
       },
       mode: { id: mode.id, requires: mode.requires, ...(mode.filter ? { filter: mode.filter } : {}) },
       plannedItems: planned,
-      stretch: !!opts.stretch,
+      stretch: !!o.stretch,
       timed,
+      ...(only ? { only } : {}),
     },
   );
   const masteryStart: Record<string, number> = {};
   for (const [id, sst] of Object.entries(p.skills)) if (GRAPH.has(id)) masteryStart[id] = glickoElo.masteryP(sst, GRAPH.get(id), t);
   const session: ActiveSession = {
     id: sid,
+    pid: p.id,
     modeId,
     engine,
-    opts: { ...opts, ...(timed ? { timed: true } : {}) },
+    opts: { ...o, ...(timed ? { timed: true } : {}) },
     startedAt: t,
-    rng: createRng(freshSeed()),
+    rng: createRng(nextSeed()),
     current: null,
     firstAttempts: 0,
     firstCorrect: 0,
@@ -271,29 +231,24 @@ export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
     opts: session.opts, items: null, firstCorrect: null, durationMs: null, completed: null,
   };
   appendLog(p.id, [rec]);
-  setState({ session, lastResult: null });
-  navigate(`/play/${modeId}`);
+  return session;
 }
 
-export function nextItem(): PresentedItem | null {
-  const s = getState().session;
-  if (!s) return null;
-  const p = s.engine.next();
-  setState({ session: { ...s, current: p } });
-  return p;
-}
-
-export interface SubmitMeta {
-  latencyMs: number;
-  hint: boolean;
-  input: InputMethod;
-  hops: number;
-}
-
-export function submitAnswer(presented: PresentedItem, response: Response, meta: SubmitMeta): AnswerResult {
-  const st = getState();
-  const s = st.session!;
-  let p = st.profile!;
+/**
+ * Grade one response for `profile` in `session`: rating and memory update,
+ * log records, surprise drop, streak spark, achievements and quests. Saves the
+ * profile (to its own log and document only) and returns the updated profile
+ * and session; invalid input returns them unchanged.
+ */
+export function recordAnswer(
+  profile: Profile,
+  session: ActiveSession,
+  presented: PresentedItem,
+  response: Response,
+  meta: SubmitMeta,
+): { profile: Profile; session: ActiveSession; res: AnswerResult } {
+  const s = session;
+  let p = profile;
   const res = s.engine.answer(presented, {
     response,
     latencyMs: meta.latencyMs,
@@ -302,7 +257,7 @@ export function submitAnswer(presented: PresentedItem, response: Response, meta:
     conv: getLocale(p.locale).numbers,
     input: meta.input,
   });
-  if (res.grade.invalid || !res.record) return res;
+  if (res.grade.invalid || !res.record) return { profile: p, session: s, res };
 
   const sid = s.id;
   const recs: LogRecord[] = [res.record];
@@ -334,7 +289,7 @@ export function submitAnswer(presented: PresentedItem, response: Response, meta:
   p = {
     ...p,
     skills: snap.skills,
-    placement: snap.placement,
+    placement: getMode(s.modeId)?.placement ? snap.placement : p.placement,
     rewards,
     stats: { ...p.stats, items: p.stats.items + (first ? 1 : 0), hops: p.stats.hops + meta.hops, xp: p.stats.xp + xp },
   };
@@ -353,30 +308,30 @@ export function submitAnswer(presented: PresentedItem, response: Response, meta:
   const a = unlockAchievements(p, 'item', sid);
   p = updateQuests(a.profile, sid);
 
-  setState({
-    session: {
-      ...s,
-      firstAttempts: s.firstAttempts + (first ? 1 : 0),
-      firstCorrect: s.firstCorrect + (first && correct && !meta.hint ? 1 : 0),
-      fixed: s.fixed + (!first && correct ? 1 : 0),
-      unlocked: res.placementFinished ? s.unlocked : [...s.unlocked, ...res.unlocked],
-      mastered: res.statusChange?.to === 'mastered' ? [...s.mastered, res.statusChange.skillId] : s.mastered,
-      gifts,
-      achievements: [...s.achievements, ...a.ids],
-      sparkLit,
-      placed: s.placed || !!res.placementFinished,
-      skillsSeen: s.skillsSeen.includes(presented.item.skillId) ? s.skillsSeen : [...s.skillsSeen, presented.item.skillId],
-    },
-  });
-  saveProfile(p);
-  return res;
+  const next: ActiveSession = {
+    ...s,
+    firstAttempts: s.firstAttempts + (first ? 1 : 0),
+    firstCorrect: s.firstCorrect + (first && correct && !meta.hint ? 1 : 0),
+    fixed: s.fixed + (!first && correct ? 1 : 0),
+    unlocked: res.placementFinished ? s.unlocked : [...s.unlocked, ...res.unlocked],
+    mastered: res.statusChange?.to === 'mastered' ? [...s.mastered, res.statusChange.skillId] : s.mastered,
+    gifts,
+    achievements: [...s.achievements, ...a.ids],
+    sparkLit,
+    placed: s.placed || !!res.placementFinished,
+    skillsSeen: s.skillsSeen.includes(presented.item.skillId) ? s.skillsSeen : [...s.skillsSeen, presented.item.skillId],
+  };
+  return { profile: saveProfile(p), session: next, res };
 }
 
-export function endSession(completed: boolean, sprint?: { run: SprintRun; noClock: boolean }): void {
-  const st = getState();
-  const s = st.session;
-  let p = st.profile;
-  if (!s || !p) return;
+/**
+ * Close `session` for `profile`: end record, session count, sprint personal
+ * best, achievements, quest reward. Saves the profile and returns the result
+ * for the results screen (the caller decides where it goes).
+ */
+export function finishSession(profile: Profile, session: ActiveSession, completed: boolean, extra: FinishExtra = {}): { profile: Profile; result: SessionResult } {
+  const s = session;
+  let p = profile;
   const t = now();
   const rec: SessionRecord = {
     type: 'session', ts: t, sid: s.id, phase: 'end', mode: s.modeId, band: p.band, locale: p.locale, opts: s.opts,
@@ -386,6 +341,7 @@ export function endSession(completed: boolean, sprint?: { run: SprintRun; noCloc
   if (s.firstAttempts > 0) p = { ...p, stats: { ...p.stats, sessions: p.stats.sessions + 1 } };
 
   let sprintResult: SessionResult['sprint'] = null;
+  const sprint = extra.sprint;
   if (sprint) {
     const previousBest = p.sprint.best;
     const counts = !sprint.noClock && completed;
@@ -410,9 +366,10 @@ export function endSession(completed: boolean, sprint?: { run: SprintRun; noCloc
     if (c) gifts.push(c.id);
     appendLog(p.id, [event(EVENTS.QUEST_DONE, { ids: quests.ids }, s.id)]);
   }
+  const final = p;
   const skills = s.skillsSeen
-    .filter((id) => p!.skills[id])
-    .map((id) => ({ id, before: s.masteryStart[id] ?? 0, after: glickoElo.masteryP(p!.skills[id]!, GRAPH.get(id), t) }));
+    .filter((id) => final.skills[id])
+    .map((id) => ({ id, before: s.masteryStart[id] ?? 0, after: glickoElo.masteryP(final.skills[id]!, GRAPH.get(id), t) }));
   const result: SessionResult = {
     modeId: s.modeId,
     opts: s.opts,
@@ -427,8 +384,53 @@ export function endSession(completed: boolean, sprint?: { run: SprintRun; noCloc
     placed: s.placed,
     skills,
     sprint: sprintResult,
+    ...(extra.extras?.length ? { extras: extra.extras } : {}),
   };
-  saveProfile(p);
+  return { profile: saveProfile(p), result };
+}
+
+// ── sessions (active child, store-backed) ──────────────────────────────────
+/** Start a session for the active child and open its play screen. */
+export function startSession(modeId: ModeId, opts: SessionOptions = {}): void {
+  const p = getState().profile;
+  if (!p) return;
+  const session = startSessionFor(p, modeId, opts);
+  if (!session) return;
+  setState({ session, lastResult: null });
+  navigate(`/play/${modeId}`);
+}
+
+/**
+ * Open a mode the way its home card does: its own `launch`, else its intro
+ * screen (/intro/<id>), else straight into a session.
+ */
+export function launchMode(mode: ModeDef, opts: SessionOptions = {}, replace = false): void {
+  if (mode.launch) mode.launch(opts);
+  else if (mode.intro) navigate(`/intro/${mode.id}`, replace);
+  else startSession(mode.id, opts);
+}
+
+export function nextItem(): PresentedItem | null {
+  const s = getState().session;
+  if (!s) return null;
+  const p = s.engine.next();
+  setState({ session: { ...s, current: p } });
+  return p;
+}
+
+export function submitAnswer(presented: PresentedItem, response: Response, meta: SubmitMeta): AnswerResult {
+  const st = getState();
+  const r = recordAnswer(st.profile!, st.session!, presented, response, meta);
+  if (r.session !== st.session) setState({ session: r.session });
+  return r.res;
+}
+
+export function endSession(completed: boolean, extra: FinishExtra = {}): void {
+  const st = getState();
+  const s = st.session;
+  const p = st.profile;
+  if (!s || !p) return;
+  const { result } = finishSession(p, s, completed, extra);
   setState({ session: null, lastResult: result });
 }
 
@@ -540,7 +542,7 @@ export function exportBackup(): { name: string; text: string } {
 export function importBackup(text: string): ReturnType<typeof repo.importBackup> {
   const r = repo.importBackup(text);
   if (r.ok) {
-    logCache.clear();
+    forgetLog();
     const profiles = repo.listProfiles();
     const active = getState().profile;
     setState({ profiles, meta: repo.meta(), profile: active ? profiles.find((p) => p.id === active.id) ?? null : null });

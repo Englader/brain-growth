@@ -4,6 +4,8 @@ import { getGenerator } from '../src/core/items/generators';
 import { createRng } from '../src/core/rng';
 import { evalExpr } from '../src/core/items/util';
 import { toNumber } from '../src/core/rational';
+import { hasChecker } from '../src/core/items/checkers';
+import { getCustomPrompt } from '../src/core/items/customPrompts';
 import type { GeneratedItem } from '../src/core/items/types';
 
 describe('skill graph', () => {
@@ -42,7 +44,10 @@ function checkItem(item: GeneratedItem, label: string): void {
   const { line, prompt } = item;
   expect(line.min, label).toBeLessThanOrEqual(line.start);
   expect(line.start, label).toBeLessThanOrEqual(line.max);
-  if (line.answerMode === 'land') {
+  if (item.answer.check) {
+    // Graded by a registered checker (many correct answers): the line is context, not the answer's home.
+    expect(hasChecker(item.answer.check.id), `${label} checker ${item.answer.check.id} registered`).toBe(true);
+  } else if (line.answerMode === 'land') {
     expect(ans, `${label} answer inside line`).toBeGreaterThanOrEqual(line.min);
     expect(ans, `${label} answer inside line`).toBeLessThanOrEqual(line.max);
   } else {
@@ -73,6 +78,12 @@ function checkItem(item: GeneratedItem, label: string): void {
     case 'word':
       expect(Object.keys(prompt.vars).sort()).toEqual(['a', 'b']);
       break;
+    case 'custom': {
+      const def = getCustomPrompt(prompt.type);
+      expect(def, `${label} custom prompt ${prompt.type} registered`).toBeDefined();
+      expect(def?.validate?.(prompt, item) ?? [], label).toEqual([]);
+      break;
+    }
   }
   // Worked-solution hops are contiguous and end at the answer (land) or the flag (count).
   const hops = item.solution.filter((s): s is Extract<typeof s, { k: 'hop' }> => s.k === 'hop');
