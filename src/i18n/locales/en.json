@@ -1095,6 +1095,14 @@
   "pilot": {
   },
   "storage": {
+    "otherTab": "Hopa is already open in another browser tab or window, so nothing is saved here. Close Hopa there, then reload this page.",
+    "idbUsed": "Answer history: {kb} KB in the browser's database, with room for years of play.",
+    "localOnly": "The browser's database is not available, so the answer history stays in the storage above; when it fills up, the oldest months are summarised.",
+    "historyHidden": "Older answer history could not be opened this time. Nothing is lost: reload the page. A backup made now would not include it.",
+    "persisted": "Protected: the browser will not clear this data to free up space.",
+    "notPersisted": "The browser may clear this data if the device runs low on space.",
+    "keepSafe": "Keep data safe",
+    "keepSafeDenied": "The browser has not allowed it yet. Adding Hopa to the Home Screen and regular backups also keep the data safe."
   },
   "weekly": {
   },

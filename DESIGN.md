@@ -38,8 +38,8 @@ Each row is a guess or a choice I made for you. The last column says what change
 |---|---|---|---|
 | A-5 | **Stack: Vite + Preact + TypeScript.** No state or i18n libraries. | Preact is 4 KB and gives a component model for three presentation forks. Vanilla TS would mean hand-rolling DOM diffing across ~15 screens. The whole app is **98 KB gzipped JS**. | Swapping to React is mechanical (preact/compat). |
 | A-6 | **Deploy = GitHub Actions.** Pages' source is set to "GitHub Actions" (your change). On every push to `main`, CI typechecks, tests, builds to `dist/`, runs the end-to-end check against that build, and only then publishes **the same `dist/`** with `actions/deploy-pages`. Build output is no longer committed. | Nobody runs a build step to deploy: merging is deploying. A red CI can never reach the site, and diffs no longer carry hashed bundle files. | To go back to "Deploy from a branch": set `outDir: 'docs'` in `vite.config.ts`, commit the build, and drop the `deploy` job. The build is byte-deterministic, so CI can check a committed copy is fresh. |
-| A-8 | **All progress lives in localStorage** (as required), namespaced `bg:`. The session log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item). When the namespace passes a 3.5 MB soft budget, raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not). | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month, so **two daily players keep ≈5 months of per-item history on-device**. Backups always contain everything still stored. | Raw item history is the substrate for every future improvement, so moving the log to **IndexedDB** behind the existing `KV` interface is scheduled in v1 (§4 step 11) before compaction would start. |
-| A-9 | **iOS Safari may evict localStorage after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
+| A-8 | **Profiles and settings live in localStorage; the session log lives in IndexedDB** (§4 step 11, §2.7). Both are namespaced `bg:` (the database is `bg`). The log is stored compactly (positional arrays, ~55% smaller than keyed JSON, ≈190 chars per item) in month chunks, behind the same synchronous `KV` interface: an in-memory mirror hydrated before boot and written back within 250 ms and when the page is hidden. Raw months older than 3 are compacted into per-day-per-skill rollups (trends and calibration survive; per-item detail does not) only when their store passes its own budget: 3.5 MB for localStorage, ~50 MB (or more than half the origin's quota in use) for IndexedDB. | `englader.github.io` is **one origin shared by all your Pages projects**, so they share one ~5 MB localStorage and could collide on keys. At 30 items/day a child writes ≈0.35 MB of raw log per month: localStorage alone would keep only ≈5 months of per-item history for two daily players, IndexedDB keeps years. Raw item history is the substrate for every future improvement. Backups always contain everything still stored. | Where IndexedDB is missing or broken (some private modes, very old Safari), the app keeps the localStorage path and its 3.5 MB budget, as before. Nothing is lost either way: a log month leaves localStorage only after IndexedDB has committed it. |
+| A-9 | **iOS Safari may evict localStorage and IndexedDB after 7 days without a visit** (ITP script-writable storage cap). Mitigations: installing to the Home Screen exempts the app; export/import backups; a "last backup" line in the adult view, and a "keep data safe" button there that asks the browser for persistent storage. | This is the one realistic way a streak gets wiped. | Nothing to change; just know the risk. |
 
 ### Curriculum and localisation
 
@@ -442,12 +442,13 @@ src/
     log/                   types.ts (records) codec.ts (versioned positional encoding)
     profile.ts streaks.ts quests.ts league.ts flags.ts
   data/                    kv.ts (adapter) schema.ts migrations.ts repo.ts merge.ts compaction.ts
+                           idb.ts (IndexedDB wrapper) hybridKV.ts (log mirror, relocation) storage.ts (createStorage, writer lock)
   i18n/                    locales/en.json mk.json · wordproblems/en.json mk.json
                            locales.ts (registry) i18n.ts format.ts numbers.ts render.ts
   bands/                   types.ts registry.ts (A/B/C configs)
   modes/                   types.ts registry.ts index.ts · hop/ (PlayView, HopMode) · sprint/
   audio/                   speech.ts voiceScript.ts clips.ts sfx.ts
-  ui/                      components/ (NumberLine, Numpad, Frog, Prompts, Icon…) screens/ widgets/ homeWidgets.tsx hooks.ts anim.ts
+  ui/                      components/ (NumberLine, Numpad, Frog, Prompts, Icon…) screens/ widgets/ storage/ homeWidgets.tsx hooks.ts anim.ts
   adult/                   Adult.tsx analytics.ts charts.tsx
   app/                     App.tsx store.ts router.ts actions.ts persist.ts services.ts testHooks.ts (?e2e only)
   sw/                      sw.template.js register.ts
@@ -596,12 +597,21 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 
 **Storage schema v1:**
 
-- `bg:meta`: schema, device id, profiles, active profile, device flags, last backup.
+- `bg:meta`: schema, device id, profiles, active profile, device flags, last backup, and `logStore: 'idb'` once the log has moved.
 - `bg:profile:<pid>`
-- `bg:log:<pid>:<month>`
-- `bg:rollup:<pid>:<month>`: compacted months.
+- `bg:log:<pid>:<month>`: in IndexedDB.
+- `bg:rollup:<pid>:<month>`: compacted months, in IndexedDB.
 - `bg:rivals`
 - `bg:backup:pre-v<N>`
+
+**Where it is stored (A-8, §4 step 11).** Log months and rollups live in IndexedDB (database `bg`, one object store `logs`, the same keys and JSON strings); everything else stays in localStorage.
+
+- **One synchronous interface.** `data/hybridKV.ts` implements `KV`: log keys are served from an in-memory mirror, hydrated from IndexedDB before `boot()` (behind the boot splash), and written back by a coalescing write-behind queue: after 250 ms, and on `visibilitychange` → hidden and `pagehide`. Each write is one transaction that calls `IDBTransaction.commit()`, so a page that is closing still lands it; a failed write stays queued and is retried. `keys()` merges both stores, so export, import, profile deletion and compaction are unchanged. `bytesUsed()` counts localStorage only; `idbBytes()` the log store.
+- **Relocation** (`relocateLogs`) runs at every boot. Log keys still in localStorage (the first run after the update, or a month an older cached build wrote) are copied into IndexedDB in one transaction. Only after it commits is each localStorage copy deleted, and only if it has not changed meanwhile. When both copies exist, log months are merged as a union by record identity (rollups: the IndexedDB copy wins, as in import). It is idempotent, and a failed commit leaves everything in localStorage. `Meta.logStore = 'idb'` records the move with **no schema bump**: a bump would put an older cached build into read-only mode mid-play.
+- **Fallback.** If IndexedDB is missing, blocked, broken or slow to open (> 2.5 s), the app runs on localStorage exactly as before. If meta says the log is in IndexedDB but it cannot be opened, the Data tab says older history is hidden (not lost) and that a backup made now would not include it; anything played meanwhile is merged at the next good boot.
+- **Single writer.** A Web Lock (`bg:writer`) makes one tab the writer. Another tab opens read-only (no migrations, no writes; its log mirror is never written back, so it cannot overwrite the writer's months) and shows a notice. A reload waits up to 1 s for the previous page to let go, so it is never mistaken for a second tab. Without the Web Locks API every tab assumes it is the writer (§3.5).
+- **Compaction budget per store:** localStorage 3.5 MB; IndexedDB only above ~50 MB or when `navigator.storage.estimate()` shows more than half the quota used (a quota error in localStorage never compacts the IndexedDB log).
+- **Adult Data tab:** localStorage and IndexedDB usage, whether the browser may evict the data, and a "keep data safe" button (`navigator.storage.persist()`).
 
 **Migrations** (`data/migrations.ts`) are ordered `{ to, up(kv) }` functions over the KV interface. The **same code upgrades live storage and an old backup file** loaded into memory.
 
@@ -654,13 +664,13 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 - **The full adaptive engine:** Glicko-Elo model, invisible placement, spacing, interleaving scheduler, retries, success-rate controller, challenge path, replay.
 - **One skill branch across a band boundary.** In fact two: A→B arithmetic, and B→C via `num.line.1000 → int.intro → int.addsub`.
 - **Fractions, decimals and percent on the number line** (§4 step 3): unit fractions, equivalent fractions, comparing fractions, tenths and hundredths, comparing decimals, adding and subtracting decimals, percent of an amount. Answers are exact taps snapped to 1/den, or typed whole numbers and decimals. Labels are stacked fractions, and percent uses a double number line. There are 11 misconception codes with tips, and Band A meets unit fractions on lily pads with a 1/den hop button, errorless as ever.
-- **Persistence:** versioned schema, migrations with rollback, compact append-only log, compaction, backup export/import with merge.
+- **Persistence:** versioned schema, migrations with rollback, compact append-only log in IndexedDB (localStorage fallback, single-writer lock), per-store compaction, backup export/import with merge.
 - **Streaks** with silent freezes and the 7-stone establishment path.
 - **Achievement evaluator** with 36 real achievements across all 5 categories, including 10 secrets.
 - **Surprise drops and cosmetics, daily quests, family league with share links.**
 - **Sprint timed mode** (on by default, per-child flag; A-26).
 - **Feature flags.**
-- **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, flags, voice report.
+- **Adult dashboard:** mastery over time, minutes per day, calibration reliability diagram, mis-calibrated skills, recurring misconceptions, unusual error rates, per-skill model state, free-choice measure, backups, storage use and a "keep data safe" button, flags, voice report.
 - **Both locales**, fully wired.
 - **Offline PWA:** service worker with between-session updates, manifest, icons.
 
@@ -670,8 +680,8 @@ interface MetricDef { id; kind: 'effort'|'correctness'|'mastery'|'exploration'|'
 |---|---|
 | `npm test` | **279 tests pass**: parser/formatter, ICU, locale parity and key order, font coverage, DAG, all 43 generator bindings, fractions and decimals (exact landings, both decimal conventions, misconception codes, MK formatting, label thinning, pads per k/den), engine unit tests, simulated-learner acceptance, storage/migrations/merge, streaks, achievements, drops, quests, league, flags, audio script; seam guards: no walls (mode-only skills are leaves), no hard-coded UI strings, generated docs current, slot anchors intact, checker and custom-prompt registries, live/replay evidence-weight parity, pass-and-play session actions, mode routes, home widgets |
 | `npm run e2e` | Independent flows, each in a fresh browser context, in **Macedonian at 360×740**. `10-core`: create Band A child, play (incl. a wrong answer → errorless step), results with gifts, trophies; create Band B child, play (wrong → worked explanation), family board, wardrobe, **mid-item switch to English**; Sprint; create Band C child, play; every adult tab (31 screenshots). `11-hooks`: seeded placed children, a forced skill, shifted clock, reload mid-session (4 screenshots). `20-frac`: a Band B child at grade 5.5 on f.equiv, f.compare (wrong → misconception tip), d.compare and d.percent (with an English spot-check), then a Band A child on f.unit pads with the errorless step (9 screenshots). **44 screenshots, zero console errors, zero horizontal overflow, zero clipped text.** |
-| Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache |
-| Size | 98 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
+| Bugs found by e2e and fixed | Stale-closure keystroke loss on fast typing; teen served preschool review; placement unlock spam; mid-word breaks in MK labels; blank screen after a reload mid-session (a redirect during the first render was missed by the store subscription); a child's first log batch duplicated in the in-memory log cache; log writes lost when a page is reloaded or closed right after them (Chromium never auto-commits an IndexedDB transaction on an unloading page; fixed with an explicit `commit()`) |
+| Size | 94 KB JS + 6 KB CSS gzipped, 127 KB fonts. No runtime network dependency. |
 
 ### 3.3 Run locally
 
@@ -707,6 +717,7 @@ Useful URL switches:
 - Only the number-line mode exists, so Band C content is limited to integers.
 - The weekly themed challenge, hint ladder and puzzle track are designed, not built.
 - Fractions are trimmed for v1: no typed fractions (answers are taps or whole numbers), denominators ≤ 12, no mixed numbers, and no fraction arithmetic (`f.add.*`, `f.mult`, `f.div` stay planned nodes).
+- Browsers without the Web Locks API (Safari before 15.4) cannot tell a second tab apart, so two tabs playing at once can overwrite each other's newest log month. The whole log is held in memory (≈0.35 MB per child per month); above ~10 MB it should load older months on demand.
 
 ---
 
@@ -732,7 +743,7 @@ Useful URL switches:
 | 8 | **Puzzle track v1**: pattern extension (A–C), balance/weighing (A–C), logic grids (B–C), cryptarithms (C), estimation ranges (B–C); per-type Elo, **no timers** | 8–10 days | The separate reasoning product |
 | 9 | **Workshop (fractions and area)**, then the "Balance" equation mode and a coordinate-plane mode for C | 10+ days | Needs direct-manipulation UI; this is where Band C content depth arrives |
 | 10 | Seasonal cosmetics (Нова Година, Велигден), audio for new modes, polish | ongoing | — |
-| 11 | **IndexedDB log store** behind the `KV` interface; localStorage keeps profiles and meta | 2–3 days | Must land by ~month 4 of daily play, before raw per-item history would be compacted (A-8) |
+| 11 | **Done.** **IndexedDB log store** behind the `KV` interface; localStorage keeps profiles and meta (A-8, §2.7) | 2–3 days | Must land by ~month 4 of daily play, before raw per-item history would be compacted (A-8) |
 
 ---
 
@@ -761,7 +772,7 @@ The ordering assumes n = 2 children. **A/B tests are impossible at n = 2.** The 
 | E-4 | **Narrative world progression.** A map of regions per strand; mastery reveals paths (the DAG *is* the map) | L | A long-term arc | Month-2 retention dips after novelty fades |
 | T-1 | **PWA install prompt** at the right moment (after the 3rd active day) | S | Offline and storage safety | Any child plays on iOS without having installed |
 | T-2 | **Accessibility.** B/C screen-reader pass (live regions are already in place); larger text and spacing (evidence for spacing is stronger than for "dyslexia fonts"); an optional reading font only if the font test proves full Cyrillic; colour-blind check of child palettes with the same validator; reduced motion (already respected) | M | Inclusion | Any child needs it |
-| T-3 | **IndexedDB log store** — promoted into v1 (§4 step 11) | M | Removes the localStorage ceiling | Storage > 2.5 MB (the adult view shows usage) |
+| T-3 | **IndexedDB log store** — promoted into v1 and built (§4 step 11) | M | Removes the localStorage ceiling | Storage > 2.5 MB (the adult view shows usage) |
 | T-4 | **Performance budget in CI**: JS < 120 KB gzipped, first render < 1.5 s on a throttled mid-2018 Android profile | S | Keeps it snappy on hand-me-down phones | Bundle > 100 KB |
 | T-5 | **Cross-device sync** (if zero-backend is relaxed): an end-to-end-encrypted blob (family passphrase → key) in a tiny Worker/R2 bucket. The server sees ciphertext only; merges reuse the existing monotone rules, which are already CRDT-like | M | No manual backups | A device is lost or kids alternate devices daily |
 | T-6 | **Engine test strategy, continued.** Simulated learners already test placement and target rate. Add property tests (monotonicity: more correct never lowers μ); regression replay of real anonymised logs on every engine PR (fail if log-loss worsens by > 1%); adversarial learners (always guess, always slip) to test robustness | M | Safe engine iteration | Before any change to `params.ts` beyond small tuning |

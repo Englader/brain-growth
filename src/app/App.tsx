@@ -14,6 +14,7 @@ import { Results } from '../ui/screens/Results';
 import { Settings } from '../ui/screens/Settings';
 import { Trophies } from '../ui/screens/Trophies';
 import { Wardrobe } from '../ui/screens/Wardrobe';
+import { OtherTabNotice } from '../ui/storage/OtherTabNotice';
 import { receiveRival } from './actions';
 import { navigate } from './router';
 import { useStore } from './store';
@@ -83,6 +84,7 @@ export function App(): JSX.Element {
       data-theme={route === '/adult' ? 'adult' : band?.theme ?? 'lagoon'}
       style={accent ? { '--accent': accent } : undefined}
     >
+      <OtherTabNotice />
       <Screen />
       <Toast />
     </div>
