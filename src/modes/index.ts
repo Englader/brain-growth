@@ -21,6 +21,7 @@ import { SPRINT_ITEMS } from './sprint/timing';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
+import './workshop';
 // ── slot: balance ──
 // ── slot: coord ──
 // ── slot: season ──

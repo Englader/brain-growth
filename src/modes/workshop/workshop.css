@@ -1,0 +1,277 @@
+/* Workshop: the fraction bar and the rectangle builder (Bands B/C).
+   Layout rules from app.css apply: no fixed widths on text, rows wrap.
+   Everything fits 360 px: steppers are 48 px wide, two per row at most. */
+
+.ws-play {
+  gap: 6px;
+}
+.ws-prompt {
+  min-height: 0;
+  gap: 4px;
+}
+.ws-prompt .prompt-text {
+  margin: 0;
+}
+.ws-target {
+  font-size: 2.1em;
+}
+.ws-goal {
+  font-size: 1.15em;
+  color: var(--primary);
+  font-weight: 900;
+}
+.ws-hint {
+  margin: 2px 0 0;
+}
+
+/* ── Steppers ──────────────────────────────────────────────────────────── */
+.ws-stepper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+.ws-stepper-label {
+  font-weight: 800;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+.ws-stepper-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ws-step {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  min-height: var(--target);
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  color: var(--primary);
+  cursor: pointer;
+}
+.ws-step:active {
+  transform: translateY(1px);
+}
+.ws-step:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ws-step-value {
+  min-width: 2ch;
+  text-align: center;
+  font-size: 1.6em;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.ws-steppers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ── Fraction bar ──────────────────────────────────────────────────────── */
+.ws-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.ws-bar {
+  display: flex;
+  width: 100%;
+  height: 76px;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+}
+.ws-part {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-left: 2px solid var(--ink);
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ws-part:first-child {
+  border-left: 0;
+}
+.ws-part.on {
+  background: var(--accent);
+}
+.ws-bar.done .ws-part {
+  cursor: default;
+}
+.ws-part:disabled {
+  opacity: 1;
+}
+.ws-readout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.ws-made {
+  font-size: 1.25em;
+  font-weight: 900;
+}
+
+/* ── Rectangle grid ────────────────────────────────────────────────────── */
+.ws-grid-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.ws-grid {
+  display: block;
+  width: 100%;
+  max-width: min(100%, 40vh);
+  height: auto;
+  touch-action: none;
+  user-select: none;
+}
+.ws-grid-bg {
+  fill: var(--surface);
+}
+.ws-grid-line {
+  stroke: var(--line);
+  stroke-width: 2;
+}
+.ws-rect {
+  fill: var(--primary);
+  fill-opacity: 0.3;
+}
+.ws-rect-edge {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.ws-handle {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 3;
+}
+.ws-side {
+  fill: var(--ink);
+  font-weight: 800;
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+}
+.ws-rect-readout {
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.35;
+}
+
+/* ── Feedback ──────────────────────────────────────────────────────────── */
+.ws-feedback {
+  min-height: 0;
+}
+.ws-feedback .praise {
+  margin: 2px 0;
+}
+.ws-msg p {
+  margin: 2px 0;
+  font-weight: 700;
+}
+.ws-msg .tip {
+  color: var(--primary);
+}
+.ws-msg.good p {
+  color: var(--good);
+}
+[data-theme='slate'] .ws-msg.good p {
+  color: #34d399;
+}
+.ws-same {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-weight: 800;
+}
+.ws-eq {
+  font-size: 1.5em;
+}
+.ws-explain {
+  margin-top: 4px;
+}
+.ws-explain h2 {
+  margin: 0 0 4px;
+  font-size: 1.05em;
+}
+.ws-others-count {
+  margin: 4px 0;
+  font-weight: 800;
+}
+.ws-shapes {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 0;
+}
+.ws-shapes li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ws-shapes li.mine {
+  outline: 2px solid var(--good);
+}
+.ws-mini {
+  height: 26px;
+  width: auto;
+  max-width: 64px;
+}
+.ws-mini rect {
+  fill: var(--primary);
+  fill-opacity: 0.3;
+  stroke: var(--primary);
+  stroke-width: 1;
+}
+
+/* ── Controls ──────────────────────────────────────────────────────────── */
+.ws-controls {
+  gap: 6px;
+}
+.ws-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+}
+.ws-tools .ws-show {
+  margin-left: auto;
+}
+.ws-more .btn {
+  flex: 1 1 140px;
+}
+.ws-others-btn.on {
+  background: var(--primary);
+  color: var(--primary-ink);
+}

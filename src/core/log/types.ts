@@ -122,6 +122,7 @@ export const EVENTS = {
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  WORKSHOP_SHAPE: 'workshop_shape',
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

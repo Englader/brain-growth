@@ -147,6 +147,8 @@ export const MODE_EVIDENCE: Record<ModeId, number> = {
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  // A construction found by adjusting it against live feedback (a readout, unlimited checks) is noisier evidence than a typed answer.
+  workshop: 0.75,
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

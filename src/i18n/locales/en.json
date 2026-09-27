@@ -199,6 +199,9 @@
     "puzzle": {
     },
     "workshop": {
+      "walk": "Walk all the way round a rectangle, {w} by {h}!",
+      "walkRound": "Walk all the way round a rectangle",
+      "by": "by"
     },
     "season": {
     }
@@ -606,6 +609,15 @@
     "dice": {
     },
     "workshop": {
+      "fracScaleUp": "Split each of the {d} parts into {k}: that makes {parts} parts.",
+      "fracScaleDown": "Join the parts {k} at a time: {d} parts become {parts}.",
+      "fracSplit": "Split the bar into {parts} equal parts.",
+      "fracShade": "Shade {shade} of the {parts} parts.",
+      "rectPerimeter": "The perimeter is the walk round: {w} + {h} + {w} + {h} = {perimeter}.",
+      "rectPerimeter@C": "Perimeter: {w} + {h} + {w} + {h} = {perimeter}.",
+      "rectArea": "Area: {w} × {h} = {area, plural, one {# square} other {# squares}}.",
+      "rectOthers": "{count, plural, one {# other shape also works.} other {# other shapes also work.}}",
+      "walkSides": "Walk the sides: {w}, then {h}, then {w} and {h} again."
     },
     "balance": {
     },
@@ -757,11 +769,35 @@
           "name": "Divided by the percent",
           "tip": "Percent means out of 100: 10% of 80 is 80 ÷ 10 = 8."
         }
+      },
+      "partsVsShaded": {
+        "name": "Shaded the parts left over, or counted shaded against unshaded",
+        "tip": "The bottom number counts all the equal parts. The top number counts only the shaded ones.",
+        "tip@C": "Denominator = all the equal parts; numerator = the shaded parts only."
+      },
+      "numeratorKept": {
+        "name": "Cut into more parts but shaded the same number",
+        "tip": "More parts means smaller parts: if you cut every part in two, shade twice as many.",
+        "tip@C": "Multiply the numerator by the same number as the denominator."
+      },
+      "unequalParts": {
+        "name": "Counted parts of different sizes",
+        "tip": "A fraction needs equal parts: every part the same size."
       }
     },
     "target": {
     },
     "workshop": {
+      "areaPerimeterSwap": {
+        "name": "Mixed up area and perimeter",
+        "tip": "Area counts the squares inside. Perimeter is the walk all the way round the edge.",
+        "tip@C": "Area = unit squares inside (length × width). Perimeter = distance round the edge (sum of the sides)."
+      },
+      "halfPerimeter": {
+        "name": "Added only two of the four sides",
+        "tip": "A rectangle has four sides. Walk all of them: length + width + length + width.",
+        "tip@C": "Perimeter counts all four sides: 2 × (length + width)."
+      }
     },
     "balance": {
     },
@@ -1023,6 +1059,13 @@
     "puzzle": {
     },
     "workshop": {
+      "shapes": {
+        "name": "Shape Shifter",
+        "desc": "Built 3 extra rectangles that also work.",
+        "hint": "After you build a rectangle, try a different one that works too.",
+        "name@C": "Many Shapes",
+        "desc@C": "Found three additional rectangles that satisfy a task."
+      }
     },
     "balance": {
     },
@@ -1163,6 +1206,86 @@
   "puzzle": {
   },
   "workshop": {
+    "title": "Workshop",
+    "desc": "Shade fraction bars and build rectangles",
+    "desc@C": "Construct fractions, areas and perimeters",
+    "flag": "Workshop: shade fraction bars and build rectangles to an area or perimeter; the construction is checked (Bands B and C; its answers count as three-quarter evidence).",
+    "notReady": "Opens when you reach fractions or perimeter on the number trail",
+    "notReady@C": "Unlocks with fractions, perimeter or area",
+    "check": "Check",
+    "next": "Next",
+    "showMe": "Show me",
+    "reveal": "Here is one way:",
+    "tryAgain": "Not yet. Change it and check again!",
+    "tryAgain@C": "Not yet. Adjust it and check again.",
+    "frac": {
+      "make": "Shade this much of the bar.",
+      "withParts": "Show this fraction with {parts, plural, one {# equal part} other {# equal parts}}.",
+      "text": "Shade {frac} of the bar.",
+      "textParts": "Show {frac} with {parts, plural, one {# equal part} other {# equal parts}}.",
+      "parts": "Parts",
+      "fewer": "Fewer parts",
+      "more": "More parts",
+      "part": "Part {i} of {parts}",
+      "shaded": "Shaded parts:",
+      "none": "Tap parts of the bar to shade them.",
+      "wrongParts": "Split the bar into {parts} equal parts first.",
+      "wrongParts@C": "Use exactly {parts} equal parts.",
+      "notYet": "That is {made} of the bar, not {frac}. Try again!",
+      "notYet@C": "That is {made}, not {frac}. Adjust it and check again.",
+      "same": "The same amount!",
+      "same@C": "Equivalent fractions."
+    },
+    "rect": {
+      "perimeter": "Build a rectangle with perimeter {perimeter}.",
+      "area": "Build a rectangle with area {area}.",
+      "both": "Build a rectangle with area {area} and perimeter {perimeter}.",
+      "length": "Length",
+      "width": "Width",
+      "shorter": "Shorter",
+      "longer": "Longer",
+      "narrower": "Narrower",
+      "wider": "Wider",
+      "grid": "Rectangle {w} by {h}",
+      "areaLine": "Area: {calc}",
+      "perimeterLine": "Perimeter: {calc}",
+      "areaOff": "This one covers {made, plural, one {# square} other {# squares}}. The task asks for {want}.",
+      "areaOff@C": "Area {made}; the task asks for {want}.",
+      "perimeterOff": "The walk round this one is {made}. The task asks for {want}.",
+      "perimeterOff@C": "Perimeter {made}; the task asks for {want}.",
+      "areaRight": "The area is right! Now change the shape so the perimeter is {want}.",
+      "areaRight@C": "Area correct. Change the shape to make the perimeter {want}.",
+      "perimeterRight": "The perimeter is right! Now change the shape so the area is {want}.",
+      "perimeterRight@C": "Perimeter correct. Change the shape to make the area {want}.",
+      "others": "All shapes",
+      "onlyOne": "This is the only shape that works on this grid.",
+      "another": "Build another",
+      "anotherPrompt": "Can you build a different rectangle that works?",
+      "newShape": "Another one that works! {n, plural, one {# shape} other {# shapes}} so far.",
+      "sameShape": "That is the same shape as before. Try a different one!",
+      "allFound": "You found every shape that works!"
+    },
+    "hint": {
+      "frac": "The bottom number says how many equal parts to make. The top number says how many of them to shade.",
+      "frac@C": "Denominator: how many equal parts. Numerator: how many of them are shaded.",
+      "fracScale": "Same amount, different cut: split every part into smaller equal parts, or join parts together.",
+      "fracScale@C": "Equivalent fractions: multiply or divide the numerator and the denominator by the same number.",
+      "perimeter": "The perimeter is the walk all the way round: length + width + length + width.",
+      "perimeter@C": "Perimeter is the sum of all four sides: length + width + length + width.",
+      "area": "The area counts the squares inside: multiply the length by the width.",
+      "area@C": "Area is length times width, counted in unit squares.",
+      "both": "First find rectangles with the right area, then check which one has the right perimeter.",
+      "both@C": "List the rectangles with the right area, then test their perimeters.",
+      "halfPerimeter": "The length and the width together must make {half}: half of the perimeter.",
+      "halfPerimeter@C": "Length + width = {half}, half of the perimeter.",
+      "tryLength": "Try a length of {w}.",
+      "tryLength@C": "Try length {w}."
+    },
+    "walk": "A rectangle is {w} long and {h} wide. How far is it all the way round?",
+    "walk@C": "Find the perimeter of a {w} by {h} rectangle.",
+    "results": {
+      "shapes": "{n, plural, one {You found # extra rectangle that works.} other {You found # extra rectangles that work.}}"
+    }
   },
   "balance": {
   },

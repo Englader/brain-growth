@@ -66,6 +66,8 @@ const PATHS = {
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  grid: 'M4 4h16v16H4zM4 12h16M12 4v16M4 4h8v8H4z',
+  peek: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

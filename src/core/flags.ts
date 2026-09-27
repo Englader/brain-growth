@@ -38,6 +38,7 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  { id: 'mode.workshop', scope: 'profile', default: true, description: 'Workshop: shade fraction bars and build rectangles to an area or perimeter; the construction is checked (Bands B/C; evidence weight 0.75).', labelKey: 'workshop.flag' },
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

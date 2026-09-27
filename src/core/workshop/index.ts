@@ -8,3 +8,4 @@ export * from './fracbar';
 export * from './rect';
 export * from './keys';
 export * from './checker';
+export * from './hints';

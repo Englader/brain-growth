@@ -5,7 +5,7 @@ Record each line as a separate mono MP3 (44.1 kHz, ~48 kbps), ~200 ms of silence
 friendly and unhurried. Save as `public/audio/<locale>/<clip-id>.mp3` and list the id in `src/audio/clips.ts`.
 Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only these number words are needed.
 
-## English (en) — 55 clips, 0 recorded
+## English (en) — 57 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -59,13 +59,15 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 48 | `voice.tapGlow.mp3` | Now tap the shiny spot! |  |
 | 49 | `voice.trophy.mp3` | You found a trophy! |  |
 | 50 | `voice.welcome.mp3` | Hi! Let's play! |  |
-| 51 | `word.dividedBy.mp3` | divided by |  |
-| 52 | `word.hopsOf.mp3` | hops of |  |
-| 53 | `word.minus.mp3` | minus |  |
-| 54 | `word.plus.mp3` | plus |  |
-| 55 | `word.times.mp3` | times |  |
+| 51 | `voice.workshop.by.mp3` | by |  |
+| 52 | `voice.workshop.walkRound.mp3` | Walk all the way round a rectangle |  |
+| 53 | `word.dividedBy.mp3` | divided by |  |
+| 54 | `word.hopsOf.mp3` | hops of |  |
+| 55 | `word.minus.mp3` | minus |  |
+| 56 | `word.plus.mp3` | plus |  |
+| 57 | `word.times.mp3` | times |  |
 
-## Македонски (mk) — 56 clips, 0 recorded
+## Македонски (mk) — 58 clips, 0 recorded
 
 | # | file | text | recorded |
 |---|---|---|---|
@@ -119,10 +121,12 @@ Numbers 21–99 are composed from tens + units (+ "и" in Macedonian), so only t
 | 48 | `voice.tapGlow.mp3` | Сега допри го местото што свети! |  |
 | 49 | `voice.trophy.mp3` | Најде трофеј! |  |
 | 50 | `voice.welcome.mp3` | Здраво! Ајде да играме! |  |
-| 51 | `word.and.mp3` | и |  |
-| 52 | `word.dividedBy.mp3` | поделено со |  |
-| 53 | `word.hopsOf.mp3` | скока по |  |
-| 54 | `word.minus.mp3` | минус |  |
-| 55 | `word.plus.mp3` | плус |  |
-| 56 | `word.times.mp3` | пати |  |
+| 51 | `voice.workshop.by.mp3` | на |  |
+| 52 | `voice.workshop.walkRound.mp3` | Прошетај околу правоаголник |  |
+| 53 | `word.and.mp3` | и |  |
+| 54 | `word.dividedBy.mp3` | поделено со |  |
+| 55 | `word.hopsOf.mp3` | скока по |  |
+| 56 | `word.minus.mp3` | минус |  |
+| 57 | `word.plus.mp3` | плус |  |
+| 58 | `word.times.mp3` | пати |  |
 

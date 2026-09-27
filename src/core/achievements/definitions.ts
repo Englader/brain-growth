@@ -69,6 +69,7 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  { id: 'workshop.shapes', category: 'exploration', bands: ['B', 'C'], icon: 'grid', on: ON_ITEM, when: { metric: 'workshop.otherShapes', gte: 3 } },
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

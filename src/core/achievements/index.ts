@@ -9,6 +9,7 @@ import './metrics';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
+import './metrics/workshop';
 // ── slot: balance ──
 // ── slot: coord ──
 // ── slot: season ──

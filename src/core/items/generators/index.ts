@@ -17,6 +17,7 @@ import { fracLineGen } from './fractions';
 // ── slot: dice ──
 // ── slot: puzzle ──
 // ── slot: workshop ──
+import { fracBarGen, perimeterHopsGen, rectGen } from './workshop';
 // ── slot: balance ──
 // ── slot: coord ──
 // ── slot: season ──
@@ -48,6 +49,9 @@ const BUILTIN = [
   // ── slot: dice ──
   // ── slot: puzzle ──
   // ── slot: workshop ──
+  fracBarGen,
+  rectGen,
+  perimeterHopsGen,
   // ── slot: balance ──
   // ── slot: coord ──
   // ── slot: season ──

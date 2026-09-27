@@ -22,6 +22,7 @@ export const WORKSHOP_SOL_KEYS = {
   rectPerimeter: 'sol.workshop.rectPerimeter', // {w, h, perimeter}: "{w} + {h} + {w} + {h} = {perimeter}"
   rectArea: 'sol.workshop.rectArea', // {w, h, area}: "{w} × {h} = {area} squares" (mk: ·)
   rectOthers: 'sol.workshop.rectOthers', // {count}: "{count, plural, one {# other shape} other {# other shapes}} also work."
+  walkSides: 'sol.workshop.walkSides', // {w, h}: "Walk the sides: {w}, then {h}, then {w} and {h} again." (Hop "walk the sides" items)
 } as const;
 
 /** `workshop.*` UI strings. */
