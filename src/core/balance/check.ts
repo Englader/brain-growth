@@ -4,13 +4,14 @@
  *
  * Transcript (`repr`) grammar, locale-free, `;`-separated:
  *
- *   repr   := (attempt ';')* '=' value
- *   attempt:= ['!'] token            token as written by `moveToken`
- *   value  := ['-'] digits ['/' digits]
+ *   repr   := (entry ';')* '=' value
+ *   entry  := ['!'] token | 'u'      token as written by `moveToken`; 'u' = undo
+ *   value  := ['-'] digits ['/' digits] | '?'
  *
  * Every move the child TRIED is listed in order; a move the UI refused is
- * prefixed with `!`. Example for 2x + 4 = 10: "L:-4;!/4;-4;/2;=3" (a
- * one-pan move and a split into 4 were refused).
+ * prefixed with `!`, and `u` undoes the last applied move. `=?` means the
+ * child asked to be shown the answer. Example for 2x + 4 = 10:
+ * "L:-4;!/4;-4;/2;=3" (a one-pan move and a split into 4 were refused).
  *
  * The checker never trusts the UI: it replays every attempt from the item's
  * equation with `applyMove` and rejects the transcript as `forged` when an
@@ -38,6 +39,7 @@ import {
   solutionPath,
   startState,
   type BalanceMove,
+  type BalanceState,
   type BlockReason,
 } from './moves';
 
@@ -155,22 +157,23 @@ export function balanceSolutionSteps(eq: Equation, balloons: boolean): SolutionS
 
 // ── Transcript ──────────────────────────────────────────────────────────────
 
-export interface TranscriptAttempt {
-  move: BalanceMove;
-  /** The UI says it refused this move (`!`). */
-  claimedBlocked: boolean;
-}
+export type TranscriptEntry =
+  /** A move the child tried; `claimedBlocked` = the UI says it refused it (`!`). */
+  | { kind: 'move'; move: BalanceMove; claimedBlocked: boolean }
+  /** Undo the last applied move (`u`). */
+  | { kind: 'undo' };
 
 export interface Transcript {
-  attempts: TranscriptAttempt[];
-  value: Rational;
+  entries: TranscriptEntry[];
+  /** The typed value of x; null when the child asked to be shown (`=?`). */
+  value: Rational | null;
 }
 
-/** Longest transcript accepted (attempts), and longest repr. */
+/** Longest transcript accepted (entries), and longest repr. */
 export const MAX_ATTEMPTS = 200;
 const MAX_REPR = 4000;
 
-const VALUE_RE = /^=(-?\d{1,6})(?:\/(\d{1,6}))?$/;
+const VALUE_RE = /^=(?:(-?\d{1,6})(?:\/(\d{1,6}))?|(\?))$/;
 
 export function parseTranscript(repr: string): Transcript | null {
   if (typeof repr !== 'string' || repr.length > MAX_REPR) return null;
@@ -178,49 +181,62 @@ export function parseTranscript(repr: string): Transcript | null {
   if (parts.length - 1 > MAX_ATTEMPTS) return null;
   const last = VALUE_RE.exec(parts[parts.length - 1] ?? '');
   if (!last) return null;
-  const den = last[2] === undefined ? 1 : Number(last[2]);
-  if (den === 0) return null;
-  const attempts: TranscriptAttempt[] = [];
+  let value: Rational | null = null;
+  if (last[3] === undefined) {
+    const den = last[2] === undefined ? 1 : Number(last[2]);
+    if (den === 0) return null;
+    value = rat(Number(last[1]), den);
+  }
+  const entries: TranscriptEntry[] = [];
   for (const raw of parts.slice(0, -1)) {
+    if (raw === 'u') {
+      entries.push({ kind: 'undo' });
+      continue;
+    }
     const claimedBlocked = raw.startsWith('!');
     const move = parseMoveToken(claimedBlocked ? raw.slice(1) : raw);
     if (!move) return null;
-    attempts.push({ move, claimedBlocked });
+    entries.push({ kind: 'move', move, claimedBlocked });
   }
-  return { attempts, value: rat(Number(last[1]), den) };
+  return { entries, value };
 }
 
 /** Writes a transcript in the canonical form `parseTranscript` reads. */
 export function transcriptRepr(t: Transcript): string {
-  return [...t.attempts.map((a) => (a.claimedBlocked ? '!' : '') + moveToken(a.move)), `=${key(t.value)}`].join(';');
+  const body = t.entries.map((e) => (e.kind === 'undo' ? 'u' : (e.claimedBlocked ? '!' : '') + moveToken(e.move)));
+  return [...body, `=${t.value === null ? '?' : key(t.value)}`].join(';');
 }
 
 // ── Checker ─────────────────────────────────────────────────────────────────
 
-export type BalanceCheckReason = 'parse' | 'forged' | 'notIsolated' | 'wrongValue';
+export type BalanceCheckReason = 'parse' | 'forged' | 'revealed' | 'notIsolated' | 'wrongValue';
 
 export interface BalanceCheckResult {
   ok: boolean;
   /**
    * Why not: `parse` (malformed data or repr: ask again), `forged` (a `!`
-   * mark disagrees with the replay), `notIsolated` (x was not alone on the
-   * scale and the item requires it), `wrongValue`.
+   * mark disagrees with the replay, or an undo with nothing to undo),
+   * `revealed` (the child asked to be shown: a wrong attempt, credit 0),
+   * `notIsolated` (x was not alone on the scale and the item requires it),
+   * `wrongValue`.
    */
   reason?: BalanceCheckReason;
-  /** The typed value (null on `parse`). */
+  /** The typed value (null on `parse` and `revealed`). */
   value: Rational | null;
   solution: Rational | null;
   /** Canonical transcript (the log's `given`); the raw repr on `parse`. */
   given: string;
   /** The replayed scale ends with x alone. */
   isolated: boolean;
-  /** Moves the replay applied. */
+  /** Moves the replay applied (undone ones included). */
   moves: number;
+  /** Undos in the transcript. */
+  undos: number;
   /** Refused attempts by reason, from the replay. */
   blocked: Record<BlockReason, number>;
   /** Refused attempts that cost score (`unbalanced`); feed to `balanceY`. */
   penalised: number;
-  /** Isolated in exactly as many moves as the shortest path. */
+  /** Isolated with no undo, in exactly as many moves as the shortest path. */
   optimal: boolean;
   misconception: BalanceMisconception | null;
 }
@@ -229,9 +245,9 @@ const noBlocks = (): Record<BlockReason, number> => ({ unbalanced: 0, nonInteger
 
 /**
  * Re-validates a Balance answer from the item data and the transcript alone.
- * Correct when the transcript parses, every `!` mark matches the replay, x is
- * isolated at the end (unless the item has `iso: 0`), and the typed value is
- * the solution.
+ * Correct when the transcript parses, every `!` mark and undo matches the
+ * replay, x is isolated at the end (unless the item has `iso: 0`), and the
+ * typed value is the solution.
  */
 export function checkBalance(data: unknown, repr: string): BalanceCheckResult {
   const item = readBalanceData(data);
@@ -245,6 +261,7 @@ export function checkBalance(data: unknown, repr: string): BalanceCheckResult {
       given: typeof repr === 'string' ? repr.slice(0, 200) : '',
       isolated: false,
       moves: 0,
+      undos: 0,
       blocked: noBlocks(),
       penalised: 0,
       optimal: false,
@@ -253,36 +270,44 @@ export function checkBalance(data: unknown, repr: string): BalanceCheckResult {
   }
   const solution = solveEquation(item.eq)!;
   const blocked = noBlocks();
-  let state = startState(item.eq, item.balloons);
+  const stack: BalanceState[] = [startState(item.eq, item.balloons)];
   let moves = 0;
+  let undos = 0;
   let forged = false;
-  for (const a of t.attempts) {
-    const r = applyMove(state, a.move);
+  for (const e of t.entries) {
+    if (e.kind === 'undo') {
+      undos++;
+      if (stack.length > 1) stack.pop();
+      else forged = true;
+      continue;
+    }
+    const r = applyMove(stack[stack.length - 1]!, e.move);
     if (isBlocked(r)) {
       blocked[r.blocked]++;
-      if (!a.claimedBlocked) forged = true;
+      if (!e.claimedBlocked) forged = true;
     } else {
-      if (a.claimedBlocked) forged = true;
-      state = r;
+      if (e.claimedBlocked) forged = true;
+      stack.push(r);
       moves++;
     }
   }
-  const isolated = isolatedValue(state.eq) !== null;
+  const isolated = isolatedValue(stack[stack.length - 1]!.eq) !== null;
   const shortest = solutionPath(item.eq, item.balloons);
-  const correctValue = key(t.value) === key(solution);
   const base = {
     value: t.value,
     solution,
     given: transcriptRepr(t),
     isolated,
     moves,
+    undos,
     blocked,
     penalised: blocked.unbalanced,
-    optimal: isolated && shortest !== null && moves === shortest.length,
+    optimal: isolated && undos === 0 && shortest !== null && moves === shortest.length,
   };
   if (forged) return { ...base, ok: false, reason: 'forged', misconception: null };
+  if (t.value === null) return { ...base, ok: false, reason: 'revealed', misconception: null };
   if (item.requireIsolated && !isolated) return { ...base, ok: false, reason: 'notIsolated', misconception: null };
-  if (!correctValue) {
+  if (key(t.value) !== key(solution)) {
     return { ...base, ok: false, reason: 'wrongValue', misconception: detectMisconception(item.eq, t.value) };
   }
   return { ...base, ok: true, misconception: null };

@@ -20,6 +20,7 @@ import {
   detectMisconception,
   eqn,
   equationKey,
+  hasEmptyPan,
   holdsAt,
   isBlocked,
   isIsolated,
@@ -43,10 +44,25 @@ import {
   type Equation,
   type MadeEquation,
 } from '../src/core/balance';
-import type { Item } from '../src/core/items/types';
-import { rat } from '../src/core/rational';
+import { ACHIEVEMENTS, evaluateAchievements, validateAchievements } from '../src/core/achievements';
+import { MODE_EVIDENCE } from '../src/core/engine/params';
+import { compatibleBindings } from '../src/core/engine/scheduler';
+import { FLAGS } from '../src/core/flags';
+import { hasChecker } from '../src/core/items/checkers';
+import { getCustomPrompt } from '../src/core/items/customPrompts';
+import { getGenerator } from '../src/core/items/generators';
+import { gradeResponse } from '../src/core/items/grade';
+import type { GeneratedItem, Item } from '../src/core/items/types';
+import type { ItemRecord } from '../src/core/log/types';
+import { createProfile } from '../src/core/profile';
+import { key, neg, rat } from '../src/core/rational';
 import { createRng } from '../src/core/rng';
+import { GRAPH } from '../src/core/skills';
+import { dayKey } from '../src/core/time';
 import { getLocale } from '../src/i18n/locales';
+import { promptText } from '../src/i18n/render';
+import '../src/modes';
+import { getMode } from '../src/modes/registry';
 
 const SKILLS: BalanceSkill[] = ['al.eq.onestep', 'al.eq.linear'];
 const LEVELS = [0, 0.1, 0.3, 0.5, 0.7, 0.9, 1];
@@ -95,6 +111,7 @@ describe('balance: generator', () => {
         expect(m.solution).not.toBe(0);
         expect(holdsAt(m.eq, m.solution)).toBe(true);
         expect(isolatedValue(m.eq)).toBeNull();
+        expect(hasEmptyPan(m.eq), equationKey(m.eq)).toBe(false);
         expect(m.balloons).toBe(needsBalloons(m.eq));
         expect(m.achievedLevel).toBeGreaterThanOrEqual(0);
         expect(m.achievedLevel).toBeLessThanOrEqual(1);
@@ -366,6 +383,15 @@ describe('balance: checker', () => {
     expect(checkBalance(balanceData(e, false, false), '=3')).toMatchObject({ ok: true, isolated: false });
     // Balloons are re-derived from the data, not the UI: a Band B scale cannot go negative.
     expect(checkBalance(data, '-10;/2;+2;=3')).toMatchObject({ ok: false, reason: 'forged' });
+    // An undo with nothing to undo.
+    expect(checkBalance(data, 'u;-4;/2;=3')).toMatchObject({ ok: false, reason: 'forged' });
+  });
+
+  it('replays undos and treats "show me" as a wrong attempt', () => {
+    // Undo a split: the scale goes back to 2x = 6.
+    expect(checkBalance(data, '-4;/2;u;/2;=3')).toMatchObject({ ok: true, moves: 3, undos: 1, optimal: false });
+    expect(checkBalance(data, '-4;u;=3')).toMatchObject({ ok: false, reason: 'notIsolated' });
+    expect(checkBalance(data, '-4;=?')).toMatchObject({ ok: false, reason: 'revealed', value: null, misconception: null });
   });
 
   it('marks a wrong value with its misconception', () => {
@@ -389,7 +415,9 @@ describe('balance: checker', () => {
 
   it('round-trips transcripts', () => {
     const t = parseTranscript('!L:-4;-4;/2;=3')!;
-    expect(t.attempts.map((a) => a.claimedBlocked)).toEqual([true, false, false]);
+    expect(t.entries.map((e) => e.kind === 'move' && e.claimedBlocked)).toEqual([true, false, false]);
+    expect(transcriptRepr(parseTranscript('-4;u;-4;/2;=?')!)).toBe('-4;u;-4;/2;=?');
+    expect(parseTranscript('-4;u;=?')!.value).toBeNull();
     expect(t.value).toEqual(rat(3));
     expect(transcriptRepr(t)).toBe('!L:-4;-4;/2;=3');
     expect(parseTranscript('-2x;=-7/2')!.value).toEqual(rat(-7, 2));
@@ -445,5 +473,86 @@ describe('balance: registry adapter', () => {
     expect(balanceChecker(item, built('?'), params, conv)).toMatchObject({ correct: false, invalid: true });
     expect(balanceChecker(item, { kind: 'typed', raw: '3' }, params, conv)).toMatchObject({ correct: false, invalid: true });
     expect(BALANCE_CHECK_ID).toBe('balance.eq');
+  });
+
+  it('honours the balloons the scale showed (Band C), which can only make more moves legal', () => {
+    const params: Record<string, number> = balanceData(eqn(2, 4, 0, 10), false);
+    const conv = getLocale('mk').numbers;
+    const repr = '-10;/2;+3;=3'; // passes through 2x − 6 = 0: needs balloons
+    expect(balanceChecker({} as Item, { kind: 'built', value: null, repr }, params, conv).correct).toBe(false);
+    expect(balanceChecker({} as Item, { kind: 'built', value: null, repr, data: { bal: 1 } }, params, conv).correct).toBe(true);
+  });
+});
+
+// ── Integration with the item pipeline, engine eligibility, modes and achievements ──
+
+const T0 = new Date(2026, 9, 5, 16, 0).getTime();
+const asItem = (g: GeneratedItem, skillId: string, genId: string, seed: number): Item => ({ ...g, key: '1', skillId, genId, genVersion: 1, seed });
+
+describe('balance: integration', () => {
+  it('registers its checker and prompts once, and grades generated items through gradeResponse', () => {
+    expect(hasChecker('balance.eq')).toBe(true);
+    expect(getCustomPrompt('balance.eq')).toBeDefined();
+    expect(getCustomPrompt('balance.bond')).toBeDefined();
+    const conv = getLocale('mk').numbers;
+    for (let seed = 1; seed <= 40; seed++) {
+      const skill = seed % 2 ? 'al.eq.onestep' : 'al.eq.linear';
+      const item = asItem(getGenerator('equation').generate(seed / 40, createRng(seed), { skill }), skill, 'equation', seed);
+      expect(item.prompt.kind).toBe('custom');
+      const d = readBalanceData(item.prompt.kind === 'custom' ? item.prompt.data : null)!;
+      const moves = solutionPath(d.eq, d.balloons)!.map(moveToken);
+      const x = item.answer.value;
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: [...moves, `=${key(x)}`].join(';') }, conv).correct).toBe(true);
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: [...moves, `=${key(neg(x))}`].join(';') }, conv)).toMatchObject({
+        correct: false,
+        invalid: false,
+        misconception: 'balance.sign',
+      });
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: 'nonsense' }, conv).invalid).toBe(true);
+      expect(promptText(item, 'mk', 'C')).toBe('Држи ги двете страни еднакви додека непознатата x не остане сама.');
+    }
+  });
+
+  it('serves equations to Balance only, and al.eq.onestep to Hop as a missing number on a signed line', () => {
+    const hop = { requires: ['numberLine'] as const, allowReading: false };
+    const build = { requires: ['build'] as const, allowReading: false };
+    expect(compatibleBindings(GRAPH.get('al.eq.onestep'), hop).map((b) => b.id)).toEqual(['eqBond']);
+    expect(compatibleBindings(GRAPH.get('al.eq.linear'), hop)).toEqual([]);
+    expect(compatibleBindings(GRAPH.get('al.eq.onestep'), build).map((b) => b.id)).toEqual(['equation']);
+    expect(compatibleBindings(GRAPH.get('al.eq.linear'), build).map((b) => b.id)).toEqual(['equation']);
+    const bond = asItem(getGenerator('eqBond').generate(0.9, createRng(4), {}), 'al.eq.onestep', 'eqBond', 4);
+    const text = promptText(bond, 'mk', 'C');
+    expect(text.startsWith('Одреди го непознатиот број: ')).toBe(true);
+    expect(text).toContain('?');
+    expect(text).not.toMatch(/[-*/]/); // Macedonian glyphs only: − · :
+  });
+
+  it('registers the mode: order 52, build, Bands B/C, a default-on flag, 0.75 evidence, unlock-gated', () => {
+    const m = getMode('balance')!;
+    expect(m).toMatchObject({ order: 52, requires: ['build'], bands: ['B', 'C'], flag: 'mode.balance', notReadyKey: 'balance.locked' });
+    expect(FLAGS.find((f) => f.id === 'mode.balance')).toMatchObject({ default: true, labelKey: 'balance.flag' });
+    expect(MODE_EVIDENCE.balance).toBe(0.75);
+    expect(m.filter?.(GRAPH.get('al.eq.linear'), undefined)).toBe(true);
+    expect(m.filter?.(GRAPH.get('geo.coord'), undefined)).toBe(false);
+    const p = createProfile({ name: 'Ема', age: 13, locale: 'mk', avatar: 'color.green' }, T0);
+    expect(m.ready?.(p)).toBe(false);
+    const placed = { ...p, placement: { done: true, state: null } };
+    expect(m.ready?.(placed)).toBe(false);
+    const solid = Object.fromEntries(GRAPH.effectivePrereqs('al.eq.onestep').map((id) => [id, { proficientAt: T0 }]));
+    expect(m.ready?.({ ...placed, skills: solid as unknown as typeof p.skills })).toBe(true);
+  });
+
+  it('keeps the achievement catalogue valid; balance.recovered rewards solving after a refused move', () => {
+    expect(validateAchievements(ACHIEVEMENTS)).toEqual([]);
+    const profile = { ...createProfile({ name: 'Ема', age: 13, locale: 'mk', avatar: 'color.green' }, T0), band: 'C' as const };
+    const rec = (answer: string, correct: boolean): ItemRecord => ({
+      type: 'item', ts: T0, sid: 's1', key: '1', skill: 'al.eq.linear', gen: 'equation', genV: 1, seed: 1, level: 0.5, diff: 0,
+      p: 0.8, mu: 0, s2: 1, correct, attempt: 1, latency: 9000, hint: true, answer, expected: '3', mis: null, mode: 'balance',
+      band: 'C', locale: 'mk', source: 'frontier', timed: false, input: 'typed', hops: null, alt: false,
+    });
+    const ctx = (log: ItemRecord[]) => ({ profile, now: T0, today: dayKey(T0), log, sessionId: 's1', graph: GRAPH, modesAvailable: 3, memo: new Map() });
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([rec('-4;/2;=3', true)]), 'item')).not.toContain('balance.recovered');
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([rec('!L:-4;-4;/2;=7', false)]), 'item')).not.toContain('balance.recovered');
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([rec('!L:-4;-4;/2;=3', true)]), 'item')).toContain('balance.recovered');
   });
 });

@@ -16,7 +16,9 @@ import { wordGen } from './word';
 // ── slot: puzzle ──
 // ── slot: workshop ──
 // ── slot: balance ──
+import { eqBondGen, equationGen } from './equation';
 // ── slot: coord ──
+import { coordGen } from './coord';
 // ── slot: season ──
 
 const BUILTIN = [
@@ -43,7 +45,10 @@ const BUILTIN = [
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  equationGen,
+  eqBondGen,
   // ── slot: coord ──
+  coordGen,
   // ── slot: season ──
 ];
 

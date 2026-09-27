@@ -70,6 +70,8 @@ export const ACHIEVEMENTS: readonly AchievementDef[] = [
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  { id: 'balance.recovered', category: 'resilience', bands: ['B', 'C'], icon: 'scale', on: ON_ITEM, when: { metric: 'balance.recovered', gte: 1 } },
   // ── slot: coord ──
+  { id: 'coord.quadrants', category: 'exploration', bands: ['B', 'C'], icon: 'axes', on: ON_ITEM, when: { metric: 'coord.quadrants', gte: 4 } },
   // ── slot: season ──
 ];

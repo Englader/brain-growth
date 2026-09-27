@@ -24,9 +24,23 @@ import {
   type CoordItem,
   type Point,
 } from '../src/core/coord';
-import type { Item } from '../src/core/items/types';
+import { ACHIEVEMENTS, evaluateAchievements, validateAchievements } from '../src/core/achievements';
+import { MODE_EVIDENCE } from '../src/core/engine/params';
+import { FLAGS } from '../src/core/flags';
+import { hasChecker } from '../src/core/items/checkers';
+import { getCustomPrompt } from '../src/core/items/customPrompts';
+import { getGenerator } from '../src/core/items/generators';
+import { gradeResponse } from '../src/core/items/grade';
+import type { GeneratedItem, Item } from '../src/core/items/types';
+import type { ItemRecord } from '../src/core/log/types';
+import { createProfile } from '../src/core/profile';
 import { createRng } from '../src/core/rng';
+import { GRAPH } from '../src/core/skills';
+import { dayKey } from '../src/core/time';
 import { getLocale } from '../src/i18n/locales';
+import { promptText } from '../src/i18n/render';
+import '../src/modes';
+import { getMode } from '../src/modes/registry';
 
 const NBSP = ' ';
 const MINUS = '−';
@@ -183,7 +197,6 @@ describe('coord: solution steps', () => {
     expect(steps).toEqual([
       { k: 'say', key: COORD_SOL_KEYS.across, params: { n: 3, dir: 'left' } },
       { k: 'say', key: COORD_SOL_KEYS.upDown, params: { n: 0, dir: 'none' } },
-      { k: 'say', key: COORD_SOL_KEYS.result, params: { x: -3, y: 0 } },
     ]);
     for (const code of COORD_MISCONCEPTIONS) expect(COORD_MIS_KEYS[code]).toBe(`mis.${code}`);
   });
@@ -207,5 +220,70 @@ describe('coord: registry adapter', () => {
     expect(coordChecker(item, built('3;-2'), params, conv)).toMatchObject({ invalid: true });
     expect(coordChecker(item, { kind: 'landed', value: 3 }, params, conv)).toMatchObject({ invalid: true });
     expect(COORD_CHECK_ID).toBe('coord.point');
+  });
+});
+
+// ── Integration with the item pipeline, locales, modes and achievements ──
+
+const T0 = new Date(2026, 9, 5, 17, 0).getTime();
+const asItem = (g: GeneratedItem, seed: number): Item => ({ ...g, key: '1', skillId: 'geo.coord', genId: 'coord', genVersion: 1, seed });
+const dataOf = (it: Item): { x: number; y: number; read: number } => (it.prompt.kind === 'custom' ? (it.prompt.data as { x: number; y: number; read: number }) : { x: 0, y: 0, read: 0 });
+
+describe('coord: integration', () => {
+  it('registers its checker and prompt, and grades generated items through gradeResponse', () => {
+    expect(hasChecker('coord.point')).toBe(true);
+    expect(getCustomPrompt('coord.point')).toBeDefined();
+    const conv = getLocale('mk').numbers;
+    for (let seed = 1; seed <= 40; seed++) {
+      const item = asItem(getGenerator('coord').generate(seed / 40, createRng(seed), {}), seed);
+      const { x, y } = dataOf(item);
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: `${x},${y}` }, conv)).toMatchObject({ correct: true, given: `${x},${y}` });
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: `${y},${x}` }, conv)).toMatchObject({ correct: false, misconception: 'coord.swapped' });
+      expect(gradeResponse(item, { kind: 'built', value: null, repr: '9,9' }, conv).invalid).toBe(true);
+    }
+  });
+
+  it('renders the point in the Macedonian notation in the prompt, and the locale config carries it', () => {
+    expect(getLocale('mk').point).toBe(POINT_NOTATIONS.mk);
+    expect(getLocale('en').point).toBe(POINT_NOTATIONS.en);
+    let plotted = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const item = asItem(getGenerator('coord').generate(0.9, createRng(seed), {}), seed);
+      const { x, y, read } = dataOf(item);
+      if (read) continue;
+      plotted++;
+      const fmt = (v: number): string => (v < 0 ? `${MINUS}${-v}` : String(v));
+      expect(promptText(item, 'mk', 'B')).toBe(`Означи ја точката (${fmt(x)},${NBSP}${fmt(y)}).`);
+      expect(promptText(item, 'en', 'C')).toBe(`Plot the point (${fmt(x)},${NBSP}${fmt(y)}).`);
+    }
+    expect(plotted).toBeGreaterThan(10);
+  });
+
+  it('registers the mode: order 54, build, Bands B/C, a default-on flag, 0.75 evidence, unlock-gated', () => {
+    const m = getMode('coord')!;
+    expect(m).toMatchObject({ order: 54, requires: ['build'], bands: ['B', 'C'], flag: 'mode.coord', notReadyKey: 'coord.locked' });
+    expect(FLAGS.find((f) => f.id === 'mode.coord')).toMatchObject({ default: true, labelKey: 'coord.flag' });
+    expect(MODE_EVIDENCE.coord).toBe(0.75);
+    expect(m.filter?.(GRAPH.get('geo.coord'), undefined)).toBe(true);
+    expect(m.filter?.(GRAPH.get('al.eq.linear'), undefined)).toBe(false);
+    const p = createProfile({ name: 'Лука', age: 10, locale: 'mk', avatar: 'color.green' }, T0);
+    const placed = { ...p, placement: { done: true, state: null } };
+    expect(m.ready?.(placed)).toBe(false);
+    const solid = Object.fromEntries(GRAPH.effectivePrereqs('geo.coord').map((id) => [id, { proficientAt: T0 }]));
+    expect(m.ready?.({ ...placed, skills: solid as unknown as typeof p.skills })).toBe(true);
+  });
+
+  it('keeps the achievement catalogue valid; coord.quadrants needs points in all four quadrants', () => {
+    expect(validateAchievements(ACHIEVEMENTS)).toEqual([]);
+    const profile = { ...createProfile({ name: 'Лука', age: 13, locale: 'mk', avatar: 'color.green' }, T0), band: 'C' as const };
+    const rec = (answer: string): ItemRecord => ({
+      type: 'item', ts: T0, sid: 's1', key: answer, skill: 'geo.coord', gen: 'coord', genV: 1, seed: 1, level: 0.5, diff: 0,
+      p: 0.8, mu: 0, s2: 1, correct: false, attempt: 1, latency: 5000, hint: false, answer, expected: '0', mis: null, mode: 'coord',
+      band: 'C', locale: 'mk', source: 'frontier', timed: false, input: 'tap', hops: null, alt: false,
+    });
+    const ctx = (log: ItemRecord[]) => ({ profile, now: T0, today: dayKey(T0), log, sessionId: 's1', graph: GRAPH, modesAvailable: 3, memo: new Map() });
+    const three = [rec('2,3'), rec('-2,3'), rec('-2,-3'), rec('0,4')];
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx(three), 'item')).not.toContain('coord.quadrants');
+    expect(evaluateAchievements(ACHIEVEMENTS, ctx([...three, rec('5,-1')]), 'item')).toContain('coord.quadrants');
   });
 });

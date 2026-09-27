@@ -118,6 +118,8 @@ export type Capability =
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  /** A construction graded by a checker (Balance scale, coordinate plane, Workshop): modes that build, not hop. */
+  | 'build'
   // ── slot: coord ──
   // ── slot: season ──
   ;

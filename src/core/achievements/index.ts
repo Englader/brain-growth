@@ -10,7 +10,9 @@ import './metrics';
 // ── slot: puzzle ──
 // ── slot: workshop ──
 // ── slot: balance ──
+import './metrics/balance';
 // ── slot: coord ──
+import './metrics/coord';
 // ── slot: season ──
 
 export { ACHIEVEMENTS } from './definitions';

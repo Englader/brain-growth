@@ -7,6 +7,7 @@
 import type { LocaleId } from '../core/types';
 import en from './locales/en.json';
 import mk from './locales/mk.json';
+import { POINT_NOTATIONS, type PointNotation } from '../core/coord/notation';
 import type { NumberConventions } from './numbers';
 import enWP from './wordproblems/en.json';
 import mkWP from './wordproblems/mk.json';
@@ -33,6 +34,8 @@ export interface LocaleConfig {
   /** Short label on the always-visible language toggle. */
   short: string;
   numbers: NumberConventions;
+  /** How a point is written, "(3, −2)" or "(3; −2)" (src/core/coord/notation.ts); default by locale id. */
+  point?: PointNotation;
   ops: OperatorGlyphs;
   /** Speech-synthesis languages to accept, in preference order. Never a different language. */
   speech: readonly string[];
@@ -72,6 +75,7 @@ registerLocale({
   short: 'EN',
   numbers: { bcp47: 'en-US', decimal: '.', group: ',', minimumGroupingDigits: 1, minus: '−' },
   ops: { '+': '+', '-': '−', '*': '×', '/': '÷', '=': '=' },
+  point: POINT_NOTATIONS.en,
   speech: ['en-US', 'en-GB', 'en-AU', 'en-IE', 'en'],
   messages: flatten(en as Nested),
   wordProblems: enWP as WordProblemBank,
@@ -88,6 +92,8 @@ registerLocale({
   numbers: { bcp47: 'mk-MK', decimal: ',', group: '\u00A0', minimumGroupingDigits: 2, minus: '−' },
   // Macedonian schooling writes multiplication as · and division as :
   ops: { '+': '+', '-': '−', '*': '·', '/': ':', '=': '=' },
+  // "(3, −2)" as in the МОН одделение 6 textbook; "(1,5; −2)" once a decimal comma appears.
+  point: POINT_NOTATIONS.mk,
   speech: ['mk-MK', 'mk'],
   messages: flatten(mk as Nested),
   wordProblems: mkWP as WordProblemBank,

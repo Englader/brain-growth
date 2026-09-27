@@ -39,7 +39,9 @@ export const FLAGS: readonly FlagDef[] = [
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  { id: 'mode.balance', scope: 'profile', default: true, labelKey: 'balance.flag', description: 'Balance: solve equations on a pan scale, doing the same to both pans (Bands B/C, once an equation skill unlocks).' },
   // ── slot: coord ──
+  { id: 'mode.coord', scope: 'profile', default: true, labelKey: 'coord.flag', description: 'Coordinate plane: plot and read lattice points in −6…6 (Band C, and Band B once geo.coord unlocks).' },
   // ── slot: season ──
 ];
 

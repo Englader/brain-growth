@@ -67,7 +67,12 @@ const PATHS = {
   // ── slot: puzzle ──
   // ── slot: workshop ──
   // ── slot: balance ──
+  scale: 'M12 4v16M8 20h8M4 7h16M5 7l-3 7h6zM19 7l-3 7h6z',
+  undo: 'M9 14L4 9l5-5M4 9h10a6 6 0 010 12h-3',
   // ── slot: coord ──
+  axes: 'M3 12h18M19 10l2 2-2 2M12 21V3M10 5l2-2 2 2M16 7.5a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0',
+  arrowU: 'M12 19V6M6 11l6-6 6 6',
+  arrowD: 'M12 5v13M6 13l6 6 6-6',
   // ── slot: season ──
 } as const;
 

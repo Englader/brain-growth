@@ -22,7 +22,9 @@ import { SPRINT_ITEMS } from './sprint/timing';
 // ── slot: puzzle ──
 // ── slot: workshop ──
 // ── slot: balance ──
+import './balance';
 // ── slot: coord ──
+import './coord';
 // ── slot: season ──
 
 registerMode({
